@@ -21,12 +21,7 @@ struct AppConfig {
     }
     
     // MARK: - App Group Storage Keys
-    struct AppGroupKeys {
-        static let sessionState = "sessionState"
-        static let isSessionActive = "isSessionActive"
-        static let sessionId = "sessionId"
-        static let sessionMessage = "sessionMessage"
-        static let timeRemaining = "timeRemaining"
-    }
+    // Note: AppGroupStorage now uses its own internal keys
+    // Legacy keys removed - only SharedSessionState is used
 }
 

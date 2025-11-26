@@ -26,7 +26,7 @@ class UnlockRequestService: UnlockRequestServiceProtocol {
     
     init(
         sessionService: SessionServiceProtocol = SessionService.shared,
-        screenTimeService: ScreenTimeServiceProtocol = MockScreenTimeService.shared
+        screenTimeService: ScreenTimeServiceProtocol = ScreenTimeService.shared
     ) {
         self.sessionService = sessionService
         self.screenTimeService = screenTimeService
@@ -124,6 +124,9 @@ class UnlockRequestService: UnlockRequestServiceProtocol {
         
         // Call ScreenTimeService.stopBlocking()
         await screenTimeService.stopBlocking()
+        
+        // Clear session state from AppGroupStorage
+        appGroupStorage.clearSessionState()
         
         // Notify UI
         NotificationCenter.default.post(name: .unlockRequestStatusChanged, object: nil, userInfo: [
