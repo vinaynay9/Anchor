@@ -1,35 +1,63 @@
 import SwiftUI
-import Shared
+import Foundation
 
+@MainActor
 class SettingsViewModel: ObservableObject {
-    @Published var currentUser: User?
-    @Published var isLoading = false
+    // Notification toggles with @AppStorage
+    @AppStorage("sessionRemindersEnabled") var sessionRemindersEnabled: Bool = true
+    @AppStorage("unlockRequestAlertsEnabled") var unlockRequestAlertsEnabled: Bool = true
     
-    private let userService = UserService.shared
-    private let authService = AuthService.shared
+    // Alert state
+    @Published var showClearDataAlert = false
+    @Published var showClearDataConfirmation = false
     
-    func loadCurrentUser() {
-        isLoading = true
+    // Simulated actions
+    func editProfile() {
+        // Simulated action - no backend
+        print("Edit Profile tapped")
+    }
+    
+    func changeDisplayName() {
+        // Simulated action - no backend
+        print("Change Display Name tapped")
+    }
+    
+    func clearLocalData() {
+        showClearDataAlert = true
+    }
+    
+    func confirmClearLocalData() {
+        // Simulated action - no backend
+        print("Clearing local data...")
+        showClearDataConfirmation = false
+        showClearDataAlert = false
         
-        Task {
-            do {
-                let user = try await userService.getCurrentUser()
-                await MainActor.run {
-                    self.currentUser = user
-                    self.isLoading = false
-                }
-            } catch {
-                await MainActor.run {
-                    self.isLoading = false
-                }
-            }
+        // Simulate delay for animation
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
+            // Data cleared (simulated)
         }
     }
     
-    func signOut() {
-        Task {
-            try? await authService.signOut()
+    func exportActivityLog() {
+        // Simulated action - no backend
+        print("Export Activity Log tapped")
+    }
+    
+    func openPrivacyPolicy() {
+        // Simulated action - no backend
+        print("Privacy Policy tapped")
+    }
+    
+    func openTerms() {
+        // Simulated action - no backend
+        print("Terms tapped")
+    }
+    
+    // Get app version
+    var appVersion: String {
+        if let version = Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String {
+            return version
         }
+        return "1.0.0"
     }
 }
-

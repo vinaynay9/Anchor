@@ -1,0 +1,101 @@
+import SwiftUI
+
+/// Individual toast notification view
+struct ToastView: View {
+    let toast: ToastModel
+    
+    var body: some View {
+        HStack(spacing: 12) {
+            // Icon
+            Image(systemName: iconName)
+                .font(.system(size: 20, weight: .semibold))
+                .foregroundColor(iconColor)
+            
+            // Message
+            Text(toast.message)
+                .font(AppTypography.body)
+                .fontWeight(.medium)
+                .foregroundColor(AppColors.textPrimary)
+                .tracking(0.2)
+                .multilineTextAlignment(.leading)
+                .lineLimit(2)
+            
+            Spacer()
+        }
+        .padding(.horizontal, 20)
+        .padding(.vertical, 16)
+        .background(
+            RoundedRectangle(cornerRadius: 16)
+                .fill(AppColors.primaryDark.opacity(0.9))
+                .background(
+                    // Frosted glass blur effect
+                    RoundedRectangle(cornerRadius: 16)
+                        .fill(.ultraThinMaterial)
+                        .opacity(0.3)
+                )
+        )
+        .overlay(
+            // Vibrant accent border glow
+            RoundedRectangle(cornerRadius: 16)
+                .stroke(borderGradient, lineWidth: 2)
+                .shadow(color: borderGlowColor.opacity(0.6), radius: 8, x: 0, y: 0)
+        )
+        .shadow(color: Color.black.opacity(0.3), radius: 12, x: 0, y: 4)
+    }
+    
+    // MARK: - Computed Properties
+    
+    private var iconName: String {
+        switch toast.type {
+        case .success:
+            return "checkmark.circle.fill"
+        case .error:
+            return "exclamationmark.triangle.fill"
+        }
+    }
+    
+    private var iconColor: Color {
+        switch toast.type {
+        case .success:
+            return AppColors.accent
+        case .error:
+            return AppColors.error
+        }
+    }
+    
+    private var borderGradient: LinearGradient {
+        switch toast.type {
+        case .success:
+            // Lavender → Violet gradient for success
+            return LinearGradient(
+                colors: [
+                    AppColors.accentLight,
+                    AppColors.accent
+                ],
+                startPoint: .leading,
+                endPoint: .trailing
+            )
+        case .error:
+            // Reddish-magenta gradient for error
+            return LinearGradient(
+                colors: [
+                    AppColors.error.opacity(0.8),
+                    Color(red: 0.863, green: 0.196, blue: 0.325).opacity(0.9),
+                    Color(red: 0.925, green: 0.196, blue: 0.463) // Magenta tint
+                ],
+                startPoint: .leading,
+                endPoint: .trailing
+            )
+        }
+    }
+    
+    private var borderGlowColor: Color {
+        switch toast.type {
+        case .success:
+            return AppColors.accent
+        case .error:
+            return AppColors.error
+        }
+    }
+}
+
