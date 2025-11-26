@@ -1,0 +1,95 @@
+import SwiftUI
+import UIKit
+
+struct CaptureProofView: View {
+    let sessionId: UUID?
+    @StateObject private var viewModel = ProofViewModel()
+    @State private var showingImagePicker = false
+    @State private var capturedImage: UIImage?
+    @Environment(\.dismiss) var dismiss
+    
+    var body: some View {
+        VStack {
+            if let image = capturedImage {
+                Image(uiImage: image)
+                    .resizable()
+                    .scaledToFit()
+                    .frame(maxHeight: 400)
+                
+                Button(action: {
+                    if let sessionId = sessionId {
+                        viewModel.uploadProof(
+                            image: image,
+                            sessionId: sessionId,
+                            unlockRequestId: nil
+                        )
+                    }
+                    dismiss()
+                }) {
+                    Text("Use Photo")
+                }
+                .buttonStyle(PrimaryButtonStyle())
+                .padding()
+            } else {
+                Button(action: {
+                    showingImagePicker = true
+                }) {
+                    VStack {
+                        Image(systemName: "camera.fill")
+                            .font(.system(size: 50))
+                        Text("Take Photo")
+                            .font(AppTypography.bodyBold)
+                    }
+                    .foregroundColor(.white)
+                    .frame(maxWidth: .infinity)
+                    .padding()
+                    .background(AppColors.primary)
+                    .cornerRadius(Theme.cornerRadius)
+                }
+                .padding()
+            }
+        }
+        .sheet(isPresented: $showingImagePicker) {
+            ImagePicker(image: $capturedImage)
+        }
+        .navigationTitle("Capture Proof")
+    }
+}
+
+struct ImagePicker: UIViewControllerRepresentable {
+    @Binding var image: UIImage?
+    @Environment(\.dismiss) var dismiss
+    
+    func makeUIViewController(context: Context) -> UIImagePickerController {
+        let picker = UIImagePickerController()
+        picker.sourceType = .camera
+        picker.delegate = context.coordinator
+        return picker
+    }
+    
+    func updateUIViewController(_ uiViewController: UIImagePickerController, context: Context) {}
+    
+    func makeCoordinator() -> Coordinator {
+        Coordinator(self)
+    }
+    
+    class Coordinator: NSObject, UIImagePickerControllerDelegate, UINavigationControllerDelegate {
+        let parent: ImagePicker
+        
+        init(_ parent: ImagePicker) {
+            self.parent = parent
+        }
+        
+        func imagePickerController(_ picker: UIImagePickerController, didFinishPickingMediaWithInfo info: [UIImagePickerController.InfoKey : Any]) {
+            if let image = info[.originalImage] as? UIImage {
+                parent.image = image
+            }
+            parent.dismiss()
+        }
+        
+        func imagePickerControllerDidCancel(_ picker: UIImagePickerController) {
+            parent.dismiss()
+        }
+    }
+}
+
