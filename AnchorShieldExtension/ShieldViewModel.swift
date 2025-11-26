@@ -13,7 +13,7 @@ class ShieldViewModel: ObservableObject {
     private let appGroupStorage = AppGroupStorage.shared
     
     func refresh() {
-        let state = appGroupStorage.getSessionState()
+        let state = appGroupStorage.getSessionState() // Now returns SharedSessionState?
         let hasPendingUnlock = appGroupStorage.hasPendingUnlockRequest()
         
         // Check for pending unlock request first
@@ -22,15 +22,18 @@ class ShieldViewModel: ObservableObject {
             title = "Unlock Request Pending"
             subtitle = "Waiting for your accountability partner to review your unlock request."
             remainingTimeText = nil
-        } else if state.isActive {
+        } else if let state = state, state.isActive {
             // Active session
             isWaitingForFriendApproval = false
             title = "Stay Focused"
-            subtitle = state.message ?? "This app is blocked during your focus session."
+            subtitle = "This app is blocked during your focus session."
             
-            // Format remaining time
-            if let timeRemaining = state.timeRemaining {
-                remainingTimeText = formatTime(timeRemaining)
+            // Calculate remaining time from remainingSeconds or endTime
+            if let seconds = state.remainingSeconds {
+                remainingTimeText = formatTime(TimeInterval(seconds))
+            } else if let endTime = state.endTime {
+                let remaining = max(0, endTime.timeIntervalSince(Date()))
+                remainingTimeText = formatTime(remaining)
             } else {
                 remainingTimeText = nil
             }

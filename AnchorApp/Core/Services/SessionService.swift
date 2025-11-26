@@ -1,89 +1,198 @@
 import Foundation
 
 protocol SessionServiceProtocol {
-    func startSession(durationMinutes: Int, selectedFriendIds: [String]) async throws -> LockSession
+    func startSession(durationMinutes: Int, friendIds: [String]) async throws -> LockSession
     func endSession() async throws
-    func getActiveSession() async throws -> LockSession?
+    func getActiveSession() -> LockSession?
 }
 
 class SessionService: SessionServiceProtocol {
     static let shared = SessionService()
     
-    // In-memory storage for temporary implementation
+    private let appGroupStorage = AppGroupStorage.shared
     private var activeSession: LockSession?
+    private var timer: Timer?
     private let userId: UUID
     
+    // Store friendIds separately since LockSession only has accountabilityPartnerId
+    private var currentFriendIds: [String] = []
+    
     private init() {
-        // Get or create a mock user ID for in-memory implementation
+        // Get or create user ID
         if let userIdString = UserDefaults.standard.string(forKey: AppConfig.UserDefaultsKeys.currentUserId),
            let uuid = UUID(uuidString: userIdString) {
             self.userId = uuid
         } else {
-            // Create a temporary UUID for in-memory testing
             self.userId = UUID()
             UserDefaults.standard.set(userId.uuidString, forKey: AppConfig.UserDefaultsKeys.currentUserId)
         }
+        
+        // Restore state on init
+        restoreState()
     }
     
-    func startSession(durationMinutes: Int, selectedFriendIds: [String]) async throws -> LockSession {
+    // MARK: - State Restoration
+    
+    private func restoreState() {
+        guard let sharedState = appGroupStorage.getSessionState(),
+              sharedState.isActive,
+              let endTime = sharedState.endTime else {
+            return
+        }
+        
+        // Check if session is still valid (not expired)
+        guard endTime > Date() else {
+            // Session expired, clear it
+            Task {
+                try? await endSession()
+            }
+            return
+        }
+        
+        // Rebuild session from stored state
+        let startTime = endTime.addingTimeInterval(-Double(sharedState.remainingSeconds ?? 0))
+        
+        // Try to restore friendIds from UserDefaults
+        if let friendIdsData = UserDefaults.standard.array(forKey: "currentSessionFriendIds") as? [String] {
+            currentFriendIds = friendIdsData
+        }
+        
+        let accountabilityPartnerId = currentFriendIds.first.flatMap { UUID(uuidString: $0) }
+        
+        activeSession = LockSession(
+            id: UUID(), // Generate new ID for restored session
+            userId: userId,
+            status: .active,
+            startTime: startTime,
+            endTime: endTime,
+            appsBlocked: [],
+            accountabilityPartnerId: accountabilityPartnerId,
+            createdAt: startTime
+        )
+        
+        // Restart timer
+        startTimer()
+    }
+    
+    // MARK: - Protocol Implementation
+    
+    func startSession(durationMinutes: Int, friendIds: [String]) async throws -> LockSession {
         // End any existing active session
         if activeSession != nil {
-            activeSession = nil
+            try await endSession()
         }
         
         let startTime = Date()
-        let durationSeconds = TimeInterval(durationMinutes * 60)
-        let endTime = startTime.addingTimeInterval(durationSeconds)
+        let endTime = startTime.addingTimeInterval(Double(durationMinutes) * 60)
+        let remainingSeconds = durationMinutes * 60
         
-        // Convert friend IDs from String to UUID
-        let accountabilityPartnerId = selectedFriendIds.first.flatMap { UUID(uuidString: $0) }
+        // Store friendIds
+        currentFriendIds = friendIds
+        UserDefaults.standard.set(friendIds, forKey: "currentSessionFriendIds")
         
+        // Convert friend IDs from String to UUID (use first one as accountabilityPartnerId)
+        let accountabilityPartnerId = friendIds.first.flatMap { UUID(uuidString: $0) }
+        
+        // Create session
         let session = LockSession(
             id: UUID(),
             userId: userId,
             status: .active,
             startTime: startTime,
             endTime: endTime,
-            appsBlocked: [], // Empty for now, will be populated later
+            appsBlocked: [],
             accountabilityPartnerId: accountabilityPartnerId,
             createdAt: Date()
         )
         
         activeSession = session
+        
+        // Write to AppGroupStorage
+        let sharedState = SharedSessionState(
+            isActive: true,
+            endTime: endTime,
+            remainingSeconds: remainingSeconds
+        )
+        appGroupStorage.setSessionState(sharedState)
+        
+        // Start timer
+        startTimer()
+        
         return session
     }
     
     func endSession() async throws {
-        guard let session = activeSession else {
-            throw NSError(domain: "SessionService", code: 404, userInfo: [NSLocalizedDescriptionKey: "No active session to end"])
-        }
+        // Stop timer
+        stopTimer()
         
-        // Update session status to completed
-        let endedSession = LockSession(
-            id: session.id,
-            userId: session.userId,
-            status: .completed,
-            startTime: session.startTime,
-            endTime: session.endTime,
-            appsBlocked: session.appsBlocked,
-            accountabilityPartnerId: session.accountabilityPartnerId,
-            createdAt: session.createdAt
-        )
+        // Clear AppGroupStorage
+        appGroupStorage.setSessionState(nil)
         
+        // Clear pending unlock request if exists
+        appGroupStorage.setPendingUnlockRequest(false)
+        
+        // Clear stored friendIds
+        UserDefaults.standard.removeObject(forKey: "currentSessionFriendIds")
+        currentFriendIds = []
+        
+        // Clear active session
         activeSession = nil
     }
     
-    func getActiveSession() async throws -> LockSession? {
+    func getActiveSession() -> LockSession? {
         // Check if active session has expired
         if let session = activeSession,
            let endTime = session.endTime,
-           endTime < Date() {
+           endTime <= Date() {
             // Session expired, clear it
-            activeSession = nil
+            Task {
+                try? await endSession()
+            }
             return nil
         }
         
         return activeSession
+    }
+    
+    // MARK: - Timer Management
+    
+    private func startTimer() {
+        stopTimer()
+        
+        // Ensure timer runs on main thread
+        DispatchQueue.main.async { [weak self] in
+            guard let self = self else { return }
+            
+            self.timer = Timer.scheduledTimer(withTimeInterval: 1.0, repeats: true) { [weak self] _ in
+                self?.tick()
+            }
+        }
+    }
+    
+    private func stopTimer() {
+        timer?.invalidate()
+        timer = nil
+    }
+    
+    private func tick() {
+        guard let session = activeSession,
+              let endTime = session.endTime else {
+            stopTimer()
+            return
+        }
+        
+        let now = Date()
+        let remainingSeconds = max(0, Int(endTime.timeIntervalSince(now)))
+        
+        // Update AppGroupStorage
+        appGroupStorage.updateRemainingSeconds(remainingSeconds)
+        
+        // If session expired, end it
+        if remainingSeconds <= 0 {
+            Task {
+                try? await endSession()
+            }
+        }
     }
 }
 

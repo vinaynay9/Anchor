@@ -19,16 +19,9 @@ class SessionViewModel: ObservableObject {
         isLoading = true
         errorMessage = nil
         
-        Task {
-            do {
-                let session = try await sessionService.getActiveSession()
-                self.activeSession = session
-                self.isLoading = false
-            } catch {
-                self.errorMessage = error.localizedDescription
-                self.isLoading = false
-            }
-        }
+        // getActiveSession() is now synchronous
+        self.activeSession = sessionService.getActiveSession()
+        self.isLoading = false
     }
     
     func startSession() {
@@ -39,7 +32,7 @@ class SessionViewModel: ObservableObject {
             do {
                 let session = try await sessionService.startSession(
                     durationMinutes: selectedDurationMinutes,
-                    selectedFriendIds: selectedFriendIds
+                    friendIds: selectedFriendIds
                 )
                 self.activeSession = session
                 self.isLoading = false

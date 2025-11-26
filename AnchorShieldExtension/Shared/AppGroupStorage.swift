@@ -1,27 +1,11 @@
 import Foundation
 
-// MARK: - Shared Session State (for Shield Extension)
-struct SessionState: Codable {
+// MARK: - Unified Shared Session State (for Shield Extension)
+// This must match the SharedSessionState in AnchorApp/Core/Services/AppGroupStorage.swift exactly
+struct SharedSessionState: Codable {
     let isActive: Bool
-    let sessionId: UUID?
-    let message: String?
-    let timeRemaining: TimeInterval?
-    
-    static let empty = SessionState(
-        isActive: false,
-        sessionId: nil,
-        message: nil,
-        timeRemaining: nil
-    )
-}
-
-// MARK: - App Group Storage Keys
-struct AppGroupKeys {
-    static let isSessionActive = "isSessionActive"
-    static let sessionId = "sessionId"
-    static let sessionMessage = "sessionMessage"
-    static let timeRemaining = "timeRemaining"
-    static let hasPendingUnlockRequest = "hasPendingUnlockRequest"
+    let endTime: Date?
+    let remainingSeconds: Int?
 }
 
 // MARK: - App Group Storage Service (for Shield Extension)
@@ -35,27 +19,23 @@ class AppGroupStorage {
     }
     
     // MARK: - Session State
-    func getSessionState() -> SessionState {
-        guard let defaults = userDefaults else { return .empty }
+    /// Gets the shared session state from App Group storage
+    /// Reads from the "sharedSessionState" key (JSON-encoded) written by the main app
+    func getSessionState() -> SharedSessionState? {
+        guard let defaults = userDefaults else { return nil }
         
-        let isActive = defaults.bool(forKey: AppGroupKeys.isSessionActive)
-        let sessionIdString = defaults.string(forKey: AppGroupKeys.sessionId)
-        let sessionId = sessionIdString.flatMap { UUID(uuidString: $0) }
-        let message = defaults.string(forKey: AppGroupKeys.sessionMessage)
-        let timeRemaining = defaults.double(forKey: AppGroupKeys.timeRemaining)
+        guard let data = defaults.data(forKey: "sharedSessionState") else {
+            return nil
+        }
         
-        return SessionState(
-            isActive: isActive,
-            sessionId: sessionId,
-            message: message,
-            timeRemaining: timeRemaining > 0 ? timeRemaining : nil
-        )
+        let decoder = JSONDecoder()
+        return try? decoder.decode(SharedSessionState.self, from: data)
     }
     
     // MARK: - Unlock Request Status
     func hasPendingUnlockRequest() -> Bool {
         guard let defaults = userDefaults else { return false }
-        return defaults.bool(forKey: AppGroupKeys.hasPendingUnlockRequest)
+        return defaults.bool(forKey: "hasPendingUnlockRequest")
     }
 }
 

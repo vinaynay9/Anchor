@@ -15,6 +15,13 @@ struct SessionState: Codable {
     )
 }
 
+// MARK: - Unified Shared Session State (for Shield Extension)
+struct SharedSessionState: Codable {
+    let isActive: Bool
+    let endTime: Date?
+    let remainingSeconds: Int?
+}
+
 // MARK: - App Group Storage Service
 class AppGroupStorage {
     static let shared = AppGroupStorage()
@@ -24,7 +31,7 @@ class AppGroupStorage {
         UserDefaults(suiteName: appGroupIdentifier)
     }
     
-    // MARK: - Session State
+    // MARK: - Legacy Session State (for backward compatibility)
     func saveSessionState(_ state: SessionState) {
         guard let defaults = userDefaults else { return }
         
@@ -42,7 +49,7 @@ class AppGroupStorage {
         }
     }
     
-    func getSessionState() -> SessionState {
+    func getLegacySessionState() -> SessionState {
         guard let defaults = userDefaults else { return .empty }
         
         let isActive = defaults.bool(forKey: AppConfig.AppGroupKeys.isSessionActive)
@@ -59,8 +66,67 @@ class AppGroupStorage {
         )
     }
     
-    func clearSessionState() {
+    func clearLegacySessionState() {
         saveSessionState(.empty)
+    }
+    
+    // MARK: - Shared Session State (for Shield Extension)
+    
+    /// Sets the shared session state for the shield extension
+    func setSessionState(_ state: SharedSessionState?) {
+        guard let defaults = userDefaults else { return }
+        
+        if let state = state {
+            let encoder = JSONEncoder()
+            if let encoded = try? encoder.encode(state) {
+                defaults.set(encoded, forKey: "sharedSessionState")
+            }
+        } else {
+            defaults.removeObject(forKey: "sharedSessionState")
+        }
+    }
+    
+    /// Sets the pending unlock request status
+    func setPendingUnlockRequest(_ isPending: Bool) {
+        guard let defaults = userDefaults else { return }
+        defaults.set(isPending, forKey: "hasPendingUnlockRequest")
+    }
+    
+    /// Gets the shared session state for the shield extension
+    func getSessionState() -> SharedSessionState? {
+        guard let defaults = userDefaults else { return nil }
+        
+        guard let data = defaults.data(forKey: "sharedSessionState") else {
+            return nil
+        }
+        
+        let decoder = JSONDecoder()
+        return try? decoder.decode(SharedSessionState.self, from: data)
+    }
+    
+    /// Clears the shared session state
+    func clearSessionState() {
+        guard let defaults = userDefaults else { return }
+        defaults.removeObject(forKey: "sharedSessionState")
+    }
+    
+    /// Updates the remaining seconds in the shared session state
+    func updateRemainingSeconds(_ seconds: Int) {
+        guard let defaults = userDefaults else { return }
+        
+        var currentState = getSessionState() ?? SharedSessionState(
+            isActive: false,
+            endTime: nil,
+            remainingSeconds: nil
+        )
+        
+        let updatedState = SharedSessionState(
+            isActive: currentState.isActive,
+            endTime: currentState.endTime,
+            remainingSeconds: seconds
+        )
+        
+        setSessionState(updatedState)
     }
 }
 

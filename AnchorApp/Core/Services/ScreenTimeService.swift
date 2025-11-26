@@ -26,8 +26,9 @@ class ScreenTimeService: ScreenTimeServiceProtocol {
     static let shared = ScreenTimeService()
     
     private let authorizationCenter = AuthorizationCenter.shared
-    private let managedSettingsStore = ManagedSettingsStore()
+    private let store = ManagedSettingsStore()
     private let appGroupStorage = AppGroupStorage.shared
+    private let activitySelectionService = ActivitySelectionService.shared
     
     // Store selections keyed by session ID
     private var sessionSelections: [UUID: FamilyActivitySelection] = [:]
@@ -66,34 +67,83 @@ class ScreenTimeService: ScreenTimeServiceProtocol {
             throw ScreenTimeError.authorizationDenied
         }
         
+        // Load application tokens from ActivitySelectionService
+        let tokens = activitySelectionService.loadApplicationTokens()
+        
+        // If no tokens are available from the service, use the provided selection
+        let tokensToUse = tokens.isEmpty ? Array(selection.applicationTokens) : tokens
+        
+        guard !tokensToUse.isEmpty else {
+            throw ScreenTimeError.noAppsSelected
+        }
+        
         // Save selection for this session
         saveSelection(selection, for: sessionId)
         
         // Apply restrictions using ManagedSettings
-        // TODO: Configure shield settings
-        // managedSettingsStore.shield.applications = selection.applicationTokens
-        // managedSettingsStore.shield.webDomains = selection.webDomainTokens
+        store.shield.applications = Set(tokensToUse)
+        store.shield.webDomains = selection.webDomainTokens
         
-        // Update app group storage
-        let sessionState = SessionState(
-            isActive: true,
-            sessionId: sessionId,
-            message: "Focus session active",
-            timeRemaining: nil
-        )
-        appGroupStorage.saveSessionState(sessionState)
+        // Note: Session state is managed by SessionService, not here
+        // SessionService writes SharedSessionState to App Group storage
+    }
+    
+    /// Activates shields for the given application tokens
+    func activateShields(for tokens: [ApplicationToken]) {
+        store.shield.applications = .init(tokens)
+        store.shield.applicationCategories = .all()
+        store.shield.webDomains = .all()
     }
     
     func deactivateShields() throws {
         // Remove all restrictions
-        // TODO: Clear shield settings
-        // managedSettingsStore.clearAllSettings()
+        store.shield.applications = nil
+        store.shield.applicationCategories = nil
+        store.shield.webDomains = nil
         
         // Clear app group storage
         appGroupStorage.clearSessionState()
         
         // Clear session selections
         sessionSelections.removeAll()
+    }
+    
+    // MARK: - Blocking Control
+    /// Starts blocking for the given session by reading tokens from ActivityPicker selection storage
+    func startBlocking(for session: LockSession) {
+        // First try to load from ActivitySelectionService (persisted selection)
+        let tokens = activitySelectionService.loadApplicationTokens()
+        
+        if !tokens.isEmpty {
+            activateShields(for: tokens)
+            return
+        }
+        
+        // Fallback to session-specific selection
+        guard let selection = loadSelection(for: session.id) else {
+            return
+        }
+        
+        let selectionTokens = Array(selection.applicationTokens)
+        if !selectionTokens.isEmpty {
+            activateShields(for: selectionTokens)
+        }
+    }
+    
+    /// Stops blocking by deactivating shields
+    func stopBlocking() {
+        try? deactivateShields()
+    }
+    
+    // MARK: - Session Integration
+    /// Convenience method called when a session starts
+    func onSessionStarted(_ session: LockSession) {
+        startBlocking(for: session)
+    }
+    
+    /// Convenience method called when a session ends
+    func onSessionEnded() {
+        stopBlocking()
     }
     
     // MARK: - Selection Persistence

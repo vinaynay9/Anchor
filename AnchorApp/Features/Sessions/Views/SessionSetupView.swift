@@ -1,4 +1,5 @@
 import SwiftUI
+import FamilyControls
 
 struct SessionSetupView: View {
     @ObservedObject var viewModel: SessionViewModel
@@ -8,8 +9,12 @@ struct SessionSetupView: View {
         MockFriend(id: UUID().uuidString, name: "Bob"),
         MockFriend(id: UUID().uuidString, name: "Charlie")
     ]
+    @State private var showActivityPicker = false
+    @State private var activitySelection = FamilyActivitySelection()
+    @State private var hasSelectedApps = false
     
     private let durationOptions = [25, 50, 90]
+    private let activitySelectionService = ActivitySelectionService.shared
     
     var body: some View {
         Form {
@@ -20,6 +25,25 @@ struct SessionSetupView: View {
                     }
                 }
                 .pickerStyle(SegmentedPickerStyle())
+            }
+            
+            Section(header: Text("Apps to Block")) {
+                Button(action: {
+                    showActivityPicker = true
+                }) {
+                    HStack {
+                        Text(hasSelectedApps ? "Change App Selection" : "Select Apps to Block")
+                            .font(AppTypography.body)
+                        Spacer()
+                        if hasSelectedApps {
+                            Image(systemName: "checkmark.circle.fill")
+                                .foregroundColor(AppColors.primary)
+                        } else {
+                            Image(systemName: "chevron.right")
+                                .foregroundColor(.secondary)
+                        }
+                    }
+                }
             }
             
             Section(header: Text("Accountability Friends (Optional)")) {
@@ -66,6 +90,26 @@ struct SessionSetupView: View {
             .disabled(viewModel.isLoading)
         }
         .navigationTitle("New Session")
+        .sheet(isPresented: $showActivityPicker) {
+            ActivityPickerView(selection: $activitySelection)
+                .onDisappear {
+                    // Save selection when picker is dismissed
+                    do {
+                        try activitySelectionService.saveSelection(activitySelection)
+                        hasSelectedApps = !activitySelection.applicationTokens.isEmpty
+                    } catch {
+                        // Handle error silently or show alert
+                        print("Failed to save activity selection: \(error)")
+                    }
+                }
+        }
+        .onAppear {
+            // Load existing selection
+            if let existingSelection = activitySelectionService.loadSelection() {
+                activitySelection = existingSelection
+                hasSelectedApps = !existingSelection.applicationTokens.isEmpty
+            }
+        }
         .onChange(of: viewModel.activeSession) { session in
             if session != nil {
                 dismiss()
