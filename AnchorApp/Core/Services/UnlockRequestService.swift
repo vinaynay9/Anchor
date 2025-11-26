@@ -21,10 +21,17 @@ class UnlockRequestService: UnlockRequestServiceProtocol {
     
     private let apiClient = APIClient.shared
     private let appGroupStorage = AppGroupStorage.shared
-    private let sessionService = SessionService.shared
-    private let screenTimeService = ScreenTimeService.shared
+    private let sessionService: SessionServiceProtocol
+    private let screenTimeService: ScreenTimeServiceProtocol
     
-    private init() {}
+    init(
+        sessionService: SessionServiceProtocol = SessionService.shared,
+        screenTimeService: ScreenTimeServiceProtocol = MockScreenTimeService.shared
+    ) {
+        self.sessionService = sessionService
+        self.screenTimeService = screenTimeService
+    }
+    
     
     // MARK: - Send Unlock Request
     func sendUnlockRequest(sessionId: String, reason: String) async throws {
@@ -116,7 +123,7 @@ class UnlockRequestService: UnlockRequestServiceProtocol {
         try await sessionService.endSession()
         
         // Call ScreenTimeService.stopBlocking()
-        screenTimeService.stopBlocking()
+        await screenTimeService.stopBlocking()
         
         // Notify UI
         NotificationCenter.default.post(name: .unlockRequestStatusChanged, object: nil, userInfo: [

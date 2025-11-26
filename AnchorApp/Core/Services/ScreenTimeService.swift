@@ -3,6 +3,9 @@ import Shared
 import FamilyControls
 import ManagedSettings
 
+// Import the protocol (defined in ScreenTimeServiceProtocol.swift)
+// The protocol is defined separately to avoid FamilyControls dependency in the protocol
+
 // MARK: - Screen Time Service
 // Handles all FamilyControls and ManagedSettings interactions
 
@@ -13,16 +16,9 @@ enum ScreenTimeError: Error {
     case shieldConfigurationFailed
 }
 
-protocol ScreenTimeServiceProtocol {
-    func requestAuthorization() async throws
-    func isAuthorized() -> Bool
-    func selectApps() async throws -> FamilyActivitySelection
-    func activateShields(for selection: FamilyActivitySelection, sessionId: UUID) throws
-    func deactivateShields() throws
-    func saveSelection(_ selection: FamilyActivitySelection, for sessionId: UUID)
-    func loadSelection(for sessionId: UUID) -> FamilyActivitySelection?
-}
-
+// MARK: - Real Screen Time Service Implementation
+// This uses actual FamilyControls/ManagedSettings (device-only)
+// NOTE: This will only work on real devices with Screen Time entitlements
 class ScreenTimeService: ScreenTimeServiceProtocol {
     static let shared = ScreenTimeService()
     
@@ -43,8 +39,46 @@ class ScreenTimeService: ScreenTimeServiceProtocol {
         }
     }
     
+    func getAuthorizationStatus() -> ScreenTimeAuthorizationStatus {
+        switch authorizationCenter.authorizationStatus {
+        case .notDetermined:
+            return .notDetermined
+        case .denied:
+            return .denied
+        case .approved:
+            return .approved
+        @unknown default:
+            return .notDetermined
+        }
+    }
+    
     func isAuthorized() -> Bool {
         authorizationCenter.authorizationStatus == .approved
+    }
+    
+    // MARK: - Protocol Implementation
+    func startBlocking(for session: LockSession) async {
+        // First try to load from ActivitySelectionService (persisted selection)
+        let tokens = activitySelectionService.loadApplicationTokens()
+        
+        if !tokens.isEmpty {
+            activateShields(for: tokens)
+            return
+        }
+        
+        // Fallback to session-specific selection
+        guard let selection = loadSelection(for: session.id) else {
+            return
+        }
+        
+        let selectionTokens = Array(selection.applicationTokens)
+        if !selectionTokens.isEmpty {
+            activateShields(for: selectionTokens)
+        }
+    }
+    
+    func stopBlocking() async {
+        try? deactivateShields()
     }
     
     // MARK: - App Selection
@@ -105,42 +139,19 @@ class ScreenTimeService: ScreenTimeServiceProtocol {
         sessionSelections.removeAll()
     }
     
-    // MARK: - Blocking Control
-    /// Starts blocking for the given session by reading tokens from ActivityPicker selection storage
-    func startBlocking(for session: LockSession) {
-        // First try to load from ActivitySelectionService (persisted selection)
-        let tokens = activitySelectionService.loadApplicationTokens()
-        
-        if !tokens.isEmpty {
-            activateShields(for: tokens)
-            return
-        }
-        
-        // Fallback to session-specific selection
-        guard let selection = loadSelection(for: session.id) else {
-            return
-        }
-        
-        let selectionTokens = Array(selection.applicationTokens)
-        if !selectionTokens.isEmpty {
-            activateShields(for: selectionTokens)
-        }
-    }
-    
-    /// Stops blocking by deactivating shields
-    func stopBlocking() {
-        try? deactivateShields()
-    }
-    
-    // MARK: - Session Integration
+    // MARK: - Session Integration (Legacy - kept for backward compatibility)
     /// Convenience method called when a session starts
     func onSessionStarted(_ session: LockSession) {
-        startBlocking(for: session)
+        Task {
+            await startBlocking(for: session)
+        }
     }
     
     /// Convenience method called when a session ends
     func onSessionEnded() {
-        stopBlocking()
+        Task {
+            await stopBlocking()
+        }
     }
     
     // MARK: - Selection Persistence

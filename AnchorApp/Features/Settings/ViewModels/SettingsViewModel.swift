@@ -1,4 +1,5 @@
 import SwiftUI
+import Shared
 
 class SettingsViewModel: ObservableObject {
     @Published var currentUser: User?

@@ -11,9 +11,14 @@ class SessionViewModel: ObservableObject {
     @Published var selectedFriendIds: [String] = []
     
     private let sessionService: SessionServiceProtocol
+    private let screenTimeService: ScreenTimeServiceProtocol
     
-    init(sessionService: SessionServiceProtocol = SessionService.shared) {
+    init(
+        sessionService: SessionServiceProtocol = SessionService.shared,
+        screenTimeService: ScreenTimeServiceProtocol = MockScreenTimeService.shared
+    ) {
         self.sessionService = sessionService
+        self.screenTimeService = screenTimeService
     }
     
     func loadActiveSession() {
@@ -36,13 +41,13 @@ class SessionViewModel: ObservableObject {
         errorMessage = nil
         
         // Check Screen Time authorization
-        guard ScreenTimeService.shared.isAuthorized() else {
+        guard screenTimeService.isAuthorized() else {
             // Request authorization if not already granted
             do {
-                try await ScreenTimeService.shared.requestAuthorization()
+                try await screenTimeService.requestAuthorization()
                 
                 // Verify authorization was granted
-                guard ScreenTimeService.shared.isAuthorized() else {
+                guard screenTimeService.isAuthorized() else {
                     self.errorMessage = "Screen Time authorization is required to start a session."
                     self.isLoading = false
                     return

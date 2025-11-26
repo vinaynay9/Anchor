@@ -71,5 +71,18 @@ class FriendsViewModel: ObservableObject {
             }
         }
     }
+    
+    func rejectFriendRequest(requestId: UUID) {
+        Task {
+            do {
+                try await friendService.rejectFriendRequest(id: requestId.uuidString)
+                await loadPendingRequests()
+            } catch {
+                await MainActor.run {
+                    self.errorMessage = error.localizedDescription
+                }
+            }
+        }
+    }
 }
 

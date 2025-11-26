@@ -1,5 +1,6 @@
 import SwiftUI
 import Combine
+import Shared
 
 class AuthViewModel: ObservableObject {
     @Published var currentUser: User?

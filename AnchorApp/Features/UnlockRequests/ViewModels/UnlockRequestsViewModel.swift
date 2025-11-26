@@ -7,32 +7,39 @@ class UnlockRequestsViewModel: ObservableObject {
     @Published var isLoading = false
     @Published var errorMessage: String?
     
-    private let apiClient = APIClient.shared
-    private let screenTimeService = ScreenTimeService.shared
+    private let unlockRequestService: UnlockRequestServiceProtocol
+    
+    init(unlockRequestService: UnlockRequestServiceProtocol = UnlockRequestService.shared) {
+        self.unlockRequestService = unlockRequestService
+    }
     
     func loadPendingRequests() {
         isLoading = true
+        errorMessage = nil
         
         Task {
-            // TODO: Implement API call
-            // let dtos: [UnlockRequestDTO] = try await apiClient.request(.getPendingUnlockRequests, responseType: [UnlockRequestDTO].self)
-            // let requests = dtos.compactMap { $0.toUnlockRequest() }
-            
-            await MainActor.run {
-                self.pendingRequests = []
-                self.isLoading = false
+            do {
+                let requests = try await unlockRequestService.getPendingUnlockRequests()
+                await MainActor.run {
+                    self.pendingRequests = requests
+                    self.isLoading = false
+                }
+            } catch {
+                await MainActor.run {
+                    self.errorMessage = error.localizedDescription
+                    self.isLoading = false
+                }
             }
         }
     }
     
     func approveRequest(_ request: UnlockRequest) {
+        isLoading = true
+        errorMessage = nil
+        
         Task {
             do {
-                // TODO: Call API to approve
-                // try await apiClient.request(.approveUnlockRequest(id: request.id))
-                
-                // Deactivate shields
-                try screenTimeService.deactivateShields()
+                try await unlockRequestService.approveUnlockRequest(requestId: request.id.uuidString)
                 
                 await MainActor.run {
                     self.loadPendingRequests()
@@ -40,16 +47,19 @@ class UnlockRequestsViewModel: ObservableObject {
             } catch {
                 await MainActor.run {
                     self.errorMessage = error.localizedDescription
+                    self.isLoading = false
                 }
             }
         }
     }
     
     func denyRequest(_ request: UnlockRequest) {
+        isLoading = true
+        errorMessage = nil
+        
         Task {
             do {
-                // TODO: Call API to deny
-                // try await apiClient.request(.denyUnlockRequest(id: request.id))
+                try await unlockRequestService.denyUnlockRequest(requestId: request.id.uuidString)
                 
                 await MainActor.run {
                     self.loadPendingRequests()
@@ -57,6 +67,7 @@ class UnlockRequestsViewModel: ObservableObject {
             } catch {
                 await MainActor.run {
                     self.errorMessage = error.localizedDescription
+                    self.isLoading = false
                 }
             }
         }

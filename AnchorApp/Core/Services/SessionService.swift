@@ -11,6 +11,7 @@ class SessionService: SessionServiceProtocol {
     static let shared = SessionService()
     
     private let appGroupStorage = AppGroupStorage.shared
+    private let screenTimeService: ScreenTimeServiceProtocol
     private var activeSession: LockSession?
     private var timer: Timer?
     private let userId: UUID
@@ -18,7 +19,8 @@ class SessionService: SessionServiceProtocol {
     // Store friendIds separately since LockSession only has accountabilityPartnerId
     private var currentFriendIds: [String] = []
     
-    private init() {
+    init(screenTimeService: ScreenTimeServiceProtocol = ScreenTimeService.shared) {
+        self.screenTimeService = screenTimeService
         // Get or create user ID
         if let userIdString = UserDefaults.standard.string(forKey: AppConfig.UserDefaultsKeys.currentUserId),
            let uuid = UUID(uuidString: userIdString) {
@@ -125,7 +127,7 @@ class SessionService: SessionServiceProtocol {
         appGroupStorage.setSessionState(sharedState)
         
         // Integrate with ScreenTimeService to block apps
-        ScreenTimeService.shared.onSessionStarted(createdSession)
+        await screenTimeService.startBlocking(for: createdSession)
         
         // Start timer
         startTimer()
@@ -150,7 +152,7 @@ class SessionService: SessionServiceProtocol {
         appGroupStorage.setSessionState(nil)
         
         // Integrate with ScreenTimeService to unblock apps
-        ScreenTimeService.shared.onSessionEnded()
+        await screenTimeService.stopBlocking()
         
         // Stop timer
         stopTimer()
