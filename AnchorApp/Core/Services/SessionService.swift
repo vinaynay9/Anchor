@@ -1,4 +1,5 @@
 import Foundation
+import Shared
 
 protocol SessionServiceProtocol {
     func startSession(durationMinutes: Int, friendIds: [String]) async throws -> LockSession

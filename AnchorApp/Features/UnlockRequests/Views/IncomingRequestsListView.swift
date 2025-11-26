@@ -1,4 +1,5 @@
 import SwiftUI
+import Shared
 
 struct IncomingRequestsListView: View {
     @StateObject private var viewModel = UnlockRequestsViewModel()
@@ -12,6 +13,8 @@ struct IncomingRequestsListView: View {
                     }
                 }
             }
+            .scrollContentBackground(.hidden)
+            .background(AppColors.background)
             .navigationTitle("Unlock Requests")
             .onAppear {
                 viewModel.loadPendingRequests()
@@ -28,6 +31,7 @@ struct UnlockRequestRowView: View {
             VStack(alignment: .leading) {
                 Text("Unlock Request")
                     .font(AppTypography.bodyBold)
+                    .foregroundColor(AppColors.textPrimary)
                 if let message = request.message {
                     Text(message)
                         .font(AppTypography.caption)
@@ -47,6 +51,7 @@ struct UnlockRequestRowView: View {
             }
         }
         .padding(.vertical, Theme.spacing)
+        .listRowBackground(AppColors.secondaryBackground)
     }
 }
 

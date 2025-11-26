@@ -18,7 +18,9 @@ struct SessionSetupView: View {
     
     var body: some View {
         Form {
-            Section(header: Text("Duration")) {
+            Section(header: Text("Duration")
+                .font(AppTypography.caption)
+                .foregroundColor(AppColors.textSecondary)) {
                 Picker("Duration", selection: $viewModel.selectedDurationMinutes) {
                     ForEach(durationOptions, id: \.self) { minutes in
                         Text("\(minutes) minutes").tag(minutes)
@@ -26,27 +28,34 @@ struct SessionSetupView: View {
                 }
                 .pickerStyle(SegmentedPickerStyle())
             }
+            .listRowBackground(AppColors.secondaryBackground)
             
-            Section(header: Text("Apps to Block")) {
+            Section(header: Text("Apps to Block")
+                .font(AppTypography.caption)
+                .foregroundColor(AppColors.textSecondary)) {
                 Button(action: {
                     showActivityPicker = true
                 }) {
                     HStack {
                         Text(hasSelectedApps ? "Change App Selection" : "Select Apps to Block")
                             .font(AppTypography.body)
+                            .foregroundColor(AppColors.textPrimary)
                         Spacer()
                         if hasSelectedApps {
                             Image(systemName: "checkmark.circle.fill")
-                                .foregroundColor(AppColors.primary)
+                                .foregroundColor(AppColors.accent)
                         } else {
                             Image(systemName: "chevron.right")
-                                .foregroundColor(.secondary)
+                                .foregroundColor(AppColors.textSecondary)
                         }
                     }
                 }
             }
+            .listRowBackground(AppColors.secondaryBackground)
             
-            Section(header: Text("Accountability Friends (Optional)")) {
+            Section(header: Text("Accountability Friends (Optional)")
+                .font(AppTypography.caption)
+                .foregroundColor(AppColors.textSecondary)) {
                 ForEach(mockFriends) { friend in
                     Toggle(isOn: Binding(
                         get: { viewModel.selectedFriendIds.contains(friend.id) },
@@ -62,9 +71,12 @@ struct SessionSetupView: View {
                     )) {
                         Text(friend.name)
                             .font(AppTypography.body)
+                            .foregroundColor(AppColors.textPrimary)
                     }
+                    .tint(AppColors.accent)
                 }
             }
+            .listRowBackground(AppColors.secondaryBackground)
             
             if let errorMessage = viewModel.errorMessage {
                 Section {
@@ -72,6 +84,7 @@ struct SessionSetupView: View {
                         .font(AppTypography.caption)
                         .foregroundColor(AppColors.error)
                 }
+                .listRowBackground(AppColors.secondaryBackground)
             }
             
             Button(action: {
@@ -82,7 +95,7 @@ struct SessionSetupView: View {
                 HStack {
                     if viewModel.isLoading {
                         ProgressView()
-                            .progressViewStyle(CircularProgressViewStyle(tint: .white))
+                            .progressViewStyle(CircularProgressViewStyle(tint: AppColors.textPrimary))
                             .padding(.trailing, Theme.spacing)
                     }
                     Text("Start Session")
@@ -90,7 +103,10 @@ struct SessionSetupView: View {
             }
             .buttonStyle(PrimaryButtonStyle())
             .disabled(viewModel.isLoading)
+            .listRowBackground(Color.clear)
         }
+        .scrollContentBackground(.hidden)
+        .background(AppColors.background)
         .navigationTitle("New Session")
         .sheet(isPresented: $showActivityPicker) {
             ActivityPickerView(selection: $activitySelection)

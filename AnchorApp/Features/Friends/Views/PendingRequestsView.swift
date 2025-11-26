@@ -1,4 +1,5 @@
 import SwiftUI
+import Shared
 
 struct PendingRequestsView: View {
     @StateObject private var viewModel = FriendsViewModel()

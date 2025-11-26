@@ -9,6 +9,7 @@ struct SignInOptionsView: View {
             
             Text("Anchor")
                 .font(AppTypography.largeTitle)
+                .foregroundColor(AppColors.textPrimary)
                 .padding(.bottom, Theme.padding * 2)
             
             Text("Stay accountable. Stay focused.")
@@ -23,7 +24,7 @@ struct SignInOptionsView: View {
                     HStack {
                         if authViewModel.isLoading {
                             ProgressView()
-                                .progressViewStyle(CircularProgressViewStyle(tint: .white))
+                                .progressViewStyle(CircularProgressViewStyle(tint: AppColors.textPrimary))
                         } else {
                             Image(systemName: "applelogo")
                         }
@@ -39,7 +40,7 @@ struct SignInOptionsView: View {
                     HStack {
                         if authViewModel.isLoading {
                             ProgressView()
-                                .progressViewStyle(CircularProgressViewStyle(tint: AppColors.primary))
+                                .progressViewStyle(CircularProgressViewStyle(tint: AppColors.textPrimary))
                         } else {
                             Image(systemName: "globe")
                         }
@@ -60,6 +61,7 @@ struct SignInOptionsView: View {
             
             Spacer()
         }
+        .background(AppColors.background)
     }
 }
 

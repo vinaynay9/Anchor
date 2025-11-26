@@ -1,4 +1,5 @@
 import Foundation
+import Shared
 
 // MARK: - Notification Names
 extension Notification.Name {

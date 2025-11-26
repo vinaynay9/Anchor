@@ -1,4 +1,5 @@
 import Foundation
+import Shared
 
 protocol UserServiceProtocol {
     func getCurrentUser() async throws -> User

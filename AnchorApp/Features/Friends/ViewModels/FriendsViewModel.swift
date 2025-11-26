@@ -1,5 +1,6 @@
 import SwiftUI
 import Combine
+import Shared
 
 class FriendsViewModel: ObservableObject {
     @Published var friends: [Friend] = []

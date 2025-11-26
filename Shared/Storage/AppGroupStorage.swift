@@ -26,7 +26,16 @@ struct SharedSessionState: Codable {
 class AppGroupStorage {
     static let shared = AppGroupStorage()
     
-    private let appGroupIdentifier = AppConfig.appGroupIdentifier
+    // App Group Identifier - must match in both app and extension
+    // This should be set via AppConfig in the app, but we provide a default
+    private let appGroupIdentifier: String
+    
+    private init() {
+        // App Group Identifier - must match in both app and extension
+        // Using hardcoded value since AppConfig may not be available in extension context
+        self.appGroupIdentifier = "group.com.anchor.app"
+    }
+    
     private var userDefaults: UserDefaults? {
         UserDefaults(suiteName: appGroupIdentifier)
     }
@@ -35,28 +44,29 @@ class AppGroupStorage {
     func saveSessionState(_ state: SessionState) {
         guard let defaults = userDefaults else { return }
         
-        defaults.set(state.isActive, forKey: AppConfig.AppGroupKeys.isSessionActive)
+        // Use hardcoded keys since AppConfig may not be available in extension
+        defaults.set(state.isActive, forKey: "isSessionActive")
         if let sessionId = state.sessionId {
-            defaults.set(sessionId.uuidString, forKey: AppConfig.AppGroupKeys.sessionId)
+            defaults.set(sessionId.uuidString, forKey: "sessionId")
         } else {
-            defaults.removeObject(forKey: AppConfig.AppGroupKeys.sessionId)
+            defaults.removeObject(forKey: "sessionId")
         }
-        defaults.set(state.message, forKey: AppConfig.AppGroupKeys.sessionMessage)
+        defaults.set(state.message, forKey: "sessionMessage")
         if let timeRemaining = state.timeRemaining {
-            defaults.set(timeRemaining, forKey: AppConfig.AppGroupKeys.timeRemaining)
+            defaults.set(timeRemaining, forKey: "timeRemaining")
         } else {
-            defaults.removeObject(forKey: AppConfig.AppGroupKeys.timeRemaining)
+            defaults.removeObject(forKey: "timeRemaining")
         }
     }
     
     func getLegacySessionState() -> SessionState {
         guard let defaults = userDefaults else { return .empty }
         
-        let isActive = defaults.bool(forKey: AppConfig.AppGroupKeys.isSessionActive)
-        let sessionIdString = defaults.string(forKey: AppConfig.AppGroupKeys.sessionId)
+        let isActive = defaults.bool(forKey: "isSessionActive")
+        let sessionIdString = defaults.string(forKey: "sessionId")
         let sessionId = sessionIdString.flatMap { UUID(uuidString: $0) }
-        let message = defaults.string(forKey: AppConfig.AppGroupKeys.sessionMessage)
-        let timeRemaining = defaults.double(forKey: AppConfig.AppGroupKeys.timeRemaining)
+        let message = defaults.string(forKey: "sessionMessage")
+        let timeRemaining = defaults.double(forKey: "timeRemaining")
         
         return SessionState(
             isActive: isActive,
@@ -102,6 +112,12 @@ class AppGroupStorage {
         
         let decoder = JSONDecoder()
         return try? decoder.decode(SharedSessionState.self, from: data)
+    }
+    
+    /// Checks if there's a pending unlock request
+    func hasPendingUnlockRequest() -> Bool {
+        guard let defaults = userDefaults else { return false }
+        return defaults.bool(forKey: "hasPendingUnlockRequest")
     }
     
     /// Clears the shared session state

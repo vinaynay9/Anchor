@@ -1,4 +1,5 @@
 import Foundation
+import Shared
 
 enum HTTPMethod: String {
     case get = "GET"

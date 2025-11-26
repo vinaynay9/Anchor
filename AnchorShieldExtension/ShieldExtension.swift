@@ -1,5 +1,6 @@
 import ManagedSettingsUI
 import SwiftUI
+import Shared
 
 // MARK: - Shield Configuration Extension
 // This is the main entry point for the Screen Time shield extension

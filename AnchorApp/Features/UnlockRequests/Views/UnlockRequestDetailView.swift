@@ -1,4 +1,5 @@
 import SwiftUI
+import Shared
 
 struct UnlockRequestDetailView: View {
     let request: UnlockRequest?
@@ -18,13 +19,19 @@ struct UnlockRequestDetailView: View {
                 if let request = request {
                     Text("Unlock Request")
                         .font(AppTypography.title)
+                        .foregroundColor(AppColors.textPrimary)
                     
                     if let message = request.message {
                         Text(message)
                             .font(AppTypography.body)
+                            .foregroundColor(AppColors.textPrimary)
                             .padding()
                             .background(AppColors.secondaryBackground)
-                            .cornerRadius(Theme.cornerRadius)
+                            .cornerRadius(12)
+                            .overlay(
+                                RoundedRectangle(cornerRadius: 12)
+                                    .stroke(AppColors.accentLight.opacity(0.1), lineWidth: 1)
+                            )
                     }
                     
                     // TODO: Show proof if available
@@ -48,6 +55,7 @@ struct UnlockRequestDetailView: View {
                     // Creating new unlock request
                     Text("Request Unlock")
                         .font(AppTypography.title)
+                        .foregroundColor(AppColors.textPrimary)
                     
                     TextField("Message (optional)", text: .constant(""))
                         .textFieldStyle(AppTextFieldStyle())
@@ -67,6 +75,7 @@ struct UnlockRequestDetailView: View {
             }
             .padding(Theme.padding)
         }
+        .background(AppColors.background)
     }
 }
 

@@ -1,5 +1,6 @@
 import SwiftUI
 import Combine
+import Shared
 
 @MainActor
 class SessionViewModel: ObservableObject {

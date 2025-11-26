@@ -1,5 +1,6 @@
 import SwiftUI
 import ManagedSettingsUI
+import Shared
 
 // MARK: - Shield View
 // This view is shown when a user tries to open a blocked app
@@ -41,7 +42,7 @@ struct ShieldView: View {
                 if let remainingTimeText = viewModel.remainingTimeText {
                     Text(remainingTimeText)
                         .font(ShieldTypography.largeTitle)
-                        .foregroundColor(ShieldColors.shieldText)
+                        .foregroundColor(ShieldColors.primary)
                         .padding(.top, ShieldTheme.padding)
                 }
                 
@@ -56,8 +57,12 @@ struct ShieldView: View {
                     .foregroundColor(ShieldColors.shieldText)
                     .padding(.horizontal, ShieldTheme.padding)
                     .padding(.vertical, ShieldTheme.spacing)
-                    .background(ShieldColors.shieldText.opacity(0.2))
+                    .background(ShieldColors.accentLight.opacity(0.15))
                     .cornerRadius(ShieldTheme.cornerRadius)
+                    .overlay(
+                        RoundedRectangle(cornerRadius: ShieldTheme.cornerRadius)
+                            .stroke(ShieldColors.accentLight.opacity(0.2), lineWidth: 1)
+                    )
                     .padding(.top, ShieldTheme.padding)
                 }
                 
@@ -69,7 +74,7 @@ struct ShieldView: View {
                 }) {
                     Text(viewModel.primaryButtonTitle)
                         .font(ShieldTypography.bodyBold)
-                        .foregroundColor(.white)
+                        .foregroundColor(ShieldColors.shieldText)
                         .frame(maxWidth: .infinity)
                         .padding()
                         .background(ShieldColors.primary)

@@ -1,5 +1,6 @@
 import Foundation
 import UIKit
+import Shared
 
 enum ProofError: LocalizedError {
     case imageConversionFailed

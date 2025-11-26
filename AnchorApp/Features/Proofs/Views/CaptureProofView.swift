@@ -1,5 +1,6 @@
 import SwiftUI
 import UIKit
+import Shared
 
 struct CaptureProofView: View {
     let sessionId: String

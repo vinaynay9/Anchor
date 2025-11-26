@@ -1,5 +1,6 @@
 import SwiftUI
 import UIKit
+import Shared
 
 class ProofViewModel: ObservableObject {
     @Published var proofs: [Proof] = []

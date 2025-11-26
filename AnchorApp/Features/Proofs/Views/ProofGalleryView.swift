@@ -1,4 +1,5 @@
 import SwiftUI
+import Shared
 
 struct ProofGalleryView: View {
     let sessionId: String

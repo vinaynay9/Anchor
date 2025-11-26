@@ -1,4 +1,5 @@
 import SwiftUI
+import Shared
 
 struct ActiveSessionView: View {
     let session: LockSession
@@ -23,11 +24,12 @@ struct ActiveSessionView: View {
                         .foregroundColor(AppColors.textSecondary)
                     Text(formatTime(calculateTimeRemaining(currentTime: context.date)))
                         .font(AppTypography.largeTitle)
-                        .foregroundColor(AppColors.primary)
+                        .foregroundColor(AppColors.accent)
                 }
             }
             
             Divider()
+                .background(AppColors.accentLight.opacity(0.1))
                 .padding(.vertical, Theme.padding)
             
             // Session details
@@ -76,6 +78,13 @@ struct ActiveSessionView: View {
                     }
                 }
             }
+            .padding(Theme.padding)
+            .background(AppColors.secondaryBackground)
+            .cornerRadius(12)
+            .overlay(
+                RoundedRectangle(cornerRadius: 12)
+                    .stroke(AppColors.accentLight.opacity(0.1), lineWidth: 1)
+            )
             .padding(.horizontal, Theme.padding)
             
             Spacer()
@@ -93,7 +102,7 @@ struct ActiveSessionView: View {
                 HStack {
                     if viewModel.isLoading {
                         ProgressView()
-                            .progressViewStyle(CircularProgressViewStyle(tint: .white))
+                            .progressViewStyle(CircularProgressViewStyle(tint: AppColors.textPrimary))
                             .padding(.trailing, Theme.spacing)
                     }
                     Text("End Session")
@@ -104,6 +113,7 @@ struct ActiveSessionView: View {
             .disabled(viewModel.isLoading)
         }
         .padding(Theme.padding)
+        .background(AppColors.background)
         .navigationTitle("Session")
         .navigationBarTitleDisplayMode(.inline)
     }

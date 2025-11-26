@@ -1,0 +1,175 @@
+ANCHOR PROJECT STRUCTURE
+========================
+
+Anchor/
+├── README.md
+├── CONTRIBUTING.md
+├── LICENSE
+│
+├── docs/
+│   └── diagrams/
+│       ├── architecture.md
+│       ├── data-model.md
+│       ├── friend-unlock-sequence.md
+│       └── screen-time-flow.md
+│
+├── AnchorApp/
+│   ├── AnchorAppApp.swift                    [App Entry Point]
+│   │
+│   ├── Config/
+│   │   ├── AppConfig.swift                    [App Configuration]
+│   │   └── Secrets.example.swift             [Secrets Template]
+│   │
+│   ├── Core/
+│   │   ├── DesignSystem/
+│   │   │   ├── AppButtonStyle.swift
+│   │   │   ├── AppColors.swift
+│   │   │   ├── AppTextFieldStyle.swift
+│   │   │   ├── AppTypography.swift
+│   │   │   └── Theme.swift
+│   │   │
+│   │   ├── Models/
+│   │   │   ├── Friend.swift                   [Friend Model + DTO]
+│   │   │   ├── LockSession.swift              [Session Model + DTO]
+│   │   │   ├── Proof.swift                    [Proof Model + DTO]
+│   │   │   ├── UnlockRequest.swift            [UnlockRequest Model + DTO]
+│   │   │   └── User.swift                     [User Model + DTO]
+│   │   │
+│   │   ├── Networking/
+│   │   │   ├── APIClient.swift                [HTTP Client]
+│   │   │   ├── Endpoint.swift                 [API Endpoint Definitions]
+│   │   │   └── SupabaseClient.swift           [Supabase Integration]
+│   │   │
+│   │   └── Services/
+│   │       ├── ActivitySelectionService.swift
+│   │       ├── AppGroupStorage.swift          [App Group Storage]
+│   │       ├── AuthService.swift              [Authentication]
+│   │       ├── FriendService.swift            [Friend Management]
+│   │       ├── NotificationService.swift      [Push Notifications]
+│   │       ├── ProofService.swift             [Proof Upload/Retrieval]
+│   │       ├── ScreenTimeService.swift        [Screen Time API]
+│   │       ├── SessionService.swift           [Session Management]
+│   │       ├── UnlockRequestService.swift     [Unlock Requests]
+│   │       └── UserService.swift              [User Management]
+│   │
+│   ├── Features/
+│   │   ├── Auth/
+│   │   │   ├── ViewModels/
+│   │   │   │   └── AuthViewModel.swift
+│   │   │   └── Views/
+│   │   │       ├── AuthRootView.swift
+│   │   │       ├── SignInOptionsView.swift
+│   │   │       └── UsernameSetupView.swift
+│   │   │
+│   │   ├── Friends/
+│   │   │   ├── ViewModels/
+│   │   │   │   └── FriendsViewModel.swift
+│   │   │   └── Views/
+│   │   │       ├── AddFriendView.swift
+│   │   │       ├── FriendSearchView.swift
+│   │   │       ├── FriendsListView.swift
+│   │   │       └── PendingRequestsView.swift
+│   │   │
+│   │   ├── Proofs/
+│   │   │   ├── ViewModels/
+│   │   │   │   └── ProofViewModel.swift
+│   │   │   └── Views/
+│   │   │       ├── CaptureProofView.swift
+│   │   │       └── ProofGalleryView.swift
+│   │   │
+│   │   ├── Root/
+│   │   │   ├── MainTabView.swift
+│   │   │   └── RootView.swift
+│   │   │
+│   │   ├── Sessions/
+│   │   │   ├── ViewModels/
+│   │   │   │   └── SessionViewModel.swift
+│   │   │   └── Views/
+│   │   │       ├── ActiveSessionView.swift
+│   │   │       ├── ActivityPickerView.swift
+│   │   │       ├── SessionHomeView.swift
+│   │   │       └── SessionSetupView.swift
+│   │   │
+│   │   ├── Settings/
+│   │   │   ├── ViewModels/
+│   │   │   │   └── SettingsViewModel.swift
+│   │   │   └── Views/
+│   │   │       ├── NotificationSettingsView.swift
+│   │   │       ├── ScreenTimePermissionView.swift
+│   │   │       └── SettingsView.swift
+│   │   │
+│   │   └── UnlockRequests/
+│   │       ├── ViewModels/
+│   │       │   └── UnlockRequestsViewModel.swift
+│   │       └── Views/
+│   │           ├── IncomingRequestsListView.swift
+│   │           └── UnlockRequestDetailView.swift
+│   │
+│   ├── Resources/                             [Assets, Images, etc.]
+│   │
+│   └── Utilities/
+│       ├── Extensions/
+│       │   ├── Date+Extensions.swift
+│       │   ├── String+Extensions.swift
+│       │   └── View+Extensions.swift
+│       └── Logging/
+│           └── Logger.swift
+│
+└── AnchorShieldExtension/
+    ├── ShieldExtension.swift                   [Extension Entry Point]
+    ├── ShieldView.swift                        [Shield UI]
+    ├── ShieldViewModel.swift                   [Shield Logic]
+    ├── ShieldDesignSystem.swift                [Shield Design]
+    └── Shared/
+        ├── AppGroupStorage.swift               [Shared Storage]
+        └── ShieldMessages.swift                [Message Definitions]
+
+
+API ENDPOINTS SUMMARY
+=====================
+
+Auth:
+  POST   /auth/apple
+  GET    /user/me
+  PATCH  /user/me
+
+Friends:
+  GET    /friends
+  POST   /friends
+  DELETE /friends/{id}
+  GET    /friends/requests
+  POST   /friends/requests/{id}/accept
+  POST   /friends/requests/{id}/reject
+
+Sessions:
+  POST   /sessions/start
+  POST   /sessions/end
+  GET    /sessions/active
+
+Unlock Requests:
+  POST   /unlock-requests
+  GET    /unlock-requests/pending
+  POST   /unlock-requests/{id}/approve
+  POST   /unlock-requests/{id}/reject
+
+Proofs:
+  POST   /proofs (multipart)
+  GET    /proofs/{id}
+  GET    /proofs/user/{id}
+
+Notifications:
+  POST   /notifications/device-token
+
+
+ARCHITECTURE PATTERNS
+=====================
+
+- MVVM Architecture (ViewModels + Views)
+- Protocol-Oriented Design (Service Protocols)
+- Feature-Based Organization
+- Dependency Injection (Service Singletons)
+- App Group Storage (App ↔ Extension Communication)
+- Screen Time API Integration
+- SwiftUI Views
+- Async/Await Networking
+

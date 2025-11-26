@@ -1,4 +1,5 @@
 import Foundation
+import Shared
 
 enum AuthError: Error {
     case cancelled

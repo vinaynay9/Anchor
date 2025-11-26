@@ -20,7 +20,7 @@ struct SessionHomeView: View {
                                     .foregroundColor(AppColors.textSecondary)
                                 Text(endTime, style: .time)
                                     .font(AppTypography.title2)
-                                    .foregroundColor(AppColors.textPrimary)
+                                    .foregroundColor(AppColors.accent)
                             }
                             .padding(.vertical, Theme.padding)
                         }
@@ -47,6 +47,13 @@ struct SessionHomeView: View {
                         .padding(.horizontal, Theme.padding)
                     }
                     .padding(Theme.padding)
+                    .background(AppColors.secondaryBackground)
+                    .cornerRadius(12)
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 12)
+                            .stroke(AppColors.accentLight.opacity(0.1), lineWidth: 1)
+                    )
+                    .padding(.horizontal, Theme.padding)
                 } else {
                     // Show call-to-action to start session
                     VStack(spacing: Theme.padding * 2) {
@@ -69,6 +76,7 @@ struct SessionHomeView: View {
                     .padding(Theme.padding * 2)
                 }
             }
+            .background(AppColors.background)
             .navigationTitle("Sessions")
             .onAppear {
                 viewModel.loadActiveSession()

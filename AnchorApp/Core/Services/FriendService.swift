@@ -1,4 +1,5 @@
 import Foundation
+import Shared
 
 enum FriendServiceError: Error {
     case network(Error)

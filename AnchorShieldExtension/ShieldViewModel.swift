@@ -1,6 +1,7 @@
 import SwiftUI
 import Foundation
 import UIKit
+import Shared
 
 @MainActor
 class ShieldViewModel: ObservableObject {
