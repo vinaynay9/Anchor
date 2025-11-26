@@ -16,12 +16,24 @@ struct UsernameSetupView: View {
                 .disableAutocorrection(true)
             
             Button(action: {
-                // TODO: Save username
+                authViewModel.completeUsernameSetup(username)
             }) {
-                Text("Continue")
+                if authViewModel.isLoading {
+                    ProgressView()
+                        .progressViewStyle(CircularProgressViewStyle(tint: .white))
+                } else {
+                    Text("Continue")
+                }
             }
             .buttonStyle(PrimaryButtonStyle())
-            .disabled(username.isEmpty)
+            .disabled(username.isEmpty || authViewModel.isLoading)
+            
+            if let errorMessage = authViewModel.errorMessage {
+                Text(errorMessage)
+                    .font(AppTypography.caption)
+                    .foregroundColor(AppColors.error)
+                    .padding(.top, Theme.spacing)
+            }
         }
         .padding(Theme.padding)
     }

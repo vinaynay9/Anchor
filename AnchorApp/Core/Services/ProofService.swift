@@ -5,54 +5,48 @@ enum ProofError: Error {
     case imageCaptureFailed
     case uploadFailed
     case invalidImageData
+    case invalidSessionId
+    case invalidResponse
 }
 
 protocol ProofServiceProtocol {
-    func uploadProof(
-        image: UIImage,
-        sessionId: UUID,
-        unlockRequestId: UUID?
-    ) async throws -> Proof
-    func getProofs(sessionId: UUID) async throws -> [Proof]
+    func uploadProof(imageData: Data, sessionId: String) async throws -> Proof
+    func fetchProofs(for sessionId: String) async throws -> [Proof]
 }
 
 class ProofService: ProofServiceProtocol {
     static let shared = ProofService()
     
-    private let apiClient = APIClient.shared
+    private let apiClient: APIClient
     
-    func uploadProof(
-        image: UIImage,
-        sessionId: UUID,
-        unlockRequestId: UUID?
-    ) async throws -> Proof {
-        guard let imageData = image.jpegData(compressionQuality: 0.8) else {
-            throw ProofError.invalidImageData
+    init(apiClient: APIClient = APIClient.shared) {
+        self.apiClient = apiClient
+    }
+    
+    func uploadProof(imageData: Data, sessionId: String) async throws -> Proof {
+        guard UUID(uuidString: sessionId) != nil else {
+            throw ProofError.invalidSessionId
         }
         
-        // TODO: Implement image upload
-        // 1. Create thumbnail
-        // 2. Upload full image and thumbnail to storage (Supabase Storage or similar)
-        // 3. Get URLs
-        // 4. Create proof record via API
-        // 5. Return Proof object
+        let endpoint = APIEndpoint.uploadProof(sessionId: sessionId, imageData: imageData)
+        let dto: ProofDTO = try await apiClient.request(endpoint, responseType: ProofDTO.self)
         
-        // Placeholder implementation
-        let proof = Proof(
-            id: UUID(),
-            sessionId: sessionId,
-            unlockRequestId: unlockRequestId,
-            fileUrl: URL(string: "https://placeholder.com/image.jpg")!,
-            thumbnailUrl: nil,
-            createdAt: Date()
-        )
+        guard let proof = dto.toProof() else {
+            throw ProofError.invalidResponse
+        }
         
         return proof
     }
     
-    func getProofs(sessionId: UUID) async throws -> [Proof] {
-        // TODO: Implement API call to fetch proofs
-        return []
+    func fetchProofs(for sessionId: String) async throws -> [Proof] {
+        guard UUID(uuidString: sessionId) != nil else {
+            throw ProofError.invalidSessionId
+        }
+        
+        let endpoint = APIEndpoint.getProofs(sessionId: sessionId)
+        let dtos: [ProofDTO] = try await apiClient.request(endpoint, responseType: [ProofDTO].self)
+        
+        return dtos.compactMap { $0.toProof() }
     }
 }
 

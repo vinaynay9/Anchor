@@ -22,3 +22,8 @@ struct ShieldMessages {
     }
 }
 
+// MARK: - URL Scheme
+struct ShieldURLScheme {
+    static let anchorApp = "anchor://"
+}
+

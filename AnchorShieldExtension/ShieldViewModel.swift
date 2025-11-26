@@ -1,21 +1,70 @@
 import SwiftUI
 import Foundation
+import UIKit
 
+@MainActor
 class ShieldViewModel: ObservableObject {
-    @Published var message: String = "This app is blocked during your focus session."
-    @Published var timeRemaining: TimeInterval?
+    @Published var title: String = "Stay Focused"
+    @Published var subtitle: String = "This app is blocked during your focus session."
+    @Published var remainingTimeText: String?
+    @Published var isWaitingForFriendApproval: Bool = false
+    @Published var primaryButtonTitle: String = "Open Anchor"
     
     private let appGroupStorage = AppGroupStorage.shared
     
-    func loadSessionState() {
+    func refresh() {
         let state = appGroupStorage.getSessionState()
+        let hasPendingUnlock = appGroupStorage.hasPendingUnlockRequest()
         
-        if state.isActive {
-            message = state.message ?? "This app is blocked during your focus session."
-            timeRemaining = state.timeRemaining
+        // Check for pending unlock request first
+        if hasPendingUnlock {
+            isWaitingForFriendApproval = true
+            title = "Unlock Request Pending"
+            subtitle = "Waiting for your accountability partner to review your unlock request."
+            remainingTimeText = nil
+        } else if state.isActive {
+            // Active session
+            isWaitingForFriendApproval = false
+            title = "Stay Focused"
+            subtitle = state.message ?? "This app is blocked during your focus session."
+            
+            // Format remaining time
+            if let timeRemaining = state.timeRemaining {
+                remainingTimeText = formatTime(timeRemaining)
+            } else {
+                remainingTimeText = nil
+            }
         } else {
-            message = "This app is blocked."
-            timeRemaining = nil
+            // No active session - fallback state
+            isWaitingForFriendApproval = false
+            title = "App Blocked"
+            subtitle = "You're currently blocked by Anchor."
+            remainingTimeText = nil
+        }
+    }
+    
+    func openAnchorApp() {
+        guard let url = URL(string: ShieldURLScheme.anchorApp) else { return }
+        
+        // In a shield extension, open the main app via URL scheme
+        // Note: UIApplication.shared is available in App Extensions including shield extensions
+        DispatchQueue.main.async {
+            let sharedApp = UIApplication.shared
+            if sharedApp.canOpenURL(url) {
+                sharedApp.open(url, options: [:], completionHandler: nil)
+            }
+        }
+    }
+    
+    private func formatTime(_ interval: TimeInterval) -> String {
+        let hours = Int(interval) / 3600
+        let minutes = Int(interval) / 60 % 60
+        let seconds = Int(interval) % 60
+        
+        if hours > 0 {
+            return String(format: "%d:%02d:%02d", hours, minutes, seconds)
+        } else {
+            return String(format: "%d:%02d", minutes, seconds)
         }
     }
 }

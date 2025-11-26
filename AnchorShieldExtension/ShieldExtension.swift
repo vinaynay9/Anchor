@@ -20,7 +20,6 @@ struct ShieldExtension: ShieldConfigurationDelegate {
 
 struct ShieldConfigurationView: View {
     let context: ShieldConfigurationContext
-    @StateObject private var viewModel = ShieldViewModel()
     
     var body: some View {
         ShieldView(context: context)

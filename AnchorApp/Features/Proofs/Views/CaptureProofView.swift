@@ -2,7 +2,7 @@ import SwiftUI
 import UIKit
 
 struct CaptureProofView: View {
-    let sessionId: UUID?
+    let sessionId: String
     @StateObject private var viewModel = ProofViewModel()
     @State private var showingImagePicker = false
     @State private var capturedImage: UIImage?
@@ -16,20 +16,18 @@ struct CaptureProofView: View {
                     .scaledToFit()
                     .frame(maxHeight: 400)
                 
-                Button(action: {
-                    if let sessionId = sessionId {
-                        viewModel.uploadProof(
-                            image: image,
-                            sessionId: sessionId,
-                            unlockRequestId: nil
-                        )
+                if viewModel.isUploading {
+                    ProgressView("Uploading...")
+                        .padding()
+                } else {
+                    Button(action: {
+                        viewModel.upload(image: image, for: sessionId)
+                    }) {
+                        Text("Use Photo")
                     }
-                    dismiss()
-                }) {
-                    Text("Use Photo")
+                    .buttonStyle(PrimaryButtonStyle())
+                    .padding()
                 }
-                .buttonStyle(PrimaryButtonStyle())
-                .padding()
             } else {
                 Button(action: {
                     showingImagePicker = true
@@ -48,11 +46,22 @@ struct CaptureProofView: View {
                 }
                 .padding()
             }
+            
+            if let errorMessage = viewModel.errorMessage {
+                Text(errorMessage)
+                    .foregroundColor(.red)
+                    .padding()
+            }
         }
         .sheet(isPresented: $showingImagePicker) {
             ImagePicker(image: $capturedImage)
         }
         .navigationTitle("Capture Proof")
+        .onChange(of: viewModel.isUploading) { isUploading in
+            if !isUploading && viewModel.errorMessage == nil && capturedImage != nil {
+                dismiss()
+            }
+        }
     }
 }
 

@@ -1,57 +1,114 @@
 import SwiftUI
 import Combine
 
-enum AuthState {
-    case signedOut
-    case loading
-    case signedIn(User)
-}
-
 class AuthViewModel: ObservableObject {
-    @Published var authState: AuthState = .signedOut
+    @Published var currentUser: User?
+    @Published var isLoading: Bool = false
     @Published var errorMessage: String?
+    @Published var needsUsernameSetup: Bool = false
     
-    private let authService = AuthService.shared
+    private let authService: AuthServiceProtocol
     private let userService = UserService.shared
     
-    init() {
-        checkAuthState()
+    init(authService: AuthServiceProtocol = AuthService.shared) {
+        self.authService = authService
+        loadCurrentUser()
     }
     
-    private func checkAuthState() {
-        // TODO: Check if user is already signed in
-        // Check for stored tokens and validate
-        authState = .signedOut
-    }
-    
-    func signIn(with provider: AuthProvider) {
-        authState = .loading
+    func loadCurrentUser() {
+        isLoading = true
         errorMessage = nil
         
         Task {
             do {
-                let (token, user) = try await authService.signIn(with: provider)
+                let user = try await authService.currentUser()
                 await MainActor.run {
-                    self.authState = .signedIn(user)
+                    self.currentUser = user
+                    if let user = user {
+                        // Check if username is empty or needs setup
+                        self.needsUsernameSetup = user.username.isEmpty
+                    } else {
+                        self.needsUsernameSetup = false
+                    }
+                    self.isLoading = false
                 }
             } catch {
                 await MainActor.run {
-                    self.authState = .signedOut
+                    self.currentUser = nil
+                    self.needsUsernameSetup = false
+                    self.isLoading = false
                     self.errorMessage = error.localizedDescription
                 }
             }
         }
     }
     
-    func signOut() {
+    func signInWithApple() {
+        isLoading = true
+        errorMessage = nil
+        
         Task {
             do {
-                try await authService.signOut()
+                let user = try await authService.signInWithApple()
                 await MainActor.run {
-                    self.authState = .signedOut
+                    self.currentUser = user
+                    self.needsUsernameSetup = user.username.isEmpty
+                    self.isLoading = false
                 }
             } catch {
                 await MainActor.run {
+                    self.currentUser = nil
+                    self.needsUsernameSetup = false
+                    self.isLoading = false
+                    self.errorMessage = error.localizedDescription
+                }
+            }
+        }
+    }
+    
+    func signInWithGoogle() {
+        isLoading = true
+        errorMessage = nil
+        
+        Task {
+            do {
+                let user = try await authService.signInWithGoogle()
+                await MainActor.run {
+                    self.currentUser = user
+                    self.needsUsernameSetup = user.username.isEmpty
+                    self.isLoading = false
+                }
+            } catch {
+                await MainActor.run {
+                    self.currentUser = nil
+                    self.needsUsernameSetup = false
+                    self.isLoading = false
+                    self.errorMessage = error.localizedDescription
+                }
+            }
+        }
+    }
+    
+    func completeUsernameSetup(_ username: String) {
+        guard let currentUser = currentUser else {
+            errorMessage = "No user found"
+            return
+        }
+        
+        isLoading = true
+        errorMessage = nil
+        
+        Task {
+            do {
+                let updatedUser = try await userService.updateUser(username: username, displayName: nil)
+                await MainActor.run {
+                    self.currentUser = updatedUser
+                    self.needsUsernameSetup = false
+                    self.isLoading = false
+                }
+            } catch {
+                await MainActor.run {
+                    self.isLoading = false
                     self.errorMessage = error.localizedDescription
                 }
             }

@@ -18,24 +18,36 @@ struct SignInOptionsView: View {
             
             VStack(spacing: Theme.spacing) {
                 Button(action: {
-                    authViewModel.signIn(with: .apple)
+                    authViewModel.signInWithApple()
                 }) {
                     HStack {
-                        Image(systemName: "applelogo")
+                        if authViewModel.isLoading {
+                            ProgressView()
+                                .progressViewStyle(CircularProgressViewStyle(tint: .white))
+                        } else {
+                            Image(systemName: "applelogo")
+                        }
                         Text("Continue with Apple")
                     }
                 }
                 .buttonStyle(PrimaryButtonStyle())
+                .disabled(authViewModel.isLoading)
                 
                 Button(action: {
-                    authViewModel.signIn(with: .google)
+                    authViewModel.signInWithGoogle()
                 }) {
                     HStack {
-                        Image(systemName: "globe")
+                        if authViewModel.isLoading {
+                            ProgressView()
+                                .progressViewStyle(CircularProgressViewStyle(tint: AppColors.primary))
+                        } else {
+                            Image(systemName: "globe")
+                        }
                         Text("Continue with Google")
                     }
                 }
                 .buttonStyle(SecondaryButtonStyle())
+                .disabled(authViewModel.isLoading)
             }
             .padding(.horizontal, Theme.padding)
             

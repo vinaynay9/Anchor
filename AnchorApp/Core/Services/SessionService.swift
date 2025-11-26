@@ -1,67 +1,89 @@
 import Foundation
 
 protocol SessionServiceProtocol {
-    func createSession(
-        appsBlocked: [String],
-        accountabilityPartnerId: UUID?,
-        duration: TimeInterval?
-    ) async throws -> LockSession
+    func startSession(durationMinutes: Int, selectedFriendIds: [String]) async throws -> LockSession
+    func endSession() async throws
     func getActiveSession() async throws -> LockSession?
-    func getSession(id: UUID) async throws -> LockSession
-    func endSession(id: UUID) async throws
-    func updateSessionStatus(id: UUID, status: SessionStatus) async throws -> LockSession
 }
 
 class SessionService: SessionServiceProtocol {
     static let shared = SessionService()
     
-    private let apiClient = APIClient.shared
+    // In-memory storage for temporary implementation
+    private var activeSession: LockSession?
+    private let userId: UUID
     
-    func createSession(
-        appsBlocked: [String],
-        accountabilityPartnerId: UUID?,
-        duration: TimeInterval?
-    ) async throws -> LockSession {
-        guard let userIdString = UserDefaults.standard.string(forKey: AppConfig.UserDefaultsKeys.currentUserId),
-              let userId = UUID(uuidString: userIdString) else {
-            throw APIError.unauthorized
+    private init() {
+        // Get or create a mock user ID for in-memory implementation
+        if let userIdString = UserDefaults.standard.string(forKey: AppConfig.UserDefaultsKeys.currentUserId),
+           let uuid = UUID(uuidString: userIdString) {
+            self.userId = uuid
+        } else {
+            // Create a temporary UUID for in-memory testing
+            self.userId = UUID()
+            UserDefaults.standard.set(userId.uuidString, forKey: AppConfig.UserDefaultsKeys.currentUserId)
         }
+    }
+    
+    func startSession(durationMinutes: Int, selectedFriendIds: [String]) async throws -> LockSession {
+        // End any existing active session
+        if activeSession != nil {
+            activeSession = nil
+        }
+        
+        let startTime = Date()
+        let durationSeconds = TimeInterval(durationMinutes * 60)
+        let endTime = startTime.addingTimeInterval(durationSeconds)
+        
+        // Convert friend IDs from String to UUID
+        let accountabilityPartnerId = selectedFriendIds.first.flatMap { UUID(uuidString: $0) }
         
         let session = LockSession(
             id: UUID(),
             userId: userId,
             status: .active,
-            startTime: Date(),
-            endTime: duration.map { Date().addingTimeInterval($0) },
-            appsBlocked: appsBlocked,
+            startTime: startTime,
+            endTime: endTime,
+            appsBlocked: [], // Empty for now, will be populated later
             accountabilityPartnerId: accountabilityPartnerId,
             createdAt: Date()
         )
         
-        // TODO: Implement API response parsing
-        // let dto: LockSessionDTO = try await apiClient.request(.createSession(session: session), responseType: LockSessionDTO.self)
-        // return dto.toLockSession() ?? session
-        
+        activeSession = session
         return session
     }
     
+    func endSession() async throws {
+        guard let session = activeSession else {
+            throw NSError(domain: "SessionService", code: 404, userInfo: [NSLocalizedDescriptionKey: "No active session to end"])
+        }
+        
+        // Update session status to completed
+        let endedSession = LockSession(
+            id: session.id,
+            userId: session.userId,
+            status: .completed,
+            startTime: session.startTime,
+            endTime: session.endTime,
+            appsBlocked: session.appsBlocked,
+            accountabilityPartnerId: session.accountabilityPartnerId,
+            createdAt: session.createdAt
+        )
+        
+        activeSession = nil
+    }
+    
     func getActiveSession() async throws -> LockSession? {
-        // TODO: Implement API response parsing
-        return nil
-    }
-    
-    func getSession(id: UUID) async throws -> LockSession {
-        // TODO: Implement API response parsing
-        throw APIError.unknown
-    }
-    
-    func endSession(id: UUID) async throws {
-        try await apiClient.request(.endSession(id: id))
-    }
-    
-    func updateSessionStatus(id: UUID, status: SessionStatus) async throws -> LockSession {
-        // TODO: Implement API response parsing
-        throw APIError.unknown
+        // Check if active session has expired
+        if let session = activeSession,
+           let endTime = session.endTime,
+           endTime < Date() {
+            // Session expired, clear it
+            activeSession = nil
+            return nil
+        }
+        
+        return activeSession
     }
 }
 

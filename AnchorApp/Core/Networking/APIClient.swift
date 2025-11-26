@@ -23,7 +23,22 @@ class APIClient {
     }
     
     func request<T: Decodable>(_ endpoint: APIEndpoint, responseType: T.Type) async throws -> T {
-        let url = baseURL.appendingPathComponent(endpoint.path)
+        let url: URL
+        if endpoint.path.contains("?") {
+            // Handle query strings in path
+            let pathParts = endpoint.path.components(separatedBy: "?")
+            let path = pathParts.first ?? endpoint.path
+            let query = pathParts.dropFirst().joined(separator: "?")
+            var components = URLComponents(url: baseURL, resolvingAgainstBaseURL: false)
+            components?.path = path
+            components?.query = query.isEmpty ? nil : query
+            guard let constructedURL = components?.url else {
+                throw APIError.invalidURL
+            }
+            url = constructedURL
+        } else {
+            url = baseURL.appendingPathComponent(endpoint.path)
+        }
         var request = URLRequest(url: url)
         request.httpMethod = endpoint.method.rawValue
         request.httpBody = endpoint.body
@@ -63,7 +78,22 @@ class APIClient {
     }
     
     func request(_ endpoint: APIEndpoint) async throws {
-        let url = baseURL.appendingPathComponent(endpoint.path)
+        let url: URL
+        if endpoint.path.contains("?") {
+            // Handle query strings in path
+            let pathParts = endpoint.path.components(separatedBy: "?")
+            let path = pathParts.first ?? endpoint.path
+            let query = pathParts.dropFirst().joined(separator: "?")
+            var components = URLComponents(url: baseURL, resolvingAgainstBaseURL: false)
+            components?.path = path
+            components?.query = query.isEmpty ? nil : query
+            guard let constructedURL = components?.url else {
+                throw APIError.invalidURL
+            }
+            url = constructedURL
+        } else {
+            url = baseURL.appendingPathComponent(endpoint.path)
+        }
         var request = URLRequest(url: url)
         request.httpMethod = endpoint.method.rawValue
         request.httpBody = endpoint.body

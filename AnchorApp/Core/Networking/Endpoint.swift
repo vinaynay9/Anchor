@@ -22,10 +22,67 @@ extension Endpoint {
             "Accept": "application/json"
         ]
         // Add auth token if available
-        if let token = AppConfig.UserDefaultsKeys.accessToken as? String {
+        if let token = UserDefaults.standard.string(forKey: AppConfig.UserDefaultsKeys.accessToken) {
             defaultHeaders["Authorization"] = "Bearer \(token)"
         }
         return defaultHeaders
+    }
+}
+
+extension APIEndpoint {
+    var headers: [String: String]? {
+        var headers: [String: String] = [
+            "Accept": "application/json"
+        ]
+        
+        // Add auth token if available
+        if let token = UserDefaults.standard.string(forKey: AppConfig.UserDefaultsKeys.accessToken) {
+            headers["Authorization"] = "Bearer \(token)"
+        }
+        
+        // Override Content-Type for multipart uploads
+        switch self {
+        case .uploadProof(let sessionId, let imageData):
+            let (boundary, _) = createMultipartFormData(sessionId: sessionId, imageData: imageData)
+            headers["Content-Type"] = "multipart/form-data; boundary=\(boundary)"
+        default:
+            headers["Content-Type"] = "application/json"
+        }
+        
+        return headers
+    }
+    
+    private func createMultipartFormData(sessionId: String, imageData: Data) -> (boundary: String, body: Data) {
+        // Generate a deterministic boundary based on sessionId and imageData
+        // This ensures headers and body use the same boundary
+        var hasher = Hasher()
+        hasher.combine(sessionId)
+        hasher.combine(imageData.count)
+        // Add a sample of the image data for uniqueness
+        if imageData.count > 0 {
+            let sampleSize = min(100, imageData.count)
+            hasher.combine(imageData.prefix(sampleSize))
+        }
+        let hash = abs(hasher.finalize())
+        let boundary = "----WebKitFormBoundary\(hash)"
+        var body = Data()
+        
+        // Add sessionId field
+        body.append("--\(boundary)\r\n".data(using: .utf8)!)
+        body.append("Content-Disposition: form-data; name=\"sessionId\"\r\n\r\n".data(using: .utf8)!)
+        body.append("\(sessionId)\r\n".data(using: .utf8)!)
+        
+        // Add file field
+        body.append("--\(boundary)\r\n".data(using: .utf8)!)
+        body.append("Content-Disposition: form-data; name=\"file\"; filename=\"proof.jpg\"\r\n".data(using: .utf8)!)
+        body.append("Content-Type: image/jpeg\r\n\r\n".data(using: .utf8)!)
+        body.append(imageData)
+        body.append("\r\n".data(using: .utf8)!)
+        
+        // Add closing boundary
+        body.append("--\(boundary)--\r\n".data(using: .utf8)!)
+        
+        return (boundary, body)
     }
 }
 
@@ -63,8 +120,8 @@ enum APIEndpoint: Endpoint {
     case denyUnlockRequest(id: UUID)
     
     // Proofs
-    case uploadProof(proof: Proof, imageData: Data)
-    case getProofs(sessionId: UUID)
+    case uploadProof(sessionId: String, imageData: Data)
+    case getProofs(sessionId: String)
     
     var path: String {
         switch self {
@@ -73,7 +130,9 @@ enum APIEndpoint: Endpoint {
         case .refreshToken: return "/auth/refresh"
         case .getUser(let id): return "/users/\(id.uuidString)"
         case .updateUser(let id, _, _): return "/users/\(id.uuidString)"
-        case .searchUsers: return "/users/search"
+        case .searchUsers(let query): 
+            let encodedQuery = query.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? query
+            return "/users/search?q=\(encodedQuery)"
         case .getFriends: return "/friends"
         case .getPendingRequests: return "/friends/pending"
         case .sendFriendRequest: return "/friends/request"
@@ -90,7 +149,7 @@ enum APIEndpoint: Endpoint {
         case .approveUnlockRequest(let id): return "/unlock-requests/\(id.uuidString)/approve"
         case .denyUnlockRequest(let id): return "/unlock-requests/\(id.uuidString)/deny"
         case .uploadProof: return "/proofs/upload"
-        case .getProofs: return "/proofs"
+        case .getProofs(let sessionId): return "/proofs?session_id=\(sessionId)"
         }
     }
     
@@ -135,9 +194,9 @@ enum APIEndpoint: Endpoint {
             return try? JSONEncoder().encode(["status": status.rawValue])
         case .createUnlockRequest(let request):
             return try? JSONEncoder().encode(request)
-        case .uploadProof(let proof, let imageData):
-            // TODO: Implement multipart form data encoding
-            return nil
+        case .uploadProof(let sessionId, let imageData):
+            let (_, body) = createMultipartFormData(sessionId: sessionId, imageData: imageData)
+            return body
         default:
             return nil
         }

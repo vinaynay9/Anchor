@@ -21,6 +21,7 @@ struct AppGroupKeys {
     static let sessionId = "sessionId"
     static let sessionMessage = "sessionMessage"
     static let timeRemaining = "timeRemaining"
+    static let hasPendingUnlockRequest = "hasPendingUnlockRequest"
 }
 
 // MARK: - App Group Storage Service (for Shield Extension)
@@ -49,6 +50,12 @@ class AppGroupStorage {
             message: message,
             timeRemaining: timeRemaining > 0 ? timeRemaining : nil
         )
+    }
+    
+    // MARK: - Unlock Request Status
+    func hasPendingUnlockRequest() -> Bool {
+        guard let defaults = userDefaults else { return false }
+        return defaults.bool(forKey: AppGroupKeys.hasPendingUnlockRequest)
     }
 }
 

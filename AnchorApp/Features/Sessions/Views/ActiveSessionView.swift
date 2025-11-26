@@ -4,38 +4,114 @@ struct ActiveSessionView: View {
     let session: LockSession
     @ObservedObject var viewModel: SessionViewModel
     
+    private var sessionDuration: TimeInterval {
+        guard let endTime = session.endTime else { return 0 }
+        return endTime.timeIntervalSince(session.startTime)
+    }
+    
     var body: some View {
         VStack(spacing: Theme.padding * 2) {
-            Text("Session Active")
+            Text("Active Session")
                 .font(AppTypography.title)
+                .foregroundColor(AppColors.textPrimary)
             
-            if let timeRemaining = viewModel.timeRemaining {
-                Text(formatTime(timeRemaining))
-                    .font(AppTypography.largeTitle)
-                    .foregroundColor(AppColors.primary)
+            // Remaining time with live countdown
+            TimelineView(.periodic(from: Date(), by: 1.0)) { context in
+                VStack(spacing: Theme.spacing) {
+                    Text("Time Remaining")
+                        .font(AppTypography.caption)
+                        .foregroundColor(AppColors.textSecondary)
+                    Text(formatTime(calculateTimeRemaining(currentTime: context.date)))
+                        .font(AppTypography.largeTitle)
+                        .foregroundColor(AppColors.primary)
+                }
             }
             
-            Text("\(session.appsBlocked.count) apps blocked")
-                .font(AppTypography.body)
-                .foregroundColor(AppColors.textSecondary)
+            Divider()
+                .padding(.vertical, Theme.padding)
+            
+            // Session details
+            VStack(alignment: .leading, spacing: Theme.spacing) {
+                HStack {
+                    Text("Start Time:")
+                        .font(AppTypography.body)
+                        .foregroundColor(AppColors.textSecondary)
+                    Spacer()
+                    Text(session.startTime, style: .time)
+                        .font(AppTypography.bodyBold)
+                        .foregroundColor(AppColors.textPrimary)
+                }
+                
+                if let endTime = session.endTime {
+                    HStack {
+                        Text("End Time:")
+                            .font(AppTypography.body)
+                            .foregroundColor(AppColors.textSecondary)
+                        Spacer()
+                        Text(endTime, style: .time)
+                            .font(AppTypography.bodyBold)
+                            .foregroundColor(AppColors.textPrimary)
+                    }
+                }
+                
+                HStack {
+                    Text("Duration:")
+                        .font(AppTypography.body)
+                        .foregroundColor(AppColors.textSecondary)
+                    Spacer()
+                    Text("\(Int(sessionDuration / 60)) minutes")
+                        .font(AppTypography.bodyBold)
+                        .foregroundColor(AppColors.textPrimary)
+                }
+                
+                if session.accountabilityPartnerId != nil || !viewModel.selectedFriendIds.isEmpty {
+                    HStack {
+                        Text("Accountability:")
+                            .font(AppTypography.body)
+                            .foregroundColor(AppColors.textSecondary)
+                        Spacer()
+                        Text("\(viewModel.selectedFriendIds.count) friend(s)")
+                            .font(AppTypography.bodyBold)
+                            .foregroundColor(AppColors.textPrimary)
+                    }
+                }
+            }
+            .padding(.horizontal, Theme.padding)
             
             Spacer()
             
-            NavigationLink(destination: UnlockRequestDetailView(sessionId: session.id)) {
-                Text("Request Unlock")
+            if let errorMessage = viewModel.errorMessage {
+                Text(errorMessage)
+                    .font(AppTypography.caption)
+                    .foregroundColor(AppColors.error)
+                    .padding(.horizontal, Theme.padding)
             }
-            .buttonStyle(SecondaryButtonStyle())
-            .padding(.horizontal, Theme.padding)
             
             Button(action: {
                 viewModel.endSession()
             }) {
-                Text("End Session")
+                HStack {
+                    if viewModel.isLoading {
+                        ProgressView()
+                            .progressViewStyle(CircularProgressViewStyle(tint: .white))
+                            .padding(.trailing, Theme.spacing)
+                    }
+                    Text("End Session")
+                }
             }
             .buttonStyle(DangerButtonStyle())
             .padding(.horizontal, Theme.padding)
+            .disabled(viewModel.isLoading)
         }
         .padding(Theme.padding)
+        .navigationTitle("Session")
+        .navigationBarTitleDisplayMode(.inline)
+    }
+    
+    private func calculateTimeRemaining(currentTime: Date) -> TimeInterval {
+        guard let endTime = session.endTime else { return 0 }
+        let remaining = endTime.timeIntervalSince(currentTime)
+        return max(0, remaining)
     }
     
     private func formatTime(_ interval: TimeInterval) -> String {

@@ -3,24 +3,25 @@ import UIKit
 
 class ProofViewModel: ObservableObject {
     @Published var proofs: [Proof] = []
-    @Published var isLoading = false
+    @Published var isUploading: Bool = false
+    @Published var isLoading: Bool = false
     @Published var errorMessage: String?
     
-    private let proofService = ProofService.shared
+    private let proofService: ProofServiceProtocol
     
-    func uploadProof(image: UIImage, sessionId: UUID, unlockRequestId: UUID?) {
+    init(proofService: ProofServiceProtocol = ProofService.shared) {
+        self.proofService = proofService
+    }
+    
+    func loadProofs(for sessionId: String) {
         isLoading = true
+        errorMessage = nil
         
         Task {
             do {
-                let proof = try await proofService.uploadProof(
-                    image: image,
-                    sessionId: sessionId,
-                    unlockRequestId: unlockRequestId
-                )
-                
+                let loadedProofs = try await proofService.fetchProofs(for: sessionId)
                 await MainActor.run {
-                    self.proofs.append(proof)
+                    self.proofs = loadedProofs
                     self.isLoading = false
                 }
             } catch {
@@ -32,20 +33,27 @@ class ProofViewModel: ObservableObject {
         }
     }
     
-    func loadProofs(sessionId: UUID) {
-        isLoading = true
+    func upload(image: UIImage, for sessionId: String) {
+        isUploading = true
+        errorMessage = nil
+        
+        guard let imageData = image.jpegData(compressionQuality: 0.8) else {
+            errorMessage = "Failed to convert image to JPEG data"
+            isUploading = false
+            return
+        }
         
         Task {
             do {
-                let loadedProofs = try await proofService.getProofs(sessionId: sessionId)
+                let proof = try await proofService.uploadProof(imageData: imageData, sessionId: sessionId)
                 await MainActor.run {
-                    self.proofs = loadedProofs
-                    self.isLoading = false
+                    self.proofs.append(proof)
+                    self.isUploading = false
                 }
             } catch {
                 await MainActor.run {
                     self.errorMessage = error.localizedDescription
-                    self.isLoading = false
+                    self.isUploading = false
                 }
             }
         }

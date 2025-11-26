@@ -1,46 +1,82 @@
 import SwiftUI
-import FamilyControls
 
 struct SessionSetupView: View {
-    @StateObject private var viewModel = SessionViewModel()
-    @State private var selectedApps: [String] = []
-    @State private var duration: TimeInterval?
-    @State private var accountabilityPartnerId: UUID?
+    @ObservedObject var viewModel: SessionViewModel
     @Environment(\.dismiss) var dismiss
+    @State private var mockFriends: [MockFriend] = [
+        MockFriend(id: UUID().uuidString, name: "Alice"),
+        MockFriend(id: UUID().uuidString, name: "Bob"),
+        MockFriend(id: UUID().uuidString, name: "Charlie")
+    ]
+    
+    private let durationOptions = [25, 50, 90]
     
     var body: some View {
         Form {
-            Section("Apps to Block") {
-                // TODO: Show FamilyActivityPicker
-                Text("Select apps to block")
-                    .foregroundColor(AppColors.textSecondary)
+            Section(header: Text("Duration")) {
+                Picker("Duration", selection: $viewModel.selectedDurationMinutes) {
+                    ForEach(durationOptions, id: \.self) { minutes in
+                        Text("\(minutes) minutes").tag(minutes)
+                    }
+                }
+                .pickerStyle(SegmentedPickerStyle())
             }
             
-            Section("Duration (Optional)") {
-                // TODO: Add duration picker
-                Text("Set session duration")
-                    .foregroundColor(AppColors.textSecondary)
+            Section(header: Text("Accountability Friends (Optional)")) {
+                ForEach(mockFriends) { friend in
+                    Toggle(isOn: Binding(
+                        get: { viewModel.selectedFriendIds.contains(friend.id) },
+                        set: { isSelected in
+                            if isSelected {
+                                if !viewModel.selectedFriendIds.contains(friend.id) {
+                                    viewModel.selectedFriendIds.append(friend.id)
+                                }
+                            } else {
+                                viewModel.selectedFriendIds.removeAll { $0 == friend.id }
+                            }
+                        }
+                    )) {
+                        Text(friend.name)
+                            .font(AppTypography.body)
+                    }
+                }
             }
             
-            Section("Accountability Partner (Optional)") {
-                // TODO: Show friend picker
-                Text("Choose a friend")
-                    .foregroundColor(AppColors.textSecondary)
+            if let errorMessage = viewModel.errorMessage {
+                Section {
+                    Text(errorMessage)
+                        .font(AppTypography.caption)
+                        .foregroundColor(AppColors.error)
+                }
             }
             
             Button(action: {
-                viewModel.startSession(
-                    appsBlocked: selectedApps,
-                    accountabilityPartnerId: accountabilityPartnerId,
-                    duration: duration
-                )
-                dismiss()
+                viewModel.startSession()
             }) {
-                Text("Start Session")
+                HStack {
+                    if viewModel.isLoading {
+                        ProgressView()
+                            .progressViewStyle(CircularProgressViewStyle(tint: .white))
+                            .padding(.trailing, Theme.spacing)
+                    }
+                    Text("Start Session")
+                }
             }
             .buttonStyle(PrimaryButtonStyle())
+            .disabled(viewModel.isLoading)
         }
         .navigationTitle("New Session")
+        .onChange(of: viewModel.activeSession) { session in
+            if session != nil {
+                dismiss()
+            }
+        }
     }
+}
+
+// Mock friend struct for placeholder implementation
+struct MockFriend: Identifiable {
+    let id: String
+    let name: String
 }
 
