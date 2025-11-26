@@ -32,7 +32,7 @@ class FriendsViewModel: ObservableObject {
     func loadPendingRequests() {
         Task {
             do {
-                let requests = try await friendService.getPendingRequests()
+                let requests = try await friendService.getFriendRequests()
                 await MainActor.run {
                     self.pendingRequests = requests
                 }
@@ -47,7 +47,7 @@ class FriendsViewModel: ObservableObject {
     func sendFriendRequest(friendId: UUID) {
         Task {
             do {
-                try await friendService.sendFriendRequest(friendId: friendId)
+                try await friendService.addFriend(friendId: friendId.uuidString)
                 await loadFriends()
             } catch {
                 await MainActor.run {
@@ -60,7 +60,7 @@ class FriendsViewModel: ObservableObject {
     func acceptFriendRequest(requestId: UUID) {
         Task {
             do {
-                try await friendService.acceptFriendRequest(requestId: requestId)
+                try await friendService.acceptFriendRequest(id: requestId.uuidString)
                 await loadFriends()
                 await loadPendingRequests()
             } catch {

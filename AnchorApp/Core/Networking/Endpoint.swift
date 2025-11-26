@@ -45,6 +45,10 @@ extension APIEndpoint {
         case .uploadProof(let sessionId, let imageData):
             let (boundary, _) = createMultipartFormData(sessionId: sessionId, imageData: imageData)
             headers["Content-Type"] = "multipart/form-data; boundary=\(boundary)"
+        case .getCurrentUser, .getFriends, .getFriendRequests, .getActiveSession, 
+             .getPendingUnlockRequests, .getProof, .getProofsForUser:
+            // GET requests don't need Content-Type
+            break
         default:
             headers["Content-Type"] = "application/json"
         }
@@ -90,113 +94,137 @@ extension APIEndpoint {
 enum APIEndpoint: Endpoint {
     // Auth
     case signInApple(token: String)
-    case signInGoogle(token: String)
-    case refreshToken(refreshToken: String)
-    
-    // Users
-    case getUser(id: UUID)
-    case updateUser(id: UUID, username: String?, displayName: String?)
-    case searchUsers(query: String)
+    case getCurrentUser
+    case updateCurrentUser(username: String?, displayName: String?)
     
     // Friends
     case getFriends
-    case getPendingRequests
-    case sendFriendRequest(friendId: UUID)
-    case acceptFriendRequest(requestId: UUID)
-    case declineFriendRequest(requestId: UUID)
+    case addFriend(friendId: UUID)
+    case deleteFriend(id: UUID)
+    case getFriendRequests
+    case acceptFriendRequest(id: UUID)
+    case rejectFriendRequest(id: UUID)
     
     // Sessions
-    case createSession(session: LockSession)
-    case getSession(id: UUID)
+    case startSession(session: LockSession)
+    case endSession(sessionId: UUID)
     case getActiveSession
-    case updateSession(id: UUID, status: SessionStatus)
-    case endSession(id: UUID)
     
     // Unlock Requests
     case createUnlockRequest(request: UnlockRequest)
-    case getUnlockRequest(id: UUID)
     case getPendingUnlockRequests
     case approveUnlockRequest(id: UUID)
-    case denyUnlockRequest(id: UUID)
+    case rejectUnlockRequest(id: UUID)
     
     // Proofs
     case uploadProof(sessionId: String, imageData: Data)
-    case getProofs(sessionId: String)
+    case getProof(id: UUID)
+    case getProofsForUser(userId: UUID)
+    
+    // Notifications
+    case registerDeviceToken(token: String)
     
     var path: String {
         switch self {
+        // Auth
         case .signInApple: return "/auth/apple"
-        case .signInGoogle: return "/auth/google"
-        case .refreshToken: return "/auth/refresh"
-        case .getUser(let id): return "/users/\(id.uuidString)"
-        case .updateUser(let id, _, _): return "/users/\(id.uuidString)"
-        case .searchUsers(let query): 
-            let encodedQuery = query.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? query
-            return "/users/search?q=\(encodedQuery)"
+        case .getCurrentUser: return "/user/me"
+        case .updateCurrentUser: return "/user/me"
+        
+        // Friends
         case .getFriends: return "/friends"
-        case .getPendingRequests: return "/friends/pending"
-        case .sendFriendRequest: return "/friends/request"
-        case .acceptFriendRequest: return "/friends/accept"
-        case .declineFriendRequest: return "/friends/decline"
-        case .createSession: return "/sessions"
-        case .getSession(let id): return "/sessions/\(id.uuidString)"
+        case .addFriend: return "/friends"
+        case .deleteFriend(let id): return "/friends/\(id.uuidString)"
+        case .getFriendRequests: return "/friends/requests"
+        case .acceptFriendRequest(let id): return "/friends/requests/\(id.uuidString)/accept"
+        case .rejectFriendRequest(let id): return "/friends/requests/\(id.uuidString)/reject"
+        
+        // Sessions
+        case .startSession: return "/sessions/start"
+        case .endSession: return "/sessions/end"
         case .getActiveSession: return "/sessions/active"
-        case .updateSession(let id, _): return "/sessions/\(id.uuidString)"
-        case .endSession(let id): return "/sessions/\(id.uuidString)/end"
+        
+        // Unlock Requests
         case .createUnlockRequest: return "/unlock-requests"
-        case .getUnlockRequest(let id): return "/unlock-requests/\(id.uuidString)"
         case .getPendingUnlockRequests: return "/unlock-requests/pending"
         case .approveUnlockRequest(let id): return "/unlock-requests/\(id.uuidString)/approve"
-        case .denyUnlockRequest(let id): return "/unlock-requests/\(id.uuidString)/deny"
-        case .uploadProof: return "/proofs/upload"
-        case .getProofs(let sessionId): return "/proofs?session_id=\(sessionId)"
+        case .rejectUnlockRequest(let id): return "/unlock-requests/\(id.uuidString)/reject"
+        
+        // Proofs
+        case .uploadProof: return "/proofs"
+        case .getProof(let id): return "/proofs/\(id.uuidString)"
+        case .getProofsForUser(let userId): return "/proofs/user/\(userId.uuidString)"
+        
+        // Notifications
+        case .registerDeviceToken: return "/notifications/device-token"
         }
     }
     
     var method: HTTPMethod {
         switch self {
-        case .getUser, .getFriends, .getPendingRequests, .getSession, .getActiveSession,
-             .getUnlockRequest, .getPendingUnlockRequests, .searchUsers, .getProofs:
+        // GET
+        case .getCurrentUser, .getFriends, .getFriendRequests, .getActiveSession,
+             .getPendingUnlockRequests, .getProof, .getProofsForUser:
             return .get
-        case .signInApple, .signInGoogle, .refreshToken, .sendFriendRequest,
-             .createSession, .createUnlockRequest, .uploadProof:
+        
+        // POST
+        case .signInApple, .addFriend, .startSession, .endSession,
+             .createUnlockRequest, .uploadProof, .registerDeviceToken,
+             .acceptFriendRequest, .rejectFriendRequest,
+             .approveUnlockRequest, .rejectUnlockRequest:
             return .post
-        case .updateUser, .updateSession, .acceptFriendRequest, .declineFriendRequest,
-             .approveUnlockRequest, .denyUnlockRequest:
-            return .put
-        case .endSession:
+        
+        // PATCH
+        case .updateCurrentUser:
+            return .patch
+        
+        // DELETE
+        case .deleteFriend:
             return .delete
         }
     }
     
     var body: Data? {
         switch self {
+        // Auth
         case .signInApple(let token):
             return try? JSONEncoder().encode(["token": token])
-        case .signInGoogle(let token):
-            return try? JSONEncoder().encode(["token": token])
-        case .refreshToken(let refreshToken):
-            return try? JSONEncoder().encode(["refresh_token": refreshToken])
-        case .updateUser(_, let username, let displayName):
+        case .updateCurrentUser(_, let username, let displayName):
             var dict: [String: Any] = [:]
             if let username = username { dict["username"] = username }
             if let displayName = displayName { dict["display_name"] = displayName }
             return try? JSONSerialization.data(withJSONObject: dict)
-        case .sendFriendRequest(let friendId):
+        
+        // Friends
+        case .addFriend(let friendId):
             return try? JSONEncoder().encode(["friend_id": friendId.uuidString])
-        case .acceptFriendRequest(let requestId):
-            return try? JSONEncoder().encode(["request_id": requestId.uuidString])
-        case .declineFriendRequest(let requestId):
-            return try? JSONEncoder().encode(["request_id": requestId.uuidString])
-        case .createSession(let session):
+        case .acceptFriendRequest, .rejectFriendRequest:
+            // These endpoints don't require a body, just the ID in the path
+            return nil
+        
+        // Sessions
+        case .startSession(let session):
             return try? JSONEncoder().encode(session)
-        case .updateSession(_, let status):
-            return try? JSONEncoder().encode(["status": status.rawValue])
+        case .endSession(let sessionId):
+            return try? JSONEncoder().encode(["session_id": sessionId.uuidString])
+        
+        // Unlock Requests
         case .createUnlockRequest(let request):
             return try? JSONEncoder().encode(request)
+        case .approveUnlockRequest, .rejectUnlockRequest:
+            // These endpoints don't require a body, just the ID in the path
+            return nil
+        
+        // Proofs
         case .uploadProof(let sessionId, let imageData):
             let (_, body) = createMultipartFormData(sessionId: sessionId, imageData: imageData)
             return body
+        
+        // Notifications
+        case .registerDeviceToken(let token):
+            return try? JSONEncoder().encode(["device_token": token])
+        
+        // No body needed
         default:
             return nil
         }

@@ -8,10 +8,12 @@ enum FriendServiceError: Error {
 }
 
 protocol FriendServiceProtocol {
-    func fetchFriends() async throws -> [Friend]
-    func searchUsers(query: String) async throws -> [User]
-    func sendFriendRequest(to userId: String) async throws
-    func respondToFriendRequest(requestId: String, accept: Bool) async throws
+    func getFriends() async throws -> [Friend]
+    func addFriend(friendId: String) async throws
+    func deleteFriend(id: String) async throws
+    func getFriendRequests() async throws -> [Friend]
+    func acceptFriendRequest(id: String) async throws
+    func rejectFriendRequest(id: String) async throws
 }
 
 final class FriendService: FriendServiceProtocol {
@@ -23,7 +25,8 @@ final class FriendService: FriendServiceProtocol {
         self.apiClient = apiClient
     }
     
-    func fetchFriends() async throws -> [Friend] {
+    // MARK: - GET /friends
+    func getFriends() async throws -> [Friend] {
         do {
             let dtos: [FriendDTO] = try await apiClient.request(.getFriends, responseType: [FriendDTO].self)
             return dtos.compactMap { $0.toFriend() }
@@ -34,27 +37,14 @@ final class FriendService: FriendServiceProtocol {
         }
     }
     
-    func searchUsers(query: String) async throws -> [User] {
-        do {
-            let dtos: [UserDTO] = try await apiClient.request(.searchUsers(query: query), responseType: [UserDTO].self)
-            return dtos.compactMap { $0.toUser() }
-        } catch let error as APIError {
-            if case .decodingError(let decodingError) = error {
-                throw FriendServiceError.decoding(decodingError)
-            }
-            throw FriendServiceError.network(error)
-        } catch {
-            throw FriendServiceError.network(error)
-        }
-    }
-    
-    func sendFriendRequest(to userId: String) async throws {
-        guard let friendId = UUID(uuidString: userId) else {
-            throw FriendServiceError.invalidUUID(userId)
+    // MARK: - POST /friends
+    func addFriend(friendId: String) async throws {
+        guard let friendUUID = UUID(uuidString: friendId) else {
+            throw FriendServiceError.invalidUUID(friendId)
         }
         
         do {
-            try await apiClient.request(.sendFriendRequest(friendId: friendId))
+            try await apiClient.request(.addFriend(friendId: friendUUID))
         } catch let error as APIError {
             throw FriendServiceError.network(error)
         } catch {
@@ -62,17 +52,56 @@ final class FriendService: FriendServiceProtocol {
         }
     }
     
-    func respondToFriendRequest(requestId: String, accept: Bool) async throws {
-        guard let requestUUID = UUID(uuidString: requestId) else {
-            throw FriendServiceError.invalidUUID(requestId)
+    // MARK: - DELETE /friends/{id}
+    func deleteFriend(id: String) async throws {
+        guard let friendUUID = UUID(uuidString: id) else {
+            throw FriendServiceError.invalidUUID(id)
         }
         
         do {
-            if accept {
-                try await apiClient.request(.acceptFriendRequest(requestId: requestUUID))
-            } else {
-                try await apiClient.request(.declineFriendRequest(requestId: requestUUID))
-            }
+            try await apiClient.request(.deleteFriend(id: friendUUID))
+        } catch let error as APIError {
+            throw FriendServiceError.network(error)
+        } catch {
+            throw FriendServiceError.network(error)
+        }
+    }
+    
+    // MARK: - GET /friends/requests
+    func getFriendRequests() async throws -> [Friend] {
+        do {
+            let dtos: [FriendDTO] = try await apiClient.request(.getFriendRequests, responseType: [FriendDTO].self)
+            return dtos.compactMap { $0.toFriend() }
+        } catch let error as APIError {
+            throw FriendServiceError.network(error)
+        } catch {
+            throw FriendServiceError.network(error)
+        }
+    }
+    
+    // MARK: - POST /friends/requests/{id}/accept
+    func acceptFriendRequest(id: String) async throws {
+        guard let requestUUID = UUID(uuidString: id) else {
+            throw FriendServiceError.invalidUUID(id)
+        }
+        
+        do {
+            try await apiClient.request(.acceptFriendRequest(id: requestUUID))
+        } catch let error as APIError {
+            throw FriendServiceError.network(error)
+        } catch {
+            throw FriendServiceError.network(error)
+        }
+    }
+    
+    // MARK: - POST /friends/requests/{id}/reject
+    func rejectFriendRequest(id: String) async throws {
+        guard let requestUUID = UUID(uuidString: id) else {
+            throw FriendServiceError.invalidUUID(id)
+        }
+        
+        do {
+            try await apiClient.request(.rejectFriendRequest(id: requestUUID))
         } catch let error as APIError {
             throw FriendServiceError.network(error)
         } catch {

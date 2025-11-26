@@ -75,7 +75,9 @@ struct SessionSetupView: View {
             }
             
             Button(action: {
-                viewModel.startSession()
+                Task {
+                    await viewModel.startSession()
+                }
             }) {
                 HStack {
                     if viewModel.isLoading {

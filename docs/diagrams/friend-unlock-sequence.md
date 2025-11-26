@@ -2,6 +2,8 @@
 
 This document describes the complete flow of requesting and approving an unlock.
 
+## Unlock Request Flow Diagram
+
 ```mermaid
 sequenceDiagram
     participant Requester

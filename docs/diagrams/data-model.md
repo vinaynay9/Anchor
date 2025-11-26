@@ -2,6 +2,8 @@
 
 This document describes the database schema and entity relationships.
 
+## Entity Relationship Diagram
+
 ```mermaid
 erDiagram
     users ||--o{ friendships : "has"

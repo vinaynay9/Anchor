@@ -2,6 +2,8 @@
 
 This document describes the high-level architecture of the Anchor iOS application.
 
+## Architecture Diagram
+
 ```mermaid
 graph TB
     subgraph "iOS Device"

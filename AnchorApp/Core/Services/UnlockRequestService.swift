@@ -9,6 +9,7 @@ extension Notification.Name {
 protocol UnlockRequestServiceProtocol {
     func sendUnlockRequest(sessionId: String, reason: String) async throws
     func cancelUnlockRequest(sessionId: String) async throws
+    func getPendingUnlockRequests() async throws -> [UnlockRequest]
     func approveUnlockRequest(requestId: String) async throws
     func denyUnlockRequest(requestId: String) async throws
 }
@@ -62,8 +63,7 @@ class UnlockRequestService: UnlockRequestServiceProtocol {
             resolvedAt: nil
         )
         
-        // POST to backend
-        // Backend call may be a stub
+        // POST /unlock-requests
         do {
             try await apiClient.request(.createUnlockRequest(request: unlockRequest))
         } catch {
@@ -88,17 +88,23 @@ class UnlockRequestService: UnlockRequestServiceProtocol {
         // For now, just update local state
     }
     
+    // MARK: - Get Pending Unlock Requests
+    func getPendingUnlockRequests() async throws -> [UnlockRequest] {
+        // GET /unlock-requests/pending
+        let dtos: [UnlockRequestDTO] = try await apiClient.request(.getPendingUnlockRequests, responseType: [UnlockRequestDTO].self)
+        return dtos.compactMap { $0.toUnlockRequest() }
+    }
+    
     // MARK: - Approve Unlock Request
     func approveUnlockRequest(requestId: String) async throws {
         // Write setPendingUnlockRequest(false)
         appGroupStorage.setPendingUnlockRequest(false)
         
-        // POST to backend
+        // POST /unlock-requests/{id}/approve
         guard let requestIdUUID = UUID(uuidString: requestId) else {
             throw NSError(domain: "UnlockRequestService", code: 400, userInfo: [NSLocalizedDescriptionKey: "Invalid request ID"])
         }
         
-        // Backend call may be a stub
         do {
             try await apiClient.request(.approveUnlockRequest(id: requestIdUUID))
         } catch {
@@ -123,14 +129,13 @@ class UnlockRequestService: UnlockRequestServiceProtocol {
         // Write setPendingUnlockRequest(false)
         appGroupStorage.setPendingUnlockRequest(false)
         
-        // POST to backend
+        // POST /unlock-requests/{id}/reject
         guard let requestIdUUID = UUID(uuidString: requestId) else {
             throw NSError(domain: "UnlockRequestService", code: 400, userInfo: [NSLocalizedDescriptionKey: "Invalid request ID"])
         }
         
-        // Backend call may be a stub
         do {
-            try await apiClient.request(.denyUnlockRequest(id: requestIdUUID))
+            try await apiClient.request(.rejectUnlockRequest(id: requestIdUUID))
         } catch {
             // Continue with local operations even if backend call fails
         }

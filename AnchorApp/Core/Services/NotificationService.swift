@@ -18,6 +18,7 @@ class NotificationService: NotificationServiceProtocol {
     static let shared = NotificationService()
     
     private let apiClient = APIClient.shared
+    private let lastTokenSentKey = "lastDeviceTokenSent"
     
     // MARK: - Authorization
     func requestAuthorization() async throws {
@@ -77,6 +78,34 @@ class NotificationService: NotificationServiceProtocol {
         )
         
         UNUserNotificationCenter.current().add(request)
+    }
+    
+    // MARK: - Device Token Registration
+    func registerDeviceToken(_ token: Data) async throws {
+        // Convert token Data to hex string
+        let tokenString = token.map { String(format: "%02.2hhx", $0) }.joined()
+        
+        // Check if we've already sent this token to prevent duplicates
+        let lastTokenSent = UserDefaults.standard.string(forKey: lastTokenSentKey)
+        if lastTokenSent == tokenString {
+            return // Token already registered
+        }
+        
+        // POST to backend
+        try await apiClient.request(.registerDeviceToken(token: tokenString))
+        
+        // Store the token we just sent
+        UserDefaults.standard.set(tokenString, forKey: lastTokenSentKey)
+    }
+    
+    // MARK: - Notification Preferences
+    func updateNotificationPreferences() async throws {
+        // Optional: Implement later to sync notification preferences with backend
+        // This could include settings like:
+        // - Enable/disable unlock request notifications
+        // - Enable/disable session reminder notifications
+        // - Quiet hours settings
+        // etc.
     }
 }
 

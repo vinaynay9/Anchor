@@ -3,7 +3,7 @@ import Foundation
 protocol SessionServiceProtocol {
     func startSession(durationMinutes: Int, friendIds: [String]) async throws -> LockSession
     func endSession() async throws
-    func getActiveSession() -> LockSession?
+    func getActiveSession() async throws -> LockSession?
 }
 
 class SessionService: SessionServiceProtocol {
@@ -105,7 +105,15 @@ class SessionService: SessionServiceProtocol {
             createdAt: Date()
         )
         
-        activeSession = session
+        // POST /sessions/start
+        let apiClient = APIClient.shared
+        let dto: LockSessionDTO = try await apiClient.request(.startSession(session: session), responseType: LockSessionDTO.self)
+        
+        guard let createdSession = dto.toLockSession() else {
+            throw NSError(domain: "SessionService", code: -1, userInfo: [NSLocalizedDescriptionKey: "Failed to decode session from API"])
+        }
+        
+        activeSession = createdSession
         
         // Write to AppGroupStorage
         let sharedState = SharedSessionState(
@@ -115,18 +123,36 @@ class SessionService: SessionServiceProtocol {
         )
         appGroupStorage.setSessionState(sharedState)
         
+        // Integrate with ScreenTimeService to block apps
+        ScreenTimeService.shared.onSessionStarted(createdSession)
+        
         // Start timer
         startTimer()
         
-        return session
+        return createdSession
     }
     
     func endSession() async throws {
-        // Stop timer
-        stopTimer()
+        guard let session = activeSession else {
+            return // No active session to end
+        }
+        
+        // POST /sessions/end
+        let apiClient = APIClient.shared
+        do {
+            try await apiClient.request(.endSession(sessionId: session.id))
+        } catch {
+            // Continue with local cleanup even if API call fails
+        }
         
         // Clear AppGroupStorage
         appGroupStorage.setSessionState(nil)
+        
+        // Integrate with ScreenTimeService to unblock apps
+        ScreenTimeService.shared.onSessionEnded()
+        
+        // Stop timer
+        stopTimer()
         
         // Clear pending unlock request if exists
         appGroupStorage.setPendingUnlockRequest(false)
@@ -139,19 +165,42 @@ class SessionService: SessionServiceProtocol {
         activeSession = nil
     }
     
-    func getActiveSession() -> LockSession? {
-        // Check if active session has expired
-        if let session = activeSession,
-           let endTime = session.endTime,
-           endTime <= Date() {
-            // Session expired, clear it
-            Task {
-                try? await endSession()
-            }
-            return nil
-        }
+    func getActiveSession() async throws -> LockSession? {
+        // GET /sessions/active
+        let apiClient = APIClient.shared
         
-        return activeSession
+        do {
+            let dto: LockSessionDTO? = try await apiClient.request(.getActiveSession, responseType: LockSessionDTO?.self)
+            
+            if let dto = dto, let session = dto.toLockSession() {
+                // Update local active session
+                activeSession = session
+                
+                // Check if session has expired
+                if let endTime = session.endTime, endTime <= Date() {
+                    // Session expired, end it
+                    try await endSession()
+                    return nil
+                }
+                
+                return session
+            } else {
+                // No active session from API
+                activeSession = nil
+                return nil
+            }
+        } catch {
+            // If API call fails, check local session
+            if let session = activeSession,
+               let endTime = session.endTime,
+               endTime <= Date() {
+                // Session expired, clear it
+                try await endSession()
+                return nil
+            }
+            
+            return activeSession
+        }
     }
     
     // MARK: - Timer Management

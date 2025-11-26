@@ -31,30 +31,35 @@ class AuthService: AuthServiceProtocol {
         // 6. Store user ID in UserDefaults
         // 7. Return user
         
-        // Simulate async call with delay
-        try await Task.sleep(nanoseconds: 1_000_000_000) // 1 second delay
+        // TODO: Get identity token from Apple Sign In
+        let identityToken = "placeholder_token" // Replace with actual token from Apple SDK
         
-        // Mock implementation - return a mock user
-        let mockUser = User(
-            id: UUID(),
-            email: "user@example.com",
-            username: "",
-            displayName: "Apple User",
-            createdAt: Date()
+        // POST /auth/apple
+        struct AuthResponse: Codable {
+            let accessToken: String
+            let refreshToken: String?
+            let user: UserDTO
+        }
+        
+        let response: AuthResponse = try await apiClient.request(
+            .signInApple(token: identityToken),
+            responseType: AuthResponse.self
         )
         
-        // Store user ID for currentUser() to retrieve
-        UserDefaults.standard.set(mockUser.id.uuidString, forKey: AppConfig.UserDefaultsKeys.currentUserId)
+        // Store tokens
+        UserDefaults.standard.set(response.accessToken, forKey: AppConfig.UserDefaultsKeys.accessToken)
+        if let refreshToken = response.refreshToken {
+            UserDefaults.standard.set(refreshToken, forKey: AppConfig.UserDefaultsKeys.refreshToken)
+        }
         
-        // TODO: Send identity token to backend
-        // let identityToken = "..." // Get from Apple Sign In
-        // let response: AuthResponse = try await apiClient.request(
-        //     .signInApple(token: identityToken),
-        //     responseType: AuthResponse.self
-        // )
-        // Store access token: UserDefaults.standard.set(response.accessToken, forKey: AppConfig.UserDefaultsKeys.accessToken)
+        guard let user = response.user.toUser() else {
+            throw AuthError.invalidToken
+        }
         
-        return mockUser
+        // Store user ID
+        UserDefaults.standard.set(user.id.uuidString, forKey: AppConfig.UserDefaultsKeys.currentUserId)
+        
+        return user
     }
     
     // MARK: - Google Sign In
@@ -110,23 +115,24 @@ class AuthService: AuthServiceProtocol {
     
     // MARK: - Current User
     func currentUser() async throws -> User? {
-        guard let userIdString = UserDefaults.standard.string(forKey: AppConfig.UserDefaultsKeys.currentUserId),
-              let userId = UUID(uuidString: userIdString) else {
-            return nil
+        // GET /user/me
+        do {
+            let dto: UserDTO = try await apiClient.request(.getCurrentUser, responseType: UserDTO.self)
+            guard let user = dto.toUser() else {
+                return nil
+            }
+            
+            // Update stored user ID
+            UserDefaults.standard.set(user.id.uuidString, forKey: AppConfig.UserDefaultsKeys.currentUserId)
+            
+            return user
+        } catch {
+            // If unauthorized, clear stored user ID
+            if case APIError.unauthorized = error {
+                UserDefaults.standard.removeObject(forKey: AppConfig.UserDefaultsKeys.currentUserId)
+            }
+            throw AuthError.notAuthenticated
         }
-        
-        // TODO: Validate token and fetch user from backend
-        // For now, return a mock user if user ID exists
-        // In production, this should fetch from backend:
-        // return try await UserService.shared.getUser(id: userId)
-        
-        return User(
-            id: userId,
-            email: "user@example.com",
-            username: "",
-            displayName: nil,
-            createdAt: Date()
-        )
     }
 }
 

@@ -48,17 +48,13 @@ class ScreenTimeService: ScreenTimeServiceProtocol {
     
     // MARK: - App Selection
     func selectApps() async throws -> FamilyActivitySelection {
-        // TODO: Present FamilyActivityPicker
-        // This requires a UI component that can be presented modally
-        // For now, return an empty selection
+        // Load selected FamilyActivitySelection tokens from ActivitySelectionService
+        guard let selection = activitySelectionService.loadSelection() else {
+            throw ScreenTimeError.noAppsSelected
+        }
         
-        // In actual implementation:
-        // 1. Create a FamilyActivityPicker view
-        // 2. Present it modally
-        // 3. Wait for user selection
-        // 4. Return the selection
-        
-        throw ScreenTimeError.noAppsSelected
+        // Return the selection to the caller
+        return selection
     }
     
     // MARK: - Shield Activation/Deactivation
@@ -148,14 +144,53 @@ class ScreenTimeService: ScreenTimeServiceProtocol {
     
     // MARK: - Selection Persistence
     func saveSelection(_ selection: FamilyActivitySelection, for sessionId: UUID) {
+        // Update in-memory cache
         sessionSelections[sessionId] = selection
         
-        // TODO: Persist to UserDefaults or file storage
-        // FamilyActivitySelection can be encoded/decoded
+        // Persist to UserDefaults using App Group storage
+        guard let defaults = UserDefaults(suiteName: AppConfig.appGroupIdentifier) else {
+            return
+        }
+        
+        // Use JSONEncoder to encode the selection
+        let encoder = JSONEncoder()
+        do {
+            let encoded = try encoder.encode(selection)
+            let key = "familyActivitySelection_\(sessionId.uuidString)"
+            defaults.set(encoded, forKey: key)
+        } catch {
+            // Log error but don't throw - persistence failure shouldn't break the flow
+            // The in-memory cache will still work
+        }
     }
     
     func loadSelection(for sessionId: UUID) -> FamilyActivitySelection? {
-        return sessionSelections[sessionId]
+        // First try to load from in-memory cache
+        if let cached = sessionSelections[sessionId] {
+            return cached
+        }
+        
+        // Load from UserDefaults using App Group storage
+        guard let defaults = UserDefaults(suiteName: AppConfig.appGroupIdentifier) else {
+            return nil
+        }
+        
+        let key = "familyActivitySelection_\(sessionId.uuidString)"
+        guard let data = defaults.data(forKey: key) else {
+            return nil
+        }
+        
+        // Use JSONDecoder to decode the selection
+        let decoder = JSONDecoder()
+        do {
+            let selection = try decoder.decode(FamilyActivitySelection.self, from: data)
+            // Update in-memory cache for future access
+            sessionSelections[sessionId] = selection
+            return selection
+        } catch {
+            // If decoding fails, return nil
+            return nil
+        }
     }
 }
 

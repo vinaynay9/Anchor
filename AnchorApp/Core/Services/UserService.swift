@@ -13,29 +13,29 @@ class UserService: UserServiceProtocol {
     private let apiClient = APIClient.shared
     
     func getCurrentUser() async throws -> User {
-        guard let userIdString = UserDefaults.standard.string(forKey: AppConfig.UserDefaultsKeys.currentUserId),
-              let userId = UUID(uuidString: userIdString) else {
-            throw APIError.unauthorized
-        }
-        return try await getUser(id: userId)
-    }
-    
-    func getUser(id: UUID) async throws -> User {
-        let dto: UserDTO = try await apiClient.request(.getUser(id: id), responseType: UserDTO.self)
+        // GET /user/me
+        let dto: UserDTO = try await apiClient.request(.getCurrentUser, responseType: UserDTO.self)
         guard let user = dto.toUser() else {
             throw APIError.decodingError(NSError(domain: "UserService", code: -1))
         }
         return user
     }
     
-    func updateUser(username: String?, displayName: String?) async throws -> User {
-        guard let userIdString = UserDefaults.standard.string(forKey: AppConfig.UserDefaultsKeys.currentUserId),
-              let userId = UUID(uuidString: userIdString) else {
-            throw APIError.unauthorized
+    func getUser(id: UUID) async throws -> User {
+        // Use getCurrentUser for now, or implement separate endpoint if needed
+        // For now, if requesting current user's ID, use /user/me
+        if let currentUserIdString = UserDefaults.standard.string(forKey: AppConfig.UserDefaultsKeys.currentUserId),
+           let currentUserId = UUID(uuidString: currentUserIdString),
+           currentUserId == id {
+            return try await getCurrentUser()
         }
-        
+        throw APIError.unauthorized
+    }
+    
+    func updateUser(username: String?, displayName: String?) async throws -> User {
+        // PATCH /user/me
         let dto: UserDTO = try await apiClient.request(
-            .updateUser(id: userId, username: username, displayName: displayName),
+            .updateCurrentUser(username: username, displayName: displayName),
             responseType: UserDTO.self
         )
         guard let user = dto.toUser() else {
