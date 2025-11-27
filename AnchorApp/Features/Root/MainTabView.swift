@@ -11,7 +11,7 @@ struct MainTabView: View {
                 }
                 .tag(0)
             
-            FriendsListView()
+            FriendsView()
                 .tabItem {
                     Label("Friends", systemImage: "person.2")
                 }

@@ -152,10 +152,10 @@ struct NotificationPreferencesView: View {
         }
         .padding(20)
         .background(
-            RoundedRectangle(cornerRadius: 16)
+            RoundedRectangle(cornerRadius: AppLayout.cardCornerRadius)
                 .fill(AppColors.secondaryBackground)
                 .overlay(
-                    RoundedRectangle(cornerRadius: 16)
+                    RoundedRectangle(cornerRadius: AppLayout.cardCornerRadius)
                         .stroke(
                             LinearGradient(
                                 colors: [
@@ -188,10 +188,10 @@ struct NotificationPreferencesView: View {
         .padding(.horizontal, 16)
         .padding(.vertical, 14)
         .background(
-            RoundedRectangle(cornerRadius: 12)
+            RoundedRectangle(cornerRadius: AppLayout.chipCornerRadius)
                 .fill(AppColors.background.opacity(0.6))
                 .overlay(
-                    RoundedRectangle(cornerRadius: 12)
+                    RoundedRectangle(cornerRadius: AppLayout.chipCornerRadius)
                         .stroke(
                             LinearGradient(
                                 colors: [
@@ -230,7 +230,7 @@ struct NotificationPreferencesView: View {
             .frame(maxWidth: .infinity)
             .padding(.vertical, 16)
             .background(
-                RoundedRectangle(cornerRadius: 14)
+                RoundedRectangle(cornerRadius: AppLayout.buttonCornerRadius)
                     .fill(
                         LinearGradient(
                             colors: [
@@ -257,11 +257,11 @@ struct CustomToggle: View {
     var body: some View {
         ZStack(alignment: isOn ? .trailing : .leading) {
             // Track with glow
-            RoundedRectangle(cornerRadius: 16)
+            RoundedRectangle(cornerRadius: AppLayout.buttonCornerRadius)
                 .fill(trackColor)
                 .frame(width: 50, height: 30)
                 .overlay(
-                    RoundedRectangle(cornerRadius: 16)
+                    RoundedRectangle(cornerRadius: AppLayout.buttonCornerRadius)
                         .stroke(
                             isOn ? AppColors.accent.opacity(0.4) : Color.clear,
                             lineWidth: 1.5

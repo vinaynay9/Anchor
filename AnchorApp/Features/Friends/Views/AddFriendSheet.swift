@@ -1,7 +1,7 @@
 import SwiftUI
 
 struct AddFriendSheet: View {
-    @ObservedObject var viewModel: FriendListViewModel
+    @ObservedObject var viewModel: FriendsViewModel
     @FocusState private var isTextFieldFocused: Bool
     
     var body: some View {
@@ -77,9 +77,9 @@ struct AddFriendSheet: View {
                     .foregroundColor(AppColors.textPrimary)
                     .padding(Theme.padding)
                     .background(AppColors.secondaryBackground)
-                    .cornerRadius(Theme.cornerRadius)
+                    .cornerRadius(AppLayout.cardCornerRadius)
                     .overlay(
-                        RoundedRectangle(cornerRadius: Theme.cornerRadius)
+                        RoundedRectangle(cornerRadius: AppLayout.cardCornerRadius)
                             .stroke(
                                 viewModel.addError != nil ? AppColors.error : AppColors.accent.opacity(0.3),
                                 lineWidth: viewModel.addError != nil ? 2 : 1
@@ -130,7 +130,7 @@ struct AddFriendSheet: View {
                         endPoint: .trailing
                     )
                 )
-                .cornerRadius(Theme.cornerRadius)
+                .cornerRadius(AppLayout.buttonCornerRadius)
             }
             .disabled(viewModel.showAddSuccess)
         }

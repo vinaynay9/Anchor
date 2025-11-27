@@ -1,88 +1,79 @@
+import Foundation
 import SwiftUI
-import Combine
-import Shared
 
+@MainActor
 class FriendsViewModel: ObservableObject {
-    @Published var friends: [Friend] = []
-    @Published var pendingRequests: [Friend] = []
-    @Published var isLoading = false
-    @Published var errorMessage: String?
+    @Published var friends: [FriendMockModel] = []
+    @Published var searchQuery: String = ""
+    @Published var isShowingAddSheet = false
+    @Published var addFriendText = ""
+    @Published var showAddSuccess = false
+    @Published var addError: String?
     
-    private let friendService = FriendService.shared
+    private var allFriends: [FriendMockModel] = []
     
-    func loadFriends() {
-        isLoading = true
-        errorMessage = nil
+    init() {
+        // Initialize with mock data
+        allFriends = [
+            FriendMockModel(displayName: "Alex Johnson", username: "@alexj"),
+            FriendMockModel(displayName: "Sarah Chen", username: "@sarahc"),
+            FriendMockModel(displayName: "Michael Brown", username: "@mikeb"),
+            FriendMockModel(displayName: "Emma Davis", username: "@emmad"),
+            FriendMockModel(displayName: "James Wilson", username: "@jamesw")
+        ]
+        friends = allFriends
+    }
+    
+    var filteredFriends: [FriendMockModel] {
+        if searchQuery.isEmpty {
+            return friends
+        }
+        return friends.filter { friend in
+            friend.displayName.localizedCaseInsensitiveContains(searchQuery) ||
+            friend.username.localizedCaseInsensitiveContains(searchQuery)
+        }
+    }
+    
+    func addFriend(_ name: String) {
+        guard !name.trimmingCharacters(in: .whitespaces).isEmpty else {
+            withAnimation {
+                addError = "Please enter a friend ID or username"
+            }
+            return
+        }
         
-        Task {
-            do {
-                let loadedFriends = try await friendService.getFriends()
-                await MainActor.run {
-                    self.friends = loadedFriends
-                    self.isLoading = false
-                }
-            } catch {
-                await MainActor.run {
-                    self.errorMessage = error.localizedDescription
-                    self.isLoading = false
-                }
+        addError = nil
+        
+        // Create a new mock friend from the input
+        let newFriend = FriendMockModel(
+            displayName: name.trimmingCharacters(in: .whitespaces),
+            username: "@\(name.trimmingCharacters(in: .whitespaces).lowercased())"
+        )
+        
+        withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
+            friends.append(newFriend)
+            allFriends.append(newFriend)
+            showAddSuccess = true
+        }
+        
+        // Reset after showing success
+        DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) {
+            withAnimation {
+                self.showAddSuccess = false
+                self.addFriendText = ""
+                self.isShowingAddSheet = false
             }
         }
     }
     
-    func loadPendingRequests() {
-        Task {
-            do {
-                let requests = try await friendService.getFriendRequests()
-                await MainActor.run {
-                    self.pendingRequests = requests
-                }
-            } catch {
-                await MainActor.run {
-                    self.errorMessage = error.localizedDescription
-                }
-            }
-        }
+    func addFriend() {
+        addFriend(addFriendText)
     }
     
-    func sendFriendRequest(friendId: UUID) {
-        Task {
-            do {
-                try await friendService.addFriend(friendId: friendId.uuidString)
-                await loadFriends()
-            } catch {
-                await MainActor.run {
-                    self.errorMessage = error.localizedDescription
-                }
-            }
-        }
-    }
-    
-    func acceptFriendRequest(requestId: UUID) {
-        Task {
-            do {
-                try await friendService.acceptFriendRequest(id: requestId.uuidString)
-                await loadFriends()
-                await loadPendingRequests()
-            } catch {
-                await MainActor.run {
-                    self.errorMessage = error.localizedDescription
-                }
-            }
-        }
-    }
-    
-    func rejectFriendRequest(requestId: UUID) {
-        Task {
-            do {
-                try await friendService.rejectFriendRequest(id: requestId.uuidString)
-                await loadPendingRequests()
-            } catch {
-                await MainActor.run {
-                    self.errorMessage = error.localizedDescription
-                }
-            }
+    func removeFriend(_ friend: FriendMockModel) {
+        withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
+            friends.removeAll { $0.id == friend.id }
+            allFriends.removeAll { $0.id == friend.id }
         }
     }
 }
-

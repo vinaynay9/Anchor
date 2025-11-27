@@ -60,7 +60,7 @@ struct ProofCaptureView: View {
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
                 .overlay(
                     // Gradient violet ring overlay
-                    RoundedRectangle(cornerRadius: 18)
+                    RoundedRectangle(cornerRadius: AppLayout.cardCornerRadius)
                         .stroke(
                             LinearGradient(
                                 colors: [
@@ -163,7 +163,7 @@ struct ProofCaptureView: View {
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
                 .background(AppColors.secondaryBackground)
                 .overlay(
-                    RoundedRectangle(cornerRadius: 18)
+                    RoundedRectangle(cornerRadius: AppLayout.cardCornerRadius)
                         .stroke(
                             LinearGradient(
                                 colors: [
@@ -196,9 +196,9 @@ struct ProofCaptureView: View {
                         .frame(maxWidth: .infinity)
                         .padding(.vertical, 16)
                         .background(AppColors.secondaryBackground)
-                        .cornerRadius(18)
+                        .cornerRadius(AppLayout.cardCornerRadius)
                         .overlay(
-                            RoundedRectangle(cornerRadius: 18)
+                            RoundedRectangle(cornerRadius: AppLayout.cardCornerRadius)
                                 .stroke(AppColors.accentLight.opacity(0.3), lineWidth: 1)
                         )
                     }
@@ -224,7 +224,7 @@ struct ProofCaptureView: View {
                                 endPoint: .trailing
                             )
                         )
-                        .cornerRadius(18)
+                        .cornerRadius(AppLayout.cardCornerRadius)
                     }
                 }
             }

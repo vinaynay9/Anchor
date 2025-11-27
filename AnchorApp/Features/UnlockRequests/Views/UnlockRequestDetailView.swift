@@ -27,9 +27,9 @@ struct UnlockRequestDetailView: View {
                             .foregroundColor(AppColors.textPrimary)
                             .padding()
                             .background(AppColors.secondaryBackground)
-                            .cornerRadius(12)
+                            .cornerRadius(AppLayout.chipCornerRadius)
                             .overlay(
-                                RoundedRectangle(cornerRadius: 12)
+                                RoundedRectangle(cornerRadius: AppLayout.chipCornerRadius)
                                     .stroke(AppColors.accentLight.opacity(0.1), lineWidth: 1)
                             )
                     }

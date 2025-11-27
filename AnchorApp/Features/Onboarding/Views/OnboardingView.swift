@@ -58,7 +58,7 @@ struct OnboardingView: View {
                                 .frame(maxWidth: .infinity)
                                 .padding(.vertical, Theme.padding)
                                 .background(AppColors.accent)
-                                .cornerRadius(16)
+                                .cornerRadius(AppLayout.buttonCornerRadius)
                         }
                         .padding(.horizontal, Theme.padding * 2)
                         .padding(.bottom, Theme.padding * 2)

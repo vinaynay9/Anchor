@@ -80,9 +80,9 @@ struct ActiveSessionView: View {
             }
             .padding(Theme.padding)
             .background(AppColors.secondaryBackground)
-            .cornerRadius(12)
+            .cornerRadius(AppLayout.chipCornerRadius)
             .overlay(
-                RoundedRectangle(cornerRadius: 12)
+                RoundedRectangle(cornerRadius: AppLayout.chipCornerRadius)
                     .stroke(AppColors.accentLight.opacity(0.1), lineWidth: 1)
             )
             .padding(.horizontal, Theme.padding)

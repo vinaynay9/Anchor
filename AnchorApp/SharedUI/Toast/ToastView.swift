@@ -25,18 +25,18 @@ struct ToastView: View {
         .padding(.horizontal, 20)
         .padding(.vertical, 16)
         .background(
-            RoundedRectangle(cornerRadius: 16)
+            RoundedRectangle(cornerRadius: AppLayout.cardCornerRadius)
                 .fill(AppColors.primaryDark.opacity(0.9))
                 .background(
                     // Frosted glass blur effect
-                    RoundedRectangle(cornerRadius: 16)
+                    RoundedRectangle(cornerRadius: AppLayout.cardCornerRadius)
                         .fill(.ultraThinMaterial)
                         .opacity(0.3)
                 )
         )
         .overlay(
             // Vibrant accent border glow
-            RoundedRectangle(cornerRadius: 16)
+            RoundedRectangle(cornerRadius: AppLayout.cardCornerRadius)
                 .stroke(borderGradient, lineWidth: 2)
                 .shadow(color: borderGlowColor.opacity(0.6), radius: 8, x: 0, y: 0)
         )
@@ -80,8 +80,8 @@ struct ToastView: View {
             return LinearGradient(
                 colors: [
                     AppColors.error.opacity(0.8),
-                    Color(red: 0.863, green: 0.196, blue: 0.325).opacity(0.9),
-                    Color(red: 0.925, green: 0.196, blue: 0.463) // Magenta tint
+                    AppColors.error.opacity(0.9),
+                    AppColors.error.opacity(0.95) // Magenta tint variant
                 ],
                 startPoint: .leading,
                 endPoint: .trailing

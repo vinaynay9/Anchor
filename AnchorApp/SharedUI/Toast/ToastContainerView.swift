@@ -47,6 +47,15 @@ extension View {
             ToastContainerView(toastManager: toastManager)
         }
     }
+    
+    /// Adds global toast notification support using ToastManager.shared
+    /// This is the recommended method for enabling toasts across the app
+    /// - Returns: A view with global toast notifications enabled
+    func withGlobalToasts() -> some View {
+        self.overlay(alignment: .top) {
+            ToastContainerView(toastManager: ToastManager.shared)
+        }
+    }
 }
 
 /// Internal container view that uses environment object

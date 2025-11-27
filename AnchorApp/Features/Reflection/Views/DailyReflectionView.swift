@@ -28,11 +28,6 @@ struct DailyReflectionView: View {
                 }
             }
             
-            // Toast Overlay
-            if viewModel.showToast {
-                toastView
-                    .transition(.move(edge: .top).combined(with: .opacity))
-            }
         }
         .onChange(of: viewModel.showCheckmark) { show in
             if show {
@@ -97,10 +92,10 @@ struct DailyReflectionView: View {
             // Glassmorphism effect
             ZStack {
                 // Base background with blur
-                RoundedRectangle(cornerRadius: 20)
+                RoundedRectangle(cornerRadius: AppLayout.cardCornerRadius)
                     .fill(AppColors.secondaryBackground.opacity(0.8))
                     .background(
-                        RoundedRectangle(cornerRadius: 20)
+                        RoundedRectangle(cornerRadius: AppLayout.cardCornerRadius)
                             .fill(
                                 LinearGradient(
                                     gradient: Gradient(colors: [
@@ -115,7 +110,7 @@ struct DailyReflectionView: View {
                     .blur(radius: 10)
                 
                 // Glass overlay
-                RoundedRectangle(cornerRadius: 20)
+                RoundedRectangle(cornerRadius: AppLayout.cardCornerRadius)
                     .fill(
                         LinearGradient(
                             gradient: Gradient(colors: [
@@ -129,7 +124,7 @@ struct DailyReflectionView: View {
             }
         )
         .overlay(
-            RoundedRectangle(cornerRadius: 20)
+            RoundedRectangle(cornerRadius: AppLayout.cardCornerRadius)
                 .stroke(
                     LinearGradient(
                         gradient: Gradient(colors: [
@@ -220,11 +215,11 @@ struct DailyReflectionView: View {
                     .frame(minHeight: 120)
                     .padding(8)
                     .background(
-                        RoundedRectangle(cornerRadius: 12)
+                        RoundedRectangle(cornerRadius: AppLayout.chipCornerRadius)
                             .fill(AppColors.accentLight.opacity(0.1))
                     )
                     .overlay(
-                        RoundedRectangle(cornerRadius: 12)
+                        RoundedRectangle(cornerRadius: AppLayout.chipCornerRadius)
                             .stroke(AppColors.accentLight.opacity(0.3), lineWidth: 1.5)
                     )
             }
@@ -253,7 +248,7 @@ struct DailyReflectionView: View {
             HStack(spacing: 16) {
                 // Custom Checkbox
                 ZStack {
-                    RoundedRectangle(cornerRadius: 8)
+                    RoundedRectangle(cornerRadius: 6)
                         .fill(
                             viewModel.checkedGoals.contains(goal)
                                 ? AppColors.accent
@@ -261,7 +256,7 @@ struct DailyReflectionView: View {
                         )
                         .frame(width: 24, height: 24)
                         .overlay(
-                            RoundedRectangle(cornerRadius: 8)
+                            RoundedRectangle(cornerRadius: 6)
                                 .stroke(
                                     viewModel.checkedGoals.contains(goal)
                                         ? AppColors.accentLight
@@ -329,54 +324,15 @@ struct DailyReflectionView: View {
                     endPoint: .trailing
                 )
             )
-            .cornerRadius(16)
+            .cornerRadius(AppLayout.buttonCornerRadius)
             .shadow(color: AppColors.accent.opacity(0.4), radius: 12, x: 0, y: 6)
             .overlay(
-                RoundedRectangle(cornerRadius: 16)
+                RoundedRectangle(cornerRadius: AppLayout.buttonCornerRadius)
                     .stroke(AppColors.accentLight.opacity(0.5), lineWidth: 1)
             )
         }
         .buttonStyle(PlainButtonStyle())
         .disabled(viewModel.showCheckmark)
-    }
-    
-    // MARK: - Toast View
-    private var toastView: some View {
-        VStack {
-            HStack(spacing: 12) {
-                Image(systemName: "checkmark.circle.fill")
-                    .foregroundColor(AppColors.success)
-                
-                Text("Reflection saved!")
-                    .font(AppTypography.bodyBold)
-                    .foregroundColor(AppColors.textPrimary)
-            }
-            .padding(.horizontal, 20)
-            .padding(.vertical, 14)
-            .background(
-                RoundedRectangle(cornerRadius: 12)
-                    .fill(AppColors.secondaryBackground)
-                    .shadow(color: Color.black.opacity(0.3), radius: 10, x: 0, y: 5)
-            )
-            .overlay(
-                RoundedRectangle(cornerRadius: 12)
-                    .stroke(AppColors.accentLight.opacity(0.3), lineWidth: 1)
-            )
-            .padding(.top, 60)
-            
-            Spacer()
-        }
-        .animation(.spring(response: 0.4, dampingFraction: 0.8), value: viewModel.showToast)
-        .onChange(of: viewModel.showToast) { show in
-            if show {
-                // Auto-dismiss toast after 2 seconds
-                DispatchQueue.main.asyncAfter(deadline: .now() + 2.0) {
-                    withAnimation {
-                        viewModel.showToast = false
-                    }
-                }
-            }
-        }
     }
 }
 

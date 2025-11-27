@@ -16,18 +16,13 @@ struct ProofUploadView: View {
                     imageThumbnail(image: image)
                 }
                 
-                // Upload progress section
-                uploadProgressSection
-                
-                Spacer()
-            }
-            .padding(.horizontal, 20)
-            .padding(.top, 40)
+            // Upload progress section
+            uploadProgressSection
             
-            // Upload complete banner
-            if viewModel.uploadComplete {
-                uploadCompleteBanner
-            }
+            Spacer()
+        }
+        .padding(.horizontal, 20)
+        .padding(.top, 40)
         }
         .navigationBarTitleDisplayMode(.inline)
         .toolbar {
@@ -49,9 +44,9 @@ struct ProofUploadView: View {
             .resizable()
             .scaledToFill()
             .frame(width: 200, height: 200)
-            .clipShape(RoundedRectangle(cornerRadius: 18))
+            .clipShape(RoundedRectangle(cornerRadius: AppLayout.cardCornerRadius))
             .overlay(
-                RoundedRectangle(cornerRadius: 18)
+                RoundedRectangle(cornerRadius: AppLayout.cardCornerRadius)
                     .stroke(
                         LinearGradient(
                             colors: [
@@ -107,86 +102,6 @@ struct ProofUploadView: View {
             }
         }
         .padding(.horizontal, 20)
-    }
-    
-    private var uploadCompleteBanner: some View {
-        VStack(spacing: 16) {
-            // Purple checkmark animation
-            ZStack {
-                // Outer glow
-                Circle()
-                    .fill(
-                        LinearGradient(
-                            colors: [
-                                AppColors.accent.opacity(0.3),
-                                AppColors.accentLight.opacity(0.2)
-                            ],
-                            startPoint: .topLeading,
-                            endPoint: .bottomTrailing
-                        )
-                    )
-                    .frame(width: 100, height: 100)
-                    .blur(radius: 12)
-                
-                // Main circle
-                Circle()
-                    .fill(
-                        LinearGradient(
-                            colors: [AppColors.accent, AppColors.accentLight],
-                            startPoint: .topLeading,
-                            endPoint: .bottomTrailing
-                        )
-                    )
-                    .frame(width: 80, height: 80)
-                
-                // Checkmark
-                Image(systemName: "checkmark")
-                    .font(.system(size: 40, weight: .bold))
-                    .foregroundColor(.white)
-                    .scaleEffect(viewModel.uploadComplete ? 1.0 : 0.5)
-                    .opacity(viewModel.uploadComplete ? 1.0 : 0.0)
-            }
-            .scaleEffect(viewModel.uploadComplete ? 1.0 : 0.8)
-            .opacity(viewModel.uploadComplete ? 1.0 : 0.0)
-            .animation(.spring(response: 0.6, dampingFraction: 0.7).delay(0.2), value: viewModel.uploadComplete)
-            
-            // Success text
-            Text("Upload Complete")
-                .font(AppTypography.title2)
-                .foregroundColor(AppColors.textPrimary)
-                .opacity(viewModel.uploadComplete ? 1.0 : 0.0)
-                .animation(.easeIn(duration: 0.3).delay(0.4), value: viewModel.uploadComplete)
-        }
-        .padding(.vertical, 32)
-        .padding(.horizontal, 40)
-        .background(
-            RoundedRectangle(cornerRadius: 18)
-                .fill(AppColors.secondaryBackground)
-                .overlay(
-                    RoundedRectangle(cornerRadius: 18)
-                        .stroke(
-                            LinearGradient(
-                                colors: [
-                                    AppColors.accent.opacity(0.6),
-                                    AppColors.accentLight.opacity(0.4)
-                                ],
-                                startPoint: .topLeading,
-                                endPoint: .bottomTrailing
-                            ),
-                            lineWidth: 2
-                        )
-                )
-        )
-        .shadow(color: AppColors.accent.opacity(0.3), radius: 30, x: 0, y: 15)
-        .padding(.horizontal, 20)
-        .onAppear {
-            triggerHaptic(.success)
-        }
-    }
-    
-    private func triggerHaptic(_ style: UINotificationFeedbackGenerator.FeedbackType) {
-        let generator = UINotificationFeedbackGenerator()
-        generator.notificationOccurred(style)
     }
 }
 

@@ -49,10 +49,10 @@ struct SettingsRowView: View {
             .padding(.horizontal, 20)
             .padding(.vertical, 16)
             .background(
-                RoundedRectangle(cornerRadius: 20)
+                RoundedRectangle(cornerRadius: AppLayout.cardCornerRadius)
                     .fill(AppColors.secondaryBackground)
                     .overlay(
-                        RoundedRectangle(cornerRadius: 20)
+                        RoundedRectangle(cornerRadius: AppLayout.cardCornerRadius)
                             .stroke(
                                 LinearGradient(
                                     colors: [

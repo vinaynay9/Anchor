@@ -8,8 +8,9 @@ class DailyReflectionViewModel: ObservableObject {
     @Published var selectedMood: String? = nil
     @Published var reflectionText: String = ""
     @Published var checkedGoals: Set<String> = []
-    @Published var showToast: Bool = false
     @Published var showCheckmark: Bool = false
+    
+    private let toastManager = ToastManager.shared
     
     // MARK: - AppStorage
     @AppStorage("dailyReflection_mood") private var storedMood: String = ""
@@ -57,7 +58,7 @@ class DailyReflectionViewModel: ObservableObject {
         
         // Show toast after a brief delay
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
-            self.showToast = true
+            self.toastManager.showSuccess("Reflection saved!")
         }
         
         // Reset form after animations
@@ -71,7 +72,6 @@ class DailyReflectionViewModel: ObservableObject {
         reflectionText = ""
         checkedGoals = []
         showCheckmark = false
-        showToast = false
         
         // Clear stored data
         storedMood = ""

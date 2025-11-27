@@ -65,7 +65,7 @@ struct OnboardingPermissionStepView: View {
                         .frame(maxWidth: .infinity)
                         .padding(.vertical, Theme.padding)
                         .background(AppColors.accent)
-                        .cornerRadius(16)
+                        .cornerRadius(AppLayout.buttonCornerRadius)
                 }
                 .padding(.horizontal, Theme.padding * 2)
                 .padding(.bottom, Theme.padding * 2)
@@ -91,7 +91,7 @@ struct PermissionItemView: View {
         HStack(spacing: Theme.padding) {
             // Icon
             ZStack {
-                RoundedRectangle(cornerRadius: 12)
+                RoundedRectangle(cornerRadius: AppLayout.chipCornerRadius)
                     .fill(AppColors.secondaryBackground)
                     .frame(width: 50, height: 50)
                 
@@ -132,10 +132,10 @@ struct PermissionItemView: View {
         }
         .padding(Theme.padding)
         .background(
-            RoundedRectangle(cornerRadius: 16)
+            RoundedRectangle(cornerRadius: AppLayout.cardCornerRadius)
                 .fill(AppColors.secondaryBackground)
                 .overlay(
-                    RoundedRectangle(cornerRadius: 16)
+                    RoundedRectangle(cornerRadius: AppLayout.cardCornerRadius)
                         .stroke(AppColors.accentLight.opacity(0.3), lineWidth: 1)
                 )
         )

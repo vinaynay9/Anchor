@@ -1,14 +1,13 @@
 import SwiftUI
-import FamilyControls
 
 struct ScreenTimePermissionView: View {
-    @State private var isAuthorized = false
-    private let screenTimeService = ScreenTimeService.shared
+    @StateObject private var viewModel = ScreenTimePermissionViewModel()
     
     var body: some View {
         VStack(spacing: Theme.padding) {
             Text("Screen Time Permission")
                 .font(AppTypography.title)
+                .foregroundColor(AppColors.textPrimary)
                 .padding()
             
             Text("Anchor needs Screen Time permission to block apps during your focus sessions.")
@@ -17,34 +16,36 @@ struct ScreenTimePermissionView: View {
                 .multilineTextAlignment(.center)
                 .padding()
             
-            if isAuthorized {
+            if viewModel.status == .approved {
                 HStack {
                     Image(systemName: "checkmark.circle.fill")
                         .foregroundColor(AppColors.success)
                     Text("Authorized")
                         .font(AppTypography.bodyBold)
+                        .foregroundColor(AppColors.textPrimary)
                 }
                 .padding()
             } else {
                 Button(action: {
-                    Task {
-                        do {
-                            try await screenTimeService.requestAuthorization()
-                            isAuthorized = screenTimeService.isAuthorized()
-                        } catch {
-                            // Handle error
-                        }
-                    }
+                    viewModel.requestPermission()
                 }) {
-                    Text("Request Permission")
+                    Text("Enable Screen Time Access")
+                        .font(AppTypography.bodyBold)
+                        .foregroundColor(AppColors.textPrimary)
+                        .frame(maxWidth: .infinity)
+                        .padding()
                 }
                 .buttonStyle(PrimaryButtonStyle())
                 .padding()
             }
         }
-        .onAppear {
-            isAuthorized = screenTimeService.isAuthorized()
-        }
+        .padding(Theme.padding)
+        .background(AppColors.anchorPrimaryDark)
+        .cornerRadius(AppLayout.cardCornerRadius)
+        .overlay(
+            RoundedRectangle(cornerRadius: AppLayout.cardCornerRadius)
+                .stroke(AppColors.anchorLavender, lineWidth: 1)
+        )
     }
 }
 

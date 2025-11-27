@@ -25,12 +25,15 @@ struct RootView: View {
             case .signedOut:
                 AuthRootView()
                     .environmentObject(authViewModel)
+                    .withGlobalToasts()
             case .loading:
                 ProgressView("Loading...")
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
+                    .withGlobalToasts()
             case .signedIn:
                 MainTabView()
                     .environmentObject(authViewModel)
+                    .withGlobalToasts()
             }
         }
     }

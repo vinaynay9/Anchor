@@ -83,7 +83,7 @@ struct ActiveSessionMockView: View {
                             .frame(maxWidth: .infinity)
                             .padding()
                             .background(AppColors.primary)
-                            .cornerRadius(14)
+                            .cornerRadius(AppLayout.buttonCornerRadius)
                             .shadow(color: AppColors.primary.opacity(0.3), radius: 8, x: 0, y: 4)
                     }
                     .buttonStyle(PlainButtonStyle())
@@ -100,9 +100,9 @@ struct ActiveSessionMockView: View {
                             .frame(maxWidth: .infinity)
                             .padding()
                             .background(Color.clear)
-                            .cornerRadius(14)
+                            .cornerRadius(AppLayout.buttonCornerRadius)
                             .overlay(
-                                RoundedRectangle(cornerRadius: 14)
+                                RoundedRectangle(cornerRadius: AppLayout.buttonCornerRadius)
                                     .stroke(AppColors.accentLight, lineWidth: 2)
                             )
                     }

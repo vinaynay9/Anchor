@@ -2,7 +2,6 @@ import SwiftUI
 
 struct UnlockRequestView: View {
     @StateObject private var viewModel = UnlockRequestViewModel()
-    @State private var showConfirmationToast = false
     
     var body: some View {
         ZStack {
@@ -116,45 +115,10 @@ struct UnlockRequestView: View {
                         .frame(height: Theme.padding * 2)
                 }
             }
-            
-            // Confirmation Toast
-            if showConfirmationToast {
-                VStack {
-                    Spacer()
-                    
-                    HStack(spacing: Theme.spacing) {
-                        Image(systemName: "checkmark.circle.fill")
-                            .foregroundColor(AppColors.success)
-                            .font(.title3)
-                        
-                        Text("Request Sent — Waiting for your partner to review")
-                            .font(AppTypography.bodyBold)
-                            .foregroundColor(AppColors.textPrimary)
-                    }
-                    .padding(Theme.padding * 1.5)
-                    .background(
-                        RoundedRectangle(cornerRadius: Theme.cornerRadius)
-                            .fill(AppColors.secondaryBackground)
-                            .shadow(color: AppColors.accent.opacity(0.4), radius: 15, x: 0, y: 5)
-                    )
-                    .padding(.horizontal, Theme.padding * 2)
-                    .padding(.bottom, Theme.padding * 3)
-                    .transition(.move(edge: .bottom).combined(with: .opacity))
-                }
-                .animation(.spring(response: 0.4, dampingFraction: 0.8), value: showConfirmationToast)
-            }
         }
         .onChange(of: viewModel.isConfirmed) { isConfirmed in
             if isConfirmed {
-                withAnimation {
-                    showConfirmationToast = true
-                }
-                // Auto-dismiss toast after 3 seconds
-                DispatchQueue.main.asyncAfter(deadline: .now() + 3.0) {
-                    withAnimation {
-                        showConfirmationToast = false
-                    }
-                }
+                ToastManager.shared.showSuccess("Request Sent — Waiting for your partner to review")
             }
         }
     }

@@ -27,3 +27,19 @@ struct AppColors {
     static let shieldText = Color(red: 0.961, green: 0.961, blue: 0.969) // #F5F5F7 (high-contrast soft white)
 }
 
+// MARK: - Color Aliases
+extension AppColors {
+    // Non-breaking aliases for anchor colors
+    static let anchorPrimary = AppColors.primary
+    static let anchorPrimaryDark = AppColors.primaryDark
+    static let anchorAccent = AppColors.accent
+    static let anchorLavender = AppColors.accentLight
+}
+
+// MARK: - Layout Constants
+struct AppLayout {
+    static let cardCornerRadius: CGFloat = 18
+    static let buttonCornerRadius: CGFloat = 14
+    static let chipCornerRadius: CGFloat = 12
+}
+

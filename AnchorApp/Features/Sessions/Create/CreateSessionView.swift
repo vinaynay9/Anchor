@@ -58,10 +58,10 @@ struct CreateSessionView: View {
                 endPoint: UnitPoint(x: 1 - gradientOffset, y: 1)
             )
         )
-        .cornerRadius(20)
+        .cornerRadius(AppLayout.cardCornerRadius)
         .shadow(color: AppColors.accent.opacity(0.3), radius: 20, x: 0, y: 10)
         .overlay(
-            RoundedRectangle(cornerRadius: 20)
+            RoundedRectangle(cornerRadius: AppLayout.cardCornerRadius)
                 .stroke(
                     LinearGradient(
                         gradient: Gradient(colors: [
@@ -95,10 +95,10 @@ struct CreateSessionView: View {
         }
         .padding(20)
         .background(AppColors.secondaryBackground)
-        .cornerRadius(16)
+        .cornerRadius(AppLayout.cardCornerRadius)
         .shadow(color: Color.black.opacity(0.3), radius: 8, x: 0, y: 4)
         .overlay(
-            RoundedRectangle(cornerRadius: 16)
+            RoundedRectangle(cornerRadius: AppLayout.cardCornerRadius)
                 .stroke(AppColors.accentLight.opacity(0.3), lineWidth: 1)
         )
     }
@@ -131,9 +131,9 @@ struct CreateSessionView: View {
                     ? AppColors.accent.opacity(0.2)
                     : Color.clear
             )
-            .cornerRadius(12)
+            .cornerRadius(AppLayout.chipCornerRadius)
             .overlay(
-                RoundedRectangle(cornerRadius: 12)
+                RoundedRectangle(cornerRadius: AppLayout.chipCornerRadius)
                     .stroke(
                         viewModel.selectedDuration == duration
                             ? AppColors.accentLight
@@ -160,10 +160,10 @@ struct CreateSessionView: View {
         }
         .padding(20)
         .background(AppColors.secondaryBackground)
-        .cornerRadius(16)
+        .cornerRadius(AppLayout.cardCornerRadius)
         .shadow(color: Color.black.opacity(0.3), radius: 8, x: 0, y: 4)
         .overlay(
-            RoundedRectangle(cornerRadius: 16)
+            RoundedRectangle(cornerRadius: AppLayout.cardCornerRadius)
                 .stroke(AppColors.accentLight.opacity(0.3), lineWidth: 1)
         )
     }
@@ -234,10 +234,10 @@ struct CreateSessionView: View {
                     endPoint: .trailing
                 )
             )
-            .cornerRadius(16)
+            .cornerRadius(AppLayout.buttonCornerRadius)
             .shadow(color: AppColors.accent.opacity(0.4), radius: 12, x: 0, y: 6)
             .overlay(
-                RoundedRectangle(cornerRadius: 16)
+                RoundedRectangle(cornerRadius: AppLayout.buttonCornerRadius)
                     .stroke(AppColors.accentLight.opacity(0.5), lineWidth: 1)
             )
         }

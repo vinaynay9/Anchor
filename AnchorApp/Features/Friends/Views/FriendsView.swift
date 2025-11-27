@@ -1,12 +1,12 @@
 import SwiftUI
 
-struct FriendListView: View {
-    @StateObject private var viewModel = FriendListViewModel()
+struct FriendsView: View {
+    @StateObject private var viewModel = FriendsViewModel()
     
     var body: some View {
         NavigationView {
             ZStack {
-                AppColors.background.ignoresSafeArea()
+                AppColors.anchorPrimaryDark.ignoresSafeArea()
                 
                 VStack(spacing: 0) {
                     // Search Bar
@@ -50,15 +50,15 @@ struct FriendListView: View {
                 .foregroundColor(AppColors.textSecondary)
                 .font(AppTypography.body)
             
-            TextField("Search friends…", text: $viewModel.searchText)
+            TextField("Search friends…", text: $viewModel.searchQuery)
                 .font(AppTypography.body)
                 .foregroundColor(AppColors.textPrimary)
                 .textFieldStyle(PlainTextFieldStyle())
             
-            if !viewModel.searchText.isEmpty {
+            if !viewModel.searchQuery.isEmpty {
                 Button(action: {
                     withAnimation {
-                        viewModel.searchText = ""
+                        viewModel.searchQuery = ""
                     }
                 }) {
                     Image(systemName: "xmark.circle.fill")
@@ -69,7 +69,7 @@ struct FriendListView: View {
         }
         .padding(Theme.padding)
         .background(AppColors.secondaryBackground)
-        .cornerRadius(Theme.cornerRadius)
+        .cornerRadius(AppLayout.cardCornerRadius)
     }
     
     private var friendsList: some View {
@@ -96,11 +96,11 @@ struct FriendListView: View {
                 .font(.system(size: 60))
                 .foregroundColor(AppColors.textSecondary.opacity(0.5))
             
-            Text(viewModel.searchText.isEmpty ? "No friends yet" : "No friends found")
+            Text(viewModel.searchQuery.isEmpty ? "No friends yet" : "No friends found")
                 .font(AppTypography.title3)
                 .foregroundColor(AppColors.textSecondary)
             
-            if viewModel.searchText.isEmpty {
+            if viewModel.searchQuery.isEmpty {
                 Text("Tap + to add your first friend")
                     .font(AppTypography.caption)
                     .foregroundColor(AppColors.textSecondary.opacity(0.7))
@@ -117,7 +117,7 @@ struct FriendCardView: View {
     
     var body: some View {
         HStack(spacing: Theme.padding) {
-            // Avatar with gradient
+            // Avatar with gradient and lavender border
             ZStack {
                 Circle()
                     .fill(
@@ -131,6 +131,10 @@ struct FriendCardView: View {
                         )
                     )
                     .frame(width: 56, height: 56)
+                    .overlay(
+                        Circle()
+                            .stroke(AppColors.anchorLavender.opacity(0.6), lineWidth: 2)
+                    )
                 
                 Text(friend.initials)
                     .font(AppTypography.title3)
@@ -163,14 +167,14 @@ struct FriendCardView: View {
                     .padding(.vertical, Theme.spacing)
                     .background(Color.clear)
                     .overlay(
-                        RoundedRectangle(cornerRadius: Theme.cornerRadius)
-                            .stroke(AppColors.accentLight.opacity(0.5), lineWidth: 1.5)
+                        RoundedRectangle(cornerRadius: AppLayout.buttonCornerRadius)
+                            .stroke(AppColors.anchorLavender.opacity(0.5), lineWidth: 1.5)
                     )
             }
         }
         .padding(Theme.padding)
         .background(
-            RoundedRectangle(cornerRadius: Theme.cornerRadius)
+            RoundedRectangle(cornerRadius: AppLayout.cardCornerRadius)
                 .fill(
                     LinearGradient(
                         colors: [
@@ -183,7 +187,7 @@ struct FriendCardView: View {
                 )
         )
         .overlay(
-            RoundedRectangle(cornerRadius: Theme.cornerRadius)
+            RoundedRectangle(cornerRadius: AppLayout.cardCornerRadius)
                 .stroke(
                     LinearGradient(
                         colors: [
