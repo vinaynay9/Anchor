@@ -8,7 +8,7 @@ struct PrimaryButtonStyle: ButtonStyle {
             .frame(maxWidth: .infinity)
             .padding()
             .background(AppColors.accent)
-            .cornerRadius(14)
+            .cornerRadius(AppLayout.buttonCornerRadius)
             .scaleEffect(configuration.isPressed ? 0.97 : 1.0)
             .opacity(configuration.isPressed ? 0.85 : 1.0)
     }
@@ -22,9 +22,9 @@ struct SecondaryButtonStyle: ButtonStyle {
             .frame(maxWidth: .infinity)
             .padding()
             .background(Color.clear)
-            .cornerRadius(14)
+            .cornerRadius(AppLayout.buttonCornerRadius)
             .overlay(
-                RoundedRectangle(cornerRadius: 14)
+                RoundedRectangle(cornerRadius: AppLayout.buttonCornerRadius)
                     .stroke(AppColors.accentLight.opacity(0.3), lineWidth: 1)
             )
             .scaleEffect(configuration.isPressed ? 0.97 : 1.0)
@@ -40,7 +40,7 @@ struct DangerButtonStyle: ButtonStyle {
             .frame(maxWidth: .infinity)
             .padding()
             .background(AppColors.error)
-            .cornerRadius(14)
+            .cornerRadius(AppLayout.buttonCornerRadius)
             .scaleEffect(configuration.isPressed ? 0.97 : 1.0)
             .opacity(configuration.isPressed ? 0.85 : 1.0)
     }

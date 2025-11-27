@@ -2,23 +2,25 @@ import SwiftUI
 import Shared
 
 struct IncomingRequestsListView: View {
+    @EnvironmentObject var coordinator: MainTabFlow
     @StateObject private var viewModel = UnlockRequestsViewModel()
     
     var body: some View {
-        NavigationView {
-            List {
-                ForEach(viewModel.pendingRequests) { request in
-                    NavigationLink(destination: UnlockRequestDetailView(request: request)) {
-                        UnlockRequestRowView(request: request)
-                    }
+        List {
+            ForEach(viewModel.pendingRequests) { request in
+                Button(action: {
+                    coordinator.navigateToUnlockRequestDetail(request: request)
+                }) {
+                    UnlockRequestRowView(request: request)
                 }
+                .buttonStyle(.plain)
             }
-            .scrollContentBackground(.hidden)
-            .background(AppColors.background)
-            .navigationTitle("Unlock Requests")
-            .onAppear {
-                viewModel.loadPendingRequests()
-            }
+        }
+        .scrollContentBackground(.hidden)
+        .background(AppColors.background)
+        .navigationTitle("Unlock Requests")
+        .onAppear {
+            viewModel.loadPendingRequests()
         }
     }
 }

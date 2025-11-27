@@ -40,7 +40,7 @@ struct UnlockRequestView: View {
                         VStack(alignment: .leading, spacing: Theme.spacing) {
                             ZStack(alignment: .topLeading) {
                                 // Background
-                                RoundedRectangle(cornerRadius: Theme.cornerRadius)
+                                RoundedRectangle(cornerRadius: AppLayout.cardCornerRadius)
                                     .fill(AppColors.accentLight.opacity(0.2))
                                     .frame(minHeight: 150)
                                 
@@ -67,7 +67,7 @@ struct UnlockRequestView: View {
                                     }
                             }
                             .overlay(
-                                RoundedRectangle(cornerRadius: Theme.cornerRadius)
+                                RoundedRectangle(cornerRadius: AppLayout.cardCornerRadius)
                                     .stroke(AppColors.accentLight.opacity(0.4), lineWidth: 1)
                             )
                             
@@ -105,7 +105,7 @@ struct UnlockRequestView: View {
                     }
                     .padding(Theme.padding * 1.5)
                     .background(
-                        RoundedRectangle(cornerRadius: Theme.cornerRadius * 1.5)
+                        RoundedRectangle(cornerRadius: AppLayout.cardCornerRadius)
                             .fill(AppColors.secondaryBackground.opacity(0.9))
                             .shadow(color: AppColors.primary.opacity(0.3), radius: 20, x: 0, y: 10)
                     )
@@ -118,7 +118,7 @@ struct UnlockRequestView: View {
         }
         .onChange(of: viewModel.isConfirmed) { isConfirmed in
             if isConfirmed {
-                ToastManager.shared.showSuccess("Request Sent — Waiting for your partner to review")
+                ToastManager.shared.show("Request Sent — Waiting for your partner to review")
             }
         }
     }

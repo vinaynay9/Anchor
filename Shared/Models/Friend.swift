@@ -1,6 +1,6 @@
 import Foundation
 
-struct Friend: Identifiable, Codable {
+struct Friend: Identifiable, Codable, Hashable {
     let id: UUID
     let userId: UUID
     let friendId: UUID
@@ -18,7 +18,7 @@ struct Friend: Identifiable, Codable {
     }
 }
 
-enum FriendshipStatus: String, Codable {
+enum FriendshipStatus: String, Codable, Hashable {
     case pending
     case accepted
     case blocked

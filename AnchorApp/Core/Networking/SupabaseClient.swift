@@ -13,16 +13,16 @@ class SupabaseClient {
     // For now, use REST API via APIClient
     
     func setAuthToken(_ token: String) {
-        // Store token in UserDefaults or Keychain
-        UserDefaults.standard.set(token, forKey: AppConfig.UserDefaultsKeys.accessToken)
+        // Store token in Keychain
+        try? KeychainService.shared.save(token, forKey: AppConfig.UserDefaultsKeys.accessToken)
     }
     
     func clearAuthToken() {
-        UserDefaults.standard.removeObject(forKey: AppConfig.UserDefaultsKeys.accessToken)
+        try? KeychainService.shared.delete(forKey: AppConfig.UserDefaultsKeys.accessToken)
     }
     
     var isAuthenticated: Bool {
-        UserDefaults.standard.string(forKey: AppConfig.UserDefaultsKeys.accessToken) != nil
+        KeychainService.shared.exists(forKey: AppConfig.UserDefaultsKeys.accessToken)
     }
 }
 

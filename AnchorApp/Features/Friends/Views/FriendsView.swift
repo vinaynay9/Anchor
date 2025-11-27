@@ -1,45 +1,41 @@
 import SwiftUI
 
 struct FriendsView: View {
+    @EnvironmentObject var coordinator: MainTabFlow
     @StateObject private var viewModel = FriendsViewModel()
     
     var body: some View {
-        NavigationView {
-            ZStack {
-                AppColors.anchorPrimaryDark.ignoresSafeArea()
+        ZStack {
+            AppColors.anchorPrimaryDark.ignoresSafeArea()
+            
+            VStack(spacing: 0) {
+                // Search Bar
+                searchBar
+                    .padding(.horizontal, Theme.padding)
+                    .padding(.top, Theme.spacing)
+                    .padding(.bottom, Theme.spacing * 2)
                 
-                VStack(spacing: 0) {
-                    // Search Bar
-                    searchBar
-                        .padding(.horizontal, Theme.padding)
-                        .padding(.top, Theme.spacing)
-                        .padding(.bottom, Theme.spacing * 2)
-                    
-                    // Friends List
-                    if viewModel.filteredFriends.isEmpty {
-                        emptyStateView
-                    } else {
-                        friendsList
-                    }
+                // Friends List
+                if viewModel.filteredFriends.isEmpty {
+                    emptyStateView
+                } else {
+                    friendsList
                 }
             }
-            .navigationTitle("Friends")
-            .navigationBarTitleDisplayMode(.large)
-            .toolbar {
-                ToolbarItem(placement: .navigationBarTrailing) {
-                    Button(action: {
-                        withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
-                            viewModel.isShowingAddSheet = true
-                        }
-                    }) {
-                        Image(systemName: "plus")
-                            .font(AppTypography.bodyBold)
-                            .foregroundColor(AppColors.accent)
+        }
+        .navigationTitle("Friends")
+        .navigationBarTitleDisplayMode(.large)
+        .toolbar {
+            ToolbarItem(placement: .navigationBarTrailing) {
+                Button(action: {
+                    withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
+                        coordinator.navigateToAddFriend()
                     }
+                }) {
+                    Image(systemName: "plus")
+                        .font(AppTypography.bodyBold)
+                        .foregroundColor(AppColors.accent)
                 }
-            }
-            .sheet(isPresented: $viewModel.isShowingAddSheet) {
-                AddFriendSheet(viewModel: viewModel)
             }
         }
     }

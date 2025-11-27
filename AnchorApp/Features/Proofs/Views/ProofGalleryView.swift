@@ -46,7 +46,7 @@ struct ProofGalleryView: View {
                             }
                         }
                         .frame(height: 150)
-                        .cornerRadius(Theme.cornerRadius)
+                        .cornerRadius(AppLayout.cardCornerRadius)
                         .clipped()
                     }
                 }

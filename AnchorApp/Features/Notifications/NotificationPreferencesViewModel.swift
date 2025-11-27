@@ -15,11 +15,9 @@ class NotificationPreferencesViewModel: ObservableObject {
     @AppStorage("notifyDailySummary") var notifyDailySummary: Bool = true
     @AppStorage("notifyWeeklyInsights") var notifyWeeklyInsights: Bool = false
     
-    private let toastManager = ToastManager.shared
-    
     func savePreferences() {
         // Show success toast
-        toastManager.showSuccess("Preferences saved successfully")
+        ToastManager.shared.show("Preferences saved successfully")
     }
 }
 

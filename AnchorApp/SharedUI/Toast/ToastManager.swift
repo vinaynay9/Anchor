@@ -15,18 +15,26 @@ class ToastManager: ObservableObject {
     
     private init() {}
     
+    /// Show a toast notification (defaults to success type)
+    /// - Parameters:
+    ///   - message: The message to display
+    ///   - type: The toast type (defaults to .success)
+    ///   - duration: The duration to show the toast (defaults to 2.5 seconds)
+    func show(_ message: String, type: ToastType = .success, duration: Double = 2.5) {
+        let toast = ToastModel(message: message, type: type, duration: duration)
+        showToast(toast)
+    }
+    
     /// Show a success toast notification
     /// - Parameter message: The message to display
     func showSuccess(_ message: String, duration: Double = 2.5) {
-        let toast = ToastModel(message: message, type: .success, duration: duration)
-        showToast(toast)
+        show(message, type: .success, duration: duration)
     }
     
     /// Show an error toast notification
     /// - Parameter message: The message to display
     func showError(_ message: String, duration: Double = 2.5) {
-        let toast = ToastModel(message: message, type: .error, duration: duration)
-        showToast(toast)
+        show(message, type: .error, duration: duration)
     }
     
     /// Internal method to show a toast

@@ -32,21 +32,18 @@ class NotificationService: NotificationServiceProtocol {
     
     // MARK: - Push Notification Registration
     func registerForPushNotifications() async throws -> String {
-        // Request authorization first
-        try await requestAuthorization()
+        // Get AppDelegate instance
+        guard let appDelegate = AppDelegate.shared else {
+            throw NotificationError.registrationFailed
+        }
         
-        // Register with APNs
-        // TODO: Implement APNs registration
-        // This typically happens in AppDelegate or SceneDelegate
-        // For SwiftUI, we can use UIApplicationDelegateAdaptor
+        // Request authorization and register for push notifications via AppDelegate
+        // AppDelegate handles authorization, registration, and returns the device token
+        let deviceToken = try await appDelegate.registerForPushNotifications()
         
-        // For now, return a placeholder token
-        // In production:
-        // 1. Get device token from APNs
-        // 2. Send token to backend via API
-        // 3. Store token locally
-        
-        throw NotificationError.registrationFailed
+        // Token is already sent to backend by AppDelegate in didRegisterForRemoteNotificationsWithDeviceToken
+        // Return the token string
+        return deviceToken
     }
     
     // MARK: - Notification Handling

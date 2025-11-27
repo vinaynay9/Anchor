@@ -5,17 +5,19 @@ class OnboardingViewModel: ObservableObject {
     @Published var currentPage: Int = 0
     @Published var screenTimePermissionGranted: Bool = false
     @Published var notificationsPermissionGranted: Bool = false
+    @Published var hasCompletedOnboarding: Bool = false
     
     private let userDefaults = UserDefaults.standard
     private let hasCompletedOnboardingKey = "hasCompletedOnboarding"
     
-    var hasCompletedOnboarding: Bool {
-        get {
-            userDefaults.bool(forKey: hasCompletedOnboardingKey)
-        }
-        set {
-            userDefaults.set(newValue, forKey: hasCompletedOnboardingKey)
-        }
+    init() {
+        // Load initial state from UserDefaults
+        hasCompletedOnboarding = userDefaults.bool(forKey: hasCompletedOnboardingKey)
+        
+        // Mock permission statuses (no real API calls)
+        // In a real app, these would check actual permission status
+        screenTimePermissionGranted = false
+        notificationsPermissionGranted = false
     }
     
     var totalPages: Int {
@@ -24,13 +26,6 @@ class OnboardingViewModel: ObservableObject {
     
     var isLastPage: Bool {
         return currentPage == totalPages - 1
-    }
-    
-    init() {
-        // Mock permission statuses (no real API calls)
-        // In a real app, these would check actual permission status
-        screenTimePermissionGranted = false
-        notificationsPermissionGranted = false
     }
     
     func nextPage() {
@@ -51,6 +46,7 @@ class OnboardingViewModel: ObservableObject {
     
     func completeOnboarding() {
         hasCompletedOnboarding = true
+        userDefaults.set(true, forKey: hasCompletedOnboardingKey)
     }
     
     // Mock methods for permission status (no real API calls)

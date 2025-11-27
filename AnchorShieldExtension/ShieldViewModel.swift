@@ -1,6 +1,7 @@
 import SwiftUI
 import Foundation
 import UIKit
+import Combine
 import Shared
 
 @MainActor
@@ -12,6 +13,20 @@ class ShieldViewModel: ObservableObject {
     @Published var primaryButtonTitle: String = "Open Anchor"
     
     private let appGroupStorage = AppGroupStorage.shared
+    private var cancellables = Set<AnyCancellable>()
+    
+    init() {
+        // Subscribe to AppGroupStorage updates for real-time sync
+        appGroupStorage.updatesPublisher
+            .receive(on: DispatchQueue.main)
+            .sink { [weak self] _ in
+                self?.refresh()
+            }
+            .store(in: &cancellables)
+        
+        // Initial refresh
+        refresh()
+    }
     
     func refresh() {
         let state = appGroupStorage.getSessionState() // Now returns SharedSessionState?

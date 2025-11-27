@@ -1,6 +1,6 @@
 import Foundation
 
-struct LockSession: Identifiable, Codable {
+struct LockSession: Identifiable, Codable, Hashable {
     let id: UUID
     let userId: UUID
     let status: SessionStatus
@@ -22,7 +22,7 @@ struct LockSession: Identifiable, Codable {
     }
 }
 
-enum SessionStatus: String, Codable {
+enum SessionStatus: String, Codable, Hashable {
     case active
     case completed
     case cancelled

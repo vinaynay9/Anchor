@@ -12,7 +12,6 @@ class ProofCaptureViewModel: ObservableObject {
     
     private var uploadTimer: Timer?
     private let uploadDuration: TimeInterval = 1.5
-    private let toastManager = ToastManager.shared
     
     func capturePhoto(from image: UIImage) {
         capturedImage = image
@@ -52,7 +51,7 @@ class ProofCaptureViewModel: ObservableObject {
                     timer.invalidate()
                     self.isUploading = false
                     self.uploadComplete = true
-                    self.toastManager.showSuccess("Upload Complete")
+                    ToastManager.shared.show("Upload Complete")
                 }
             }
         }

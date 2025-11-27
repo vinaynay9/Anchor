@@ -10,8 +10,6 @@ class SettingsViewModel: ObservableObject {
     // Alert state
     @Published var showClearDataAlert = false
     
-    private let toastManager = ToastManager.shared
-    
     // Simulated actions
     func editProfile() {
         // Simulated action - no backend
@@ -34,7 +32,7 @@ class SettingsViewModel: ObservableObject {
         
         // Show success toast after a brief delay
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
-            self.toastManager.showSuccess("Data Cleared")
+            ToastManager.shared.show("Data Cleared")
         }
     }
     

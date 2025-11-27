@@ -1,6 +1,6 @@
 import Foundation
 
-struct UnlockRequest: Identifiable, Codable {
+struct UnlockRequest: Identifiable, Codable, Hashable {
     let id: UUID
     let sessionId: UUID
     let requesterId: UUID
@@ -22,7 +22,7 @@ struct UnlockRequest: Identifiable, Codable {
     }
 }
 
-enum UnlockRequestStatus: String, Codable {
+enum UnlockRequestStatus: String, Codable, Hashable {
     case pending
     case approved
     case denied

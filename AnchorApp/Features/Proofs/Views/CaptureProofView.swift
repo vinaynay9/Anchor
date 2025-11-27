@@ -43,7 +43,7 @@ struct CaptureProofView: View {
                     .frame(maxWidth: .infinity)
                     .padding()
                     .background(AppColors.primary)
-                    .cornerRadius(Theme.cornerRadius)
+                    .cornerRadius(AppLayout.buttonCornerRadius)
                 }
                 .padding()
             }

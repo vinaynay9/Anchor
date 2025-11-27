@@ -20,22 +20,28 @@ class AuthService: AuthServiceProtocol {
     static let shared = AuthService()
     
     private let apiClient = APIClient.shared
+    private let keychainService = KeychainService.shared
+    private let googleSignInCoordinator = GoogleSignInCoordinator.shared
     
     // MARK: - Apple Sign In
     func signInWithApple() async throws -> User {
-        // TODO: Integrate Apple SDK
         // 1. Request authorization with ASAuthorizationAppleIDProvider
         // 2. Get identity token
+        let identityToken: String
+        do {
+            identityToken = try await appleSignInCoordinator.performSignIn()
+        } catch let error as AppleSignInError {
+            switch error {
+            case .cancelled:
+                throw AuthError.cancelled
+            case .failed(let underlyingError):
+                throw AuthError.failed(underlyingError)
+            case .invalidToken, .invalidResponse:
+                throw AuthError.invalidToken
+            }
+        }
+        
         // 3. Send token to backend via APIEndpoint.signInApple
-        // 4. Receive access token and user data
-        // 5. Store tokens securely (Keychain)
-        // 6. Store user ID in UserDefaults
-        // 7. Return user
-        
-        // TODO: Get identity token from Apple Sign In
-        let identityToken = "placeholder_token" // Replace with actual token from Apple SDK
-        
-        // POST /auth/apple
         struct AuthResponse: Codable {
             let accessToken: String
             let refreshToken: String?
@@ -47,17 +53,17 @@ class AuthService: AuthServiceProtocol {
             responseType: AuthResponse.self
         )
         
-        // Store tokens
-        UserDefaults.standard.set(response.accessToken, forKey: AppConfig.UserDefaultsKeys.accessToken)
+        // 4. Store tokens securely in Keychain
+        try keychainService.save(response.accessToken, forKey: AppConfig.UserDefaultsKeys.accessToken)
         if let refreshToken = response.refreshToken {
-            UserDefaults.standard.set(refreshToken, forKey: AppConfig.UserDefaultsKeys.refreshToken)
+            try keychainService.save(refreshToken, forKey: AppConfig.UserDefaultsKeys.refreshToken)
         }
         
         guard let user = response.user.toUser() else {
             throw AuthError.invalidToken
         }
         
-        // Store user ID
+        // 5. Store user ID in UserDefaults
         UserDefaults.standard.set(user.id.uuidString, forKey: AppConfig.UserDefaultsKeys.currentUserId)
         
         return user
@@ -65,40 +71,66 @@ class AuthService: AuthServiceProtocol {
     
     // MARK: - Google Sign In
     func signInWithGoogle() async throws -> User {
-        // TODO: Integrate Google SDK
-        // 1. Configure GIDSignIn with client ID
-        // 2. Present sign-in flow
-        // 3. Get ID token
-        // 4. Send token to backend via APIEndpoint.signInGoogle
-        // 5. Receive access token and user data
-        // 6. Store tokens securely (Keychain)
-        // 7. Store user ID in UserDefaults
-        // 8. Return user
+        // 1. Get ID token from Google Sign-In
+        let idToken: String
+        do {
+            idToken = try await googleSignInCoordinator.signIn()
+        } catch let error as GoogleSignInError {
+            switch error {
+            case .cancelled:
+                throw AuthError.cancelled
+            case .noIDToken, .noPresentingViewController:
+                throw AuthError.invalidToken
+            case .signInFailed(let underlyingError):
+                throw AuthError.failed(underlyingError)
+            }
+        } catch {
+            throw AuthError.failed(error)
+        }
         
-        // Simulate async call with delay
-        try await Task.sleep(nanoseconds: 1_000_000_000) // 1 second delay
+        // 2. Send ID token to backend
+        struct AuthResponse: Codable {
+            let accessToken: String
+            let refreshToken: String?
+            let user: UserDTO
+        }
         
-        // Mock implementation - return a mock user
-        let mockUser = User(
-            id: UUID(),
-            email: "user@gmail.com",
-            username: "",
-            displayName: "Google User",
-            createdAt: Date()
-        )
+        let response: AuthResponse
+        do {
+            response = try await apiClient.request(
+                .signInGoogle(token: idToken),
+                responseType: AuthResponse.self
+            )
+        } catch {
+            throw AuthError.networkError
+        }
         
-        // Store user ID for currentUser() to retrieve
-        UserDefaults.standard.set(mockUser.id.uuidString, forKey: AppConfig.UserDefaultsKeys.currentUserId)
+        // 3. Store access token in Keychain
+        do {
+            try keychainService.save(response.accessToken, forKey: AppConfig.UserDefaultsKeys.accessToken)
+        } catch {
+            throw AuthError.failed(error)
+        }
         
-        // TODO: Send identity token to backend
-        // let identityToken = "..." // Get from Google Sign In
-        // let response: AuthResponse = try await apiClient.request(
-        //     .signInGoogle(token: identityToken),
-        //     responseType: AuthResponse.self
-        // )
-        // Store access token: UserDefaults.standard.set(response.accessToken, forKey: AppConfig.UserDefaultsKeys.accessToken)
+        // 4. Store refresh token in Keychain if available
+        if let refreshToken = response.refreshToken {
+            do {
+                try keychainService.save(refreshToken, forKey: AppConfig.UserDefaultsKeys.refreshToken)
+            } catch {
+                // Log error but don't fail - refresh token is optional
+                print("Warning: Failed to save refresh token to Keychain: \(error)")
+            }
+        }
         
-        return mockUser
+        // 5. Convert DTO to User
+        guard let user = response.user.toUser() else {
+            throw AuthError.invalidToken
+        }
+        
+        // 6. Store user ID in UserDefaults
+        UserDefaults.standard.set(user.id.uuidString, forKey: AppConfig.UserDefaultsKeys.currentUserId)
+        
+        return user
     }
     
     // MARK: - Sign Out
@@ -108,10 +140,10 @@ class AuthService: AuthServiceProtocol {
         
         // Clear local storage
         UserDefaults.standard.removeObject(forKey: AppConfig.UserDefaultsKeys.currentUserId)
-        UserDefaults.standard.removeObject(forKey: AppConfig.UserDefaultsKeys.accessToken)
-        UserDefaults.standard.removeObject(forKey: AppConfig.UserDefaultsKeys.refreshToken)
         
-        // TODO: Clear tokens from Keychain
+        // Clear tokens from Keychain
+        try? keychainService.delete(forKey: AppConfig.UserDefaultsKeys.accessToken)
+        try? keychainService.delete(forKey: AppConfig.UserDefaultsKeys.refreshToken)
     }
     
     // MARK: - Current User

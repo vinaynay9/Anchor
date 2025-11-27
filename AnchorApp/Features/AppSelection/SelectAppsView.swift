@@ -120,7 +120,7 @@ struct SelectAppsView: View {
                         }
                         .padding(Theme.padding)
                         .background(AppColors.error.opacity(0.1))
-                        .cornerRadius(Theme.cornerRadius)
+                        .cornerRadius(AppLayout.cardCornerRadius)
                         .padding(.horizontal, Theme.padding)
                     }
                     

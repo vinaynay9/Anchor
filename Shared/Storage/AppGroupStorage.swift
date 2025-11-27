@@ -1,4 +1,10 @@
 import Foundation
+import Combine
+
+// MARK: - Notification Names
+extension Notification.Name {
+    public static let appGroupDidUpdate = Notification.Name("appGroupDidUpdate")
+}
 
 // MARK: - Unified Shared Session State (for Shield Extension)
 public struct SharedSessionState: Codable {
@@ -24,8 +30,24 @@ public final class AppGroupStorage {
         static let pendingUnlockRequest = "hasPendingUnlockRequest"
     }
     
+    // MARK: - Combine Publisher for Real-Time Updates
+    public let updatesPublisher: AnyPublisher<String?, Never>
+    
     private init() {
         defaults = UserDefaults(suiteName: "group.com.anchor.app")
+        
+        // Create Combine publisher for AppGroupStorage updates
+        updatesPublisher = NotificationCenter.default
+            .publisher(for: .appGroupDidUpdate)
+            .map { notification -> String? in
+                notification.object as? String
+            }
+            .eraseToAnyPublisher()
+    }
+    
+    // MARK: - Internal Helper to Post Notifications
+    private func notifyUpdate(forKey key: String) {
+        NotificationCenter.default.post(name: .appGroupDidUpdate, object: key)
     }
     
     // MARK: - Shared Session State
@@ -44,6 +66,9 @@ public final class AppGroupStorage {
         } else {
             defaults.removeObject(forKey: Keys.sharedSessionState)
         }
+        
+        // Broadcast update notification
+        notifyUpdate(forKey: Keys.sharedSessionState)
     }
     
     public func updateRemainingSeconds(_ seconds: Int) {
@@ -60,6 +85,8 @@ public final class AppGroupStorage {
     
     public func clearSessionState() {
         defaults?.removeObject(forKey: Keys.sharedSessionState)
+        // Broadcast update notification
+        notifyUpdate(forKey: Keys.sharedSessionState)
     }
     
     // MARK: - Unlock Request
@@ -70,5 +97,7 @@ public final class AppGroupStorage {
     
     public func setPendingUnlockRequest(_ isPending: Bool) {
         defaults?.set(isPending, forKey: Keys.pendingUnlockRequest)
+        // Broadcast update notification
+        notifyUpdate(forKey: Keys.pendingUnlockRequest)
     }
 }

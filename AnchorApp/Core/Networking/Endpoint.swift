@@ -22,8 +22,8 @@ extension Endpoint {
             "Content-Type": "application/json",
             "Accept": "application/json"
         ]
-        // Add auth token if available
-        if let token = UserDefaults.standard.string(forKey: AppConfig.UserDefaultsKeys.accessToken) {
+        // Add auth token if available (from Keychain)
+        if let token = try? KeychainService.shared.get(forKey: AppConfig.UserDefaultsKeys.accessToken) {
             defaultHeaders["Authorization"] = "Bearer \(token)"
         }
         return defaultHeaders
@@ -36,8 +36,8 @@ extension APIEndpoint {
             "Accept": "application/json"
         ]
         
-        // Add auth token if available
-        if let token = UserDefaults.standard.string(forKey: AppConfig.UserDefaultsKeys.accessToken) {
+        // Add auth token if available (from Keychain)
+        if let token = try? KeychainService.shared.get(forKey: AppConfig.UserDefaultsKeys.accessToken) {
             headers["Authorization"] = "Bearer \(token)"
         }
         
@@ -95,6 +95,7 @@ extension APIEndpoint {
 enum APIEndpoint: Endpoint {
     // Auth
     case signInApple(token: String)
+    case signInGoogle(token: String)
     case getCurrentUser
     case updateCurrentUser(username: String?, displayName: String?)
     
@@ -190,6 +191,8 @@ enum APIEndpoint: Endpoint {
         // Auth
         case .signInApple(let token):
             return try? JSONEncoder().encode(["token": token])
+        case .signInGoogle(let token):
+            return try? JSONEncoder().encode(["token": token])
         case .updateCurrentUser(_, let username, let displayName):
             var dict: [String: Any] = [:]
             if let username = username { dict["username"] = username }
@@ -231,4 +234,6 @@ enum APIEndpoint: Endpoint {
         }
     }
 }
+
+
 

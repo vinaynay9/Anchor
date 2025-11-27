@@ -5,9 +5,9 @@ struct AppTextFieldStyle: TextFieldStyle {
         configuration
             .padding()
             .background(AppColors.secondaryBackground)
-            .cornerRadius(Theme.cornerRadius)
+            .cornerRadius(AppLayout.cardCornerRadius)
             .overlay(
-                RoundedRectangle(cornerRadius: Theme.cornerRadius)
+                RoundedRectangle(cornerRadius: AppLayout.cardCornerRadius)
                     .stroke(AppColors.textSecondary.opacity(0.3), lineWidth: 1)
             )
     }
