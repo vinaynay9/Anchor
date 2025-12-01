@@ -13,54 +13,31 @@ class ActivitySelectionService: ActivitySelectionServiceProtocol {
     static let shared = ActivitySelectionService()
     
     private let appGroupStorage = AppGroupStorage.shared
-    private let appGroupIdentifier = AppConfig.appGroupIdentifier
-    private let selectionKey = "familyActivitySelection"
-    
-    private var userDefaults: UserDefaults? {
-        UserDefaults(suiteName: appGroupIdentifier)
-    }
     
     private init() {}
     
     // MARK: - Save Selection
     
+    /// Saves the FamilyActivitySelection to AppGroup storage using centralized keys.
+    /// This ensures the selection is accessible to both AnchorApp and Shield Extension.
     func saveSelection(_ selection: FamilyActivitySelection) throws {
-        guard let defaults = userDefaults else {
+        guard appGroupStorage.saveFamilyActivitySelection(selection, forKey: .familyActivitySelection) else {
             throw ActivitySelectionError.storageUnavailable
-        }
-        
-        // FamilyActivitySelection conforms to Codable, so we can encode it
-        let encoder = JSONEncoder()
-        do {
-            let encoded = try encoder.encode(selection)
-            defaults.set(encoded, forKey: selectionKey)
-        } catch {
-            throw ActivitySelectionError.encodingFailed(error)
         }
     }
     
     // MARK: - Load Selection
     
+    /// Loads the FamilyActivitySelection from AppGroup storage.
+    /// Returns nil if no selection is stored or if decoding fails.
     func loadSelection() -> FamilyActivitySelection? {
-        guard let defaults = userDefaults else {
-            return nil
-        }
-        
-        guard let data = defaults.data(forKey: selectionKey) else {
-            return nil
-        }
-        
-        let decoder = JSONDecoder()
-        do {
-            return try decoder.decode(FamilyActivitySelection.self, from: data)
-        } catch {
-            // If decoding fails, return nil
-            return nil
-        }
+        return appGroupStorage.loadFamilyActivitySelection(forKey: .familyActivitySelection)
     }
     
     // MARK: - Load Application Tokens
     
+    /// Loads application tokens from the stored FamilyActivitySelection.
+    /// Returns an empty array if no selection is stored.
     func loadApplicationTokens() -> [ApplicationToken] {
         guard let selection = loadSelection() else {
             return []
@@ -71,12 +48,9 @@ class ActivitySelectionService: ActivitySelectionServiceProtocol {
     
     // MARK: - Clear Selection
     
+    /// Clears the stored FamilyActivitySelection from AppGroup storage.
     func clearSelection() {
-        guard let defaults = userDefaults else {
-            return
-        }
-        
-        defaults.removeObject(forKey: selectionKey)
+        appGroupStorage.clearFamilyActivitySelection(forKey: .familyActivitySelection)
     }
 }
 

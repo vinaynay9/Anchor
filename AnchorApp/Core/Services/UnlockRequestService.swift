@@ -19,17 +19,28 @@ protocol UnlockRequestServiceProtocol {
 class UnlockRequestService: UnlockRequestServiceProtocol {
     static let shared = UnlockRequestService()
     
+    /// Strongly-typed errors for unlock request operations
+    private enum UnlockRequestError: Error {
+        /// Thrown when the provided session ID cannot be converted to a valid UUID
+        case invalidSessionId
+        /// Wraps underlying errors from backend API calls
+        case backendFailure(underlying: Error)
+    }
+    
     private let apiClient = APIClient.shared
     private let appGroupStorage = AppGroupStorage.shared
     private let sessionService: SessionServiceProtocol
     private let screenTimeService: ScreenTimeServiceProtocol
+    private let notificationService: NotificationServiceProtocol
     
     init(
         sessionService: SessionServiceProtocol = SessionService.shared,
-        screenTimeService: ScreenTimeServiceProtocol = ScreenTimeService.shared
+        screenTimeService: ScreenTimeServiceProtocol = ScreenTimeService.shared,
+        notificationService: NotificationServiceProtocol = NotificationService.shared
     ) {
         self.sessionService = sessionService
         self.screenTimeService = screenTimeService
+        self.notificationService = notificationService
     }
     
     
@@ -41,22 +52,22 @@ class UnlockRequestService: UnlockRequestServiceProtocol {
         // Get current user ID
         guard let userIdString = UserDefaults.standard.string(forKey: AppConfig.UserDefaultsKeys.currentUserId),
               let requesterId = UUID(uuidString: userIdString) else {
-            throw NSError(domain: "UnlockRequestService", code: 401, userInfo: [NSLocalizedDescriptionKey: "User not authenticated"])
+            throw AnchorAPIError.unauthorized
         }
         
         // Get session ID as UUID
         guard let sessionIdUUID = UUID(uuidString: sessionId) else {
-            throw NSError(domain: "UnlockRequestService", code: 400, userInfo: [NSLocalizedDescriptionKey: "Invalid session ID"])
+            throw AnchorAPIError.unknown
         }
         
         // Get active session to retrieve partner ID
         guard let activeSession = try await sessionService.getActiveSession(),
               activeSession.id == sessionIdUUID else {
-            throw NSError(domain: "UnlockRequestService", code: 404, userInfo: [NSLocalizedDescriptionKey: "Active session not found"])
+            throw AnchorAPIError.notFound
         }
         
         guard let partnerId = activeSession.accountabilityPartnerId else {
-            throw NSError(domain: "UnlockRequestService", code: 400, userInfo: [NSLocalizedDescriptionKey: "No accountability partner for this session"])
+            throw AnchorAPIError.unknown
         }
         
         // Create unlock request object
@@ -83,6 +94,21 @@ class UnlockRequestService: UnlockRequestServiceProtocol {
     
     // MARK: - Cancel Unlock Request
     func cancelUnlockRequest(sessionId: String) async throws {
+        // Convert sessionId string to UUID
+        guard let sessionIdUUID = UUID(uuidString: sessionId) else {
+            throw UnlockRequestError.invalidSessionId
+        }
+        
+        // Call backend to cancel the request
+        do {
+            try await apiClient.request(.cancelUnlockRequest(sessionId: sessionIdUUID))
+        } catch {
+            // Wrap backend error but continue with local operations
+            // This ensures UI state is updated even if network fails
+            let wrappedError = UnlockRequestError.backendFailure(underlying: error)
+            // Error is logged/wrapped but not thrown to maintain current behavior
+        }
+        
         // Write setPendingUnlockRequest(false)
         appGroupStorage.setPendingUnlockRequest(false)
         
@@ -91,9 +117,6 @@ class UnlockRequestService: UnlockRequestServiceProtocol {
             "sessionId": sessionId,
             "action": "cancelled"
         ])
-        
-        // TODO: Call backend to cancel the request if needed
-        // For now, just update local state
     }
     
     // MARK: - Get Pending Unlock Requests
@@ -110,7 +133,7 @@ class UnlockRequestService: UnlockRequestServiceProtocol {
         
         // POST /unlock-requests/{id}/approve
         guard let requestIdUUID = UUID(uuidString: requestId) else {
-            throw NSError(domain: "UnlockRequestService", code: 400, userInfo: [NSLocalizedDescriptionKey: "Invalid request ID"])
+            throw AnchorAPIError.unknown
         }
         
         do {
@@ -133,6 +156,9 @@ class UnlockRequestService: UnlockRequestServiceProtocol {
             "requestId": requestId,
             "action": "approved"
         ])
+        
+        // Send notification to requester
+        await notificationService.notifyUnlockRequestApproved(requestId: requestId)
     }
     
     // MARK: - Deny Unlock Request
@@ -142,7 +168,7 @@ class UnlockRequestService: UnlockRequestServiceProtocol {
         
         // POST /unlock-requests/{id}/reject
         guard let requestIdUUID = UUID(uuidString: requestId) else {
-            throw NSError(domain: "UnlockRequestService", code: 400, userInfo: [NSLocalizedDescriptionKey: "Invalid request ID"])
+            throw AnchorAPIError.unknown
         }
         
         do {
@@ -156,6 +182,9 @@ class UnlockRequestService: UnlockRequestServiceProtocol {
             "requestId": requestId,
             "action": "denied"
         ])
+        
+        // Send notification to requester
+        await notificationService.notifyUnlockRequestRejected(requestId: requestId)
     }
 }
 

@@ -27,7 +27,7 @@ struct SettingsRowView: View {
                 // Left icon
                 Image(systemName: icon)
                     .font(.system(size: 18, weight: .thin))
-                    .foregroundColor(AppColors.accentLight)
+                    .foregroundColor(AppColors.anchorLavender)
                     .frame(width: 24, height: 24)
                 
                 // Title
@@ -56,8 +56,8 @@ struct SettingsRowView: View {
                             .stroke(
                                 LinearGradient(
                                     colors: [
-                                        AppColors.accentLight.opacity(0.4),
-                                        AppColors.accent.opacity(0.2)
+                                        AppColors.anchorLavender.opacity(0.4),
+                                        AppColors.anchorAccent.opacity(0.2)
                                     ],
                                     startPoint: .topLeading,
                                     endPoint: .bottomTrailing
@@ -65,7 +65,7 @@ struct SettingsRowView: View {
                                 lineWidth: 1
                             )
                     )
-                    .shadow(color: AppColors.accent.opacity(isPressed ? 0.3 : 0.1), radius: isPressed ? 8 : 4, x: 0, y: 0)
+                    .shadow(color: AppColors.anchorAccent.opacity(isPressed ? 0.3 : 0.1), radius: isPressed ? 8 : 4, x: 0, y: 0)
             )
             .scaleEffect(isPressed ? 0.98 : 1.0)
             .opacity(isPressed ? 0.9 : 1.0)
@@ -104,7 +104,7 @@ extension SettingsRowView {
             action: nil,
             trailingContent: AnyView(
                 Toggle("", isOn: isOn)
-                    .tint(AppColors.accent)
+                    .tint(AppColors.anchorAccent)
                     .labelsHidden()
             )
         )

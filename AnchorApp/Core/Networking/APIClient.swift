@@ -1,13 +1,23 @@
 import Foundation
 
-enum APIError: Error {
-    case invalidURL
-    case invalidResponse
-    case httpError(statusCode: Int)
-    case decodingError(Error)
-    case encodingError(Error)
+/// Unified error model for all Anchor API networking operations
+enum AnchorAPIError: Error {
+    /// Network-level error (connection failure, timeout, etc.)
     case networkError(Error)
+    
+    /// JSON decoding failed (malformed response, type mismatch, etc.)
+    case decodingError(Error)
+    
+    /// Authentication failed (401 Unauthorized)
     case unauthorized
+    
+    /// Resource not found (404 Not Found)
+    case notFound
+    
+    /// Server error with status code (5xx responses)
+    case serverError(code: Int)
+    
+    /// Unknown or unhandled error
     case unknown
 }
 
@@ -33,7 +43,7 @@ class APIClient {
             components?.path = path
             components?.query = query.isEmpty ? nil : query
             guard let constructedURL = components?.url else {
-                throw APIError.invalidURL
+                throw AnchorAPIError.unknown
             }
             url = constructedURL
         } else {
@@ -53,14 +63,21 @@ class APIClient {
             let (data, response) = try await session.data(for: request)
             
             guard let httpResponse = response as? HTTPURLResponse else {
-                throw APIError.invalidResponse
+                throw AnchorAPIError.unknown
             }
             
             guard (200...299).contains(httpResponse.statusCode) else {
-                if httpResponse.statusCode == 401 {
-                    throw APIError.unauthorized
+                // Map HTTP status codes to unified error cases
+                switch httpResponse.statusCode {
+                case 401:
+                    throw AnchorAPIError.unauthorized
+                case 404:
+                    throw AnchorAPIError.notFound
+                case 500...599:
+                    throw AnchorAPIError.serverError(code: httpResponse.statusCode)
+                default:
+                    throw AnchorAPIError.serverError(code: httpResponse.statusCode)
                 }
-                throw APIError.httpError(statusCode: httpResponse.statusCode)
             }
             
             do {
@@ -68,12 +85,12 @@ class APIClient {
                 decoder.dateDecodingStrategy = .iso8601
                 return try decoder.decode(T.self, from: data)
             } catch {
-                throw APIError.decodingError(error)
+                throw AnchorAPIError.decodingError(error)
             }
-        } catch let error as APIError {
+        } catch let error as AnchorAPIError {
             throw error
         } catch {
-            throw APIError.networkError(error)
+            throw AnchorAPIError.networkError(error)
         }
     }
     
@@ -88,7 +105,7 @@ class APIClient {
             components?.path = path
             components?.query = query.isEmpty ? nil : query
             guard let constructedURL = components?.url else {
-                throw APIError.invalidURL
+                throw AnchorAPIError.unknown
             }
             url = constructedURL
         } else {
@@ -104,17 +121,30 @@ class APIClient {
             }
         }
         
-        let (_, response) = try await session.data(for: request)
-        
-        guard let httpResponse = response as? HTTPURLResponse else {
-            throw APIError.invalidResponse
-        }
-        
-        guard (200...299).contains(httpResponse.statusCode) else {
-            if httpResponse.statusCode == 401 {
-                throw APIError.unauthorized
+        do {
+            let (_, response) = try await session.data(for: request)
+            
+            guard let httpResponse = response as? HTTPURLResponse else {
+                throw AnchorAPIError.unknown
             }
-            throw APIError.httpError(statusCode: httpResponse.statusCode)
+            
+            guard (200...299).contains(httpResponse.statusCode) else {
+                // Map HTTP status codes to unified error cases
+                switch httpResponse.statusCode {
+                case 401:
+                    throw AnchorAPIError.unauthorized
+                case 404:
+                    throw AnchorAPIError.notFound
+                case 500...599:
+                    throw AnchorAPIError.serverError(code: httpResponse.statusCode)
+                default:
+                    throw AnchorAPIError.serverError(code: httpResponse.statusCode)
+                }
+            }
+        } catch let error as AnchorAPIError {
+            throw error
+        } catch {
+            throw AnchorAPIError.networkError(error)
         }
     }
 }

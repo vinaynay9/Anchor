@@ -25,7 +25,7 @@ struct ActiveSessionMockView: View {
                     // Background circle
                     Circle()
                         .stroke(
-                            AppColors.accent.opacity(0.1),
+                            AppColors.anchorAccent.opacity(0.1),
                             lineWidth: 12
                         )
                         .frame(width: 280, height: 280)
@@ -36,8 +36,8 @@ struct ActiveSessionMockView: View {
                         .stroke(
                             LinearGradient(
                                 colors: [
-                                    AppColors.accent,
-                                    AppColors.accentLight
+                                    AppColors.anchorAccent,
+                                    AppColors.anchorLavender
                                 ],
                                 startPoint: .topLeading,
                                 endPoint: .bottomTrailing
@@ -50,7 +50,7 @@ struct ActiveSessionMockView: View {
                         .frame(width: 280, height: 280)
                         .rotationEffect(.degrees(-90))
                         .animation(.linear(duration: 1.0), value: viewModel.progress)
-                        .shadow(color: AppColors.accent.opacity(0.3), radius: 8, x: 0, y: 0)
+                        .shadow(color: AppColors.anchorAccent.opacity(0.3), radius: 8, x: 0, y: 0)
                     
                     // Countdown time
                     VStack(spacing: Theme.spacing) {
@@ -82,9 +82,9 @@ struct ActiveSessionMockView: View {
                             .foregroundColor(AppColors.textPrimary)
                             .frame(maxWidth: .infinity)
                             .padding()
-                            .background(AppColors.primary)
+                            .background(AppColors.anchorPrimary)
                             .cornerRadius(AppLayout.buttonCornerRadius)
-                            .shadow(color: AppColors.primary.opacity(0.3), radius: 8, x: 0, y: 4)
+                            .shadow(color: AppColors.anchorPrimary.opacity(0.3), radius: 8, x: 0, y: 4)
                     }
                     .buttonStyle(PlainButtonStyle())
                     .scaleEffect(viewModel.isRunning ? 1.0 : 0.98)
@@ -103,7 +103,7 @@ struct ActiveSessionMockView: View {
                             .cornerRadius(AppLayout.buttonCornerRadius)
                             .overlay(
                                 RoundedRectangle(cornerRadius: AppLayout.buttonCornerRadius)
-                                    .stroke(AppColors.accentLight, lineWidth: 2)
+                                    .stroke(AppColors.anchorLavender, lineWidth: 2)
                             )
                     }
                     .buttonStyle(PlainButtonStyle())

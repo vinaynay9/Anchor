@@ -8,9 +8,9 @@ struct UnlockRequestView: View {
             // Purple gradient background
             LinearGradient(
                 gradient: Gradient(colors: [
-                    AppColors.primary,
-                    AppColors.accent,
-                    AppColors.accentLight
+                    AppColors.anchorPrimary,
+                    AppColors.anchorAccent,
+                    AppColors.anchorLavender
                 ]),
                 startPoint: .topLeading,
                 endPoint: .bottomTrailing
@@ -41,7 +41,7 @@ struct UnlockRequestView: View {
                             ZStack(alignment: .topLeading) {
                                 // Background
                                 RoundedRectangle(cornerRadius: AppLayout.cardCornerRadius)
-                                    .fill(AppColors.accentLight.opacity(0.2))
+                                    .fill(AppColors.anchorLavender.opacity(0.2))
                                     .frame(minHeight: 150)
                                 
                                 // Text Editor
@@ -68,7 +68,7 @@ struct UnlockRequestView: View {
                             }
                             .overlay(
                                 RoundedRectangle(cornerRadius: AppLayout.cardCornerRadius)
-                                    .stroke(AppColors.accentLight.opacity(0.4), lineWidth: 1)
+                                    .stroke(AppColors.anchorLavender.opacity(0.4), lineWidth: 1)
                             )
                             
                             // Character Counter
@@ -84,6 +84,19 @@ struct UnlockRequestView: View {
                             }
                         }
                         .padding(.bottom, Theme.padding)
+                        
+                        // Error Message
+                        if let errorMessage = viewModel.errorMessage {
+                            Text(errorMessage)
+                                .font(AppTypography.caption)
+                                .foregroundColor(AppColors.error)
+                                .padding(.horizontal, Theme.spacing)
+                                .padding(.vertical, Theme.spacing)
+                                .frame(maxWidth: .infinity, alignment: .leading)
+                                .background(AppColors.error.opacity(0.1))
+                                .cornerRadius(AppLayout.chipCornerRadius)
+                                .padding(.bottom, Theme.spacing)
+                        }
                         
                         // Send Request Button
                         Button(action: {
@@ -107,7 +120,7 @@ struct UnlockRequestView: View {
                     .background(
                         RoundedRectangle(cornerRadius: AppLayout.cardCornerRadius)
                             .fill(AppColors.secondaryBackground.opacity(0.9))
-                            .shadow(color: AppColors.primary.opacity(0.3), radius: 20, x: 0, y: 10)
+                            .shadow(color: AppColors.anchorPrimary.opacity(0.3), radius: 20, x: 0, y: 10)
                     )
                     .padding(.horizontal, Theme.padding)
                     

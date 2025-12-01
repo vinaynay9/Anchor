@@ -21,6 +21,26 @@ class SessionViewModel: ObservableObject {
         self.screenTimeService = screenTimeService
     }
     
+    // MARK: - Notification Callbacks (UI-only wiring)
+    
+    /// Callback for when session ends - can be called from UI or notification handlers
+    func onSessionEnded() {
+        // Refresh active session state
+        loadActiveSession()
+        
+        // Show UI feedback (toast will be shown by NotificationService if notifications disabled)
+        // This is a UI-only callback for additional UI updates if needed
+    }
+    
+    /// Callback for when session expires - can be called from UI or notification handlers
+    func onSessionExpired() {
+        // Refresh active session state
+        loadActiveSession()
+        
+        // Show UI feedback (toast will be shown by NotificationService if notifications disabled)
+        // This is a UI-only callback for additional UI updates if needed
+    }
+    
     func loadActiveSession() {
         isLoading = true
         errorMessage = nil

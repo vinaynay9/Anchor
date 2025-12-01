@@ -1,25 +1,45 @@
 import SwiftUI
+import Shared
 
 // MARK: - Shield Extension Design System
-// Minimal design system for the shield extension
-// Note: In a real project, these would be shared via a framework or duplicated
+// Uses AppColors anchor variants for brand consistency
 
 struct ShieldTheme {
-    static let cornerRadius: CGFloat = 14
-    static let padding: CGFloat = 16
-    static let spacing: CGFloat = 8
+    static let cornerRadius: CGFloat = 16
+    static let padding: CGFloat = 20
+    static let spacing: CGFloat = 12
+    static let smallSpacing: CGFloat = 8
+    static let largeSpacing: CGFloat = 24
+    
+    // Animation constants (lightweight for extension)
+    static let animationDuration: Double = 0.25
+    static let springAnimation = Animation.spring(response: 0.3, dampingFraction: 0.7, blendDuration: 0)
+    static let easeInOut = Animation.easeInOut(duration: 0.25)
 }
 
 struct ShieldColors {
-    static let shieldBackground = Color(red: 0.020, green: 0.020, blue: 0.035) // #050509 - ultra-dark purple/black matte
-    static let shieldText = Color(red: 0.961, green: 0.961, blue: 0.969) // #F5F5F7 - high-contrast soft white
-    static let primary = Color(red: 0.545, green: 0.361, blue: 0.965) // #8B5CF6 - soft electric violet (accent)
-    static let accentLight = Color(red: 0.769, green: 0.710, blue: 0.992) // #C4B5FD - lavender highlight
+    // Use AppColors anchor variants for brand consistency
+    static let shieldBackground = AppColors.shieldBackground
+    static let shieldText = AppColors.shieldText
+    static let primary = AppColors.anchorAccent
+    static let primaryDark = AppColors.anchorPrimary
+    static let accentLight = AppColors.anchorLavender
+    static let textSecondary = AppColors.textSecondary
+    static let textTertiary = AppColors.textSecondary.opacity(0.7)
+    
+    // Button colors
+    static let primaryButtonBackground = AppColors.anchorAccent
+    static let secondaryButtonBackground = AppColors.anchorPrimaryDark.opacity(0.3)
+    static let secondaryButtonBorder = AppColors.anchorLavender.opacity(0.4)
 }
 
 struct ShieldTypography {
-    static let largeTitle = Font.system(size: 34, weight: .bold)
-    static let title2 = Font.system(size: 22, weight: .bold)
-    static let bodyBold = Font.system(size: 17, weight: .semibold)
+    static let largeTitle = Font.system(size: 32, weight: .bold, design: .rounded)
+    static let title = Font.system(size: 24, weight: .bold, design: .rounded)
+    static let title2 = Font.system(size: 20, weight: .semibold, design: .rounded)
+    static let bodyBold = Font.system(size: 17, weight: .semibold, design: .default)
+    static let body = Font.system(size: 16, weight: .regular, design: .default)
+    static let caption = Font.system(size: 14, weight: .medium, design: .default)
+    static let smallCaption = Font.system(size: 13, weight: .regular, design: .default)
 }
 

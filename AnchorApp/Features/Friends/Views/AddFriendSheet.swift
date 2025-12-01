@@ -51,8 +51,8 @@ struct AddFriendSheet: View {
                     .fill(
                         LinearGradient(
                             colors: [
-                                AppColors.primary.opacity(0.3),
-                                AppColors.accent.opacity(0.3)
+                                AppColors.anchorPrimary.opacity(0.3),
+                                AppColors.anchorAccent.opacity(0.3)
                             ],
                             startPoint: .topLeading,
                             endPoint: .bottomTrailing
@@ -62,7 +62,7 @@ struct AddFriendSheet: View {
                 
                 Image(systemName: "person.badge.plus")
                     .font(.system(size: 36))
-                    .foregroundColor(AppColors.accent)
+                    .foregroundColor(AppColors.anchorAccent)
             }
             .padding(.bottom, Theme.spacing)
             
@@ -81,7 +81,7 @@ struct AddFriendSheet: View {
                     .overlay(
                         RoundedRectangle(cornerRadius: AppLayout.cardCornerRadius)
                             .stroke(
-                                viewModel.addError != nil ? AppColors.error : AppColors.accent.opacity(0.3),
+                                viewModel.addError != nil ? AppColors.error : AppColors.anchorAccent.opacity(0.3),
                                 lineWidth: viewModel.addError != nil ? 2 : 1
                             )
                     )
@@ -109,7 +109,11 @@ struct AddFriendSheet: View {
                 viewModel.addFriend()
             }) {
                 HStack {
-                    if viewModel.showAddSuccess {
+                    if viewModel.isLoading {
+                        ProgressView()
+                            .progressViewStyle(CircularProgressViewStyle(tint: AppColors.textPrimary))
+                            .scaleEffect(0.9)
+                    } else if viewModel.showAddSuccess {
                         Image(systemName: "checkmark")
                             .font(AppTypography.bodyBold)
                     } else {
@@ -123,8 +127,8 @@ struct AddFriendSheet: View {
                 .background(
                     LinearGradient(
                         colors: [
-                            AppColors.primary,
-                            AppColors.accent
+                            AppColors.anchorPrimary,
+                            AppColors.anchorAccent
                         ],
                         startPoint: .leading,
                         endPoint: .trailing
@@ -132,7 +136,7 @@ struct AddFriendSheet: View {
                 )
                 .cornerRadius(AppLayout.buttonCornerRadius)
             }
-            .disabled(viewModel.showAddSuccess)
+            .disabled(viewModel.showAddSuccess || viewModel.isLoading)
         }
         .onAppear {
             DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {

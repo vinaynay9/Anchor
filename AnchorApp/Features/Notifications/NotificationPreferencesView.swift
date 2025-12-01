@@ -136,7 +136,7 @@ struct NotificationPreferencesView: View {
             HStack(spacing: 12) {
                 Image(systemName: icon)
                     .font(.system(size: 20, weight: .semibold))
-                    .foregroundColor(AppColors.accent)
+                    .foregroundColor(AppColors.anchorAccent)
                     .frame(width: 24, height: 24)
                 
                 Text(title)
@@ -159,8 +159,8 @@ struct NotificationPreferencesView: View {
                         .stroke(
                             LinearGradient(
                                 colors: [
-                                    AppColors.accent.opacity(0.3),
-                                    AppColors.accentLight.opacity(0.1)
+                                    AppColors.anchorAccent.opacity(0.3),
+                                    AppColors.anchorLavender.opacity(0.1)
                                 ],
                                 startPoint: .topLeading,
                                 endPoint: .bottomTrailing
@@ -168,7 +168,7 @@ struct NotificationPreferencesView: View {
                             lineWidth: 1
                         )
                 )
-                .shadow(color: AppColors.accent.opacity(0.1), radius: 8, x: 0, y: 4)
+                .shadow(color: AppColors.anchorAccent.opacity(0.1), radius: 8, x: 0, y: 4)
         )
     }
     
@@ -195,8 +195,8 @@ struct NotificationPreferencesView: View {
                         .stroke(
                             LinearGradient(
                                 colors: [
-                                    AppColors.accent.opacity(0.2),
-                                    AppColors.accentLight.opacity(0.1)
+                                    AppColors.anchorAccent.opacity(0.2),
+                                    AppColors.anchorLavender.opacity(0.1)
                                 ],
                                 startPoint: .leading,
                                 endPoint: .trailing
@@ -205,7 +205,7 @@ struct NotificationPreferencesView: View {
                         )
                 )
                 .shadow(
-                    color: AppColors.accent.opacity(0.15),
+                    color: AppColors.anchorAccent.opacity(0.15),
                     radius: 4,
                     x: 0,
                     y: 2
@@ -234,14 +234,14 @@ struct NotificationPreferencesView: View {
                     .fill(
                         LinearGradient(
                             colors: [
-                                AppColors.accent,
-                                AppColors.accent.opacity(0.8)
+                                AppColors.anchorAccent,
+                                AppColors.anchorAccent.opacity(0.8)
                             ],
                             startPoint: .leading,
                             endPoint: .trailing
                         )
                     )
-                    .shadow(color: AppColors.accent.opacity(0.4), radius: 12, x: 0, y: 4)
+                    .shadow(color: AppColors.anchorAccent.opacity(0.4), radius: 12, x: 0, y: 4)
             )
         }
         .padding(.top, 8)
@@ -263,12 +263,12 @@ struct CustomToggle: View {
                 .overlay(
                     RoundedRectangle(cornerRadius: AppLayout.buttonCornerRadius)
                         .stroke(
-                            isOn ? AppColors.accent.opacity(0.4) : Color.clear,
+                            isOn ? AppColors.anchorAccent.opacity(0.4) : Color.clear,
                             lineWidth: 1.5
                         )
                 )
                 .shadow(
-                    color: isOn ? AppColors.accent.opacity(0.3) : Color.clear,
+                    color: isOn ? AppColors.anchorAccent.opacity(0.3) : Color.clear,
                     radius: 6,
                     x: 0,
                     y: 0
@@ -279,8 +279,8 @@ struct CustomToggle: View {
                 .fill(
                     LinearGradient(
                         colors: isOn ? [
-                            AppColors.accent,
-                            AppColors.accentLight
+                            AppColors.anchorAccent,
+                            AppColors.anchorLavender
                         ] : [
                             AppColors.textSecondary.opacity(0.5),
                             AppColors.textSecondary.opacity(0.3)
@@ -320,11 +320,11 @@ struct CustomToggle: View {
     }
     
     private var trackColor: Color {
-        isOn ? AppColors.accentLight.opacity(0.25) : AppColors.secondaryBackground.opacity(0.6)
+        isOn ? AppColors.anchorLavender.opacity(0.25) : AppColors.secondaryBackground.opacity(0.6)
     }
     
     private var thumbGlowColor: Color {
-        isOn ? AppColors.accent.opacity(0.8) : Color.clear
+        isOn ? AppColors.anchorAccent.opacity(0.8) : Color.clear
     }
 }
 

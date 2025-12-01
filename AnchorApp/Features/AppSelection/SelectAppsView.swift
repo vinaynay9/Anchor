@@ -39,18 +39,18 @@ struct SelectAppsView: View {
                             if !viewModel.selectedAppTokens.isEmpty {
                                 Text("\(viewModel.selectedAppTokens.count)")
                                     .font(AppTypography.captionBold)
-                                    .foregroundColor(AppColors.accent)
+                                    .foregroundColor(AppColors.anchorAccent)
                                     .padding(.horizontal, 10)
                                     .padding(.vertical, 5)
                                     .background(
                                         Capsule()
-                                            .fill(AppColors.accent.opacity(0.2))
+                                            .fill(AppColors.anchorAccent.opacity(0.2))
                                             .overlay(
                                                 Capsule()
-                                                    .stroke(AppColors.accent.opacity(0.4), lineWidth: 1)
+                                                    .stroke(AppColors.anchorAccent.opacity(0.4), lineWidth: 1)
                                             )
                                     )
-                                    .shadow(color: AppColors.accent.opacity(0.3), radius: 4, x: 0, y: 2)
+                                    .shadow(color: AppColors.anchorAccent.opacity(0.3), radius: 4, x: 0, y: 2)
                             }
                         }
                         
@@ -73,13 +73,13 @@ struct SelectAppsView: View {
                                         Circle()
                                             .fill(
                                                 LinearGradient(
-                                                    colors: [AppColors.accent, AppColors.accentLight],
+                                                    colors: [AppColors.anchorAccent, AppColors.anchorLavender],
                                                     startPoint: .topLeading,
                                                     endPoint: .bottomTrailing
                                                 )
                                             )
                                             .frame(width: 10, height: 10)
-                                            .shadow(color: AppColors.accent.opacity(0.5), radius: 3)
+                                            .shadow(color: AppColors.anchorAccent.opacity(0.5), radius: 3)
                                         
                                         Text("App \(index + 1)")
                                             .font(AppTypography.caption)
@@ -105,7 +105,7 @@ struct SelectAppsView: View {
                                 RoundedRectangle(cornerRadius: AppLayout.cardCornerRadius)
                                     .stroke(AppColors.anchorLavender.opacity(0.4), lineWidth: 1)
                             )
-                            .shadow(color: AppColors.accent.opacity(0.1), radius: 8, x: 0, y: 4)
+                            .shadow(color: AppColors.anchorAccent.opacity(0.1), radius: 8, x: 0, y: 4)
                     )
                     .padding(.horizontal, Theme.padding)
                     
@@ -136,7 +136,7 @@ struct SelectAppsView: View {
                             }
                         }
                         .buttonStyle(PrimaryButtonStyle())
-                        .shadow(color: AppColors.accent.opacity(0.4), radius: 12, x: 0, y: 6)
+                        .shadow(color: AppColors.anchorAccent.opacity(0.4), radius: 12, x: 0, y: 6)
                         
                         if !viewModel.selectedAppTokens.isEmpty {
                             Button(action: {

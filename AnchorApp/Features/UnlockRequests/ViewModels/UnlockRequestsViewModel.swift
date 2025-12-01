@@ -2,74 +2,121 @@ import SwiftUI
 import Combine
 import Shared
 
+@MainActor
 class UnlockRequestsViewModel: ObservableObject {
     @Published var pendingRequests: [UnlockRequest] = []
     @Published var isLoading = false
     @Published var errorMessage: String?
     
     private let unlockRequestService: UnlockRequestServiceProtocol
+    private var notificationObserver: NSObjectProtocol?
     
     init(unlockRequestService: UnlockRequestServiceProtocol = UnlockRequestService.shared) {
         self.unlockRequestService = unlockRequestService
+        setupNotificationObserver()
+    }
+    
+    deinit {
+        removeNotificationObserver()
     }
     
     func loadPendingRequests() {
+        guard !isLoading else { return }
+        
         isLoading = true
         errorMessage = nil
         
-        Task {
+        Task { @MainActor in
             do {
                 let requests = try await unlockRequestService.getPendingUnlockRequests()
-                await MainActor.run {
-                    self.pendingRequests = requests
-                    self.isLoading = false
-                }
+                self.pendingRequests = requests
+                self.isLoading = false
             } catch {
-                await MainActor.run {
-                    self.errorMessage = error.localizedDescription
-                    self.isLoading = false
-                }
+                self.errorMessage = error.localizedDescription
+                self.isLoading = false
             }
         }
     }
     
     func approveRequest(_ request: UnlockRequest) {
+        guard !isLoading else { return }
+        
         isLoading = true
         errorMessage = nil
         
-        Task {
+        Task { @MainActor in
             do {
                 try await unlockRequestService.approveUnlockRequest(requestId: request.id.uuidString)
-                
-                await MainActor.run {
-                    self.loadPendingRequests()
-                }
+                // Reload requests to reflect updated state from backend
+                await self.loadPendingRequests()
+                // Callback for UI feedback (notification already sent by service)
+                self.onUnlockRequestApproved(requestId: request.id.uuidString)
             } catch {
-                await MainActor.run {
-                    self.errorMessage = error.localizedDescription
-                    self.isLoading = false
-                }
+                self.errorMessage = error.localizedDescription
+                self.isLoading = false
             }
         }
     }
     
     func denyRequest(_ request: UnlockRequest) {
+        guard !isLoading else { return }
+        
         isLoading = true
         errorMessage = nil
         
-        Task {
+        Task { @MainActor in
             do {
                 try await unlockRequestService.denyUnlockRequest(requestId: request.id.uuidString)
-                
-                await MainActor.run {
-                    self.loadPendingRequests()
-                }
+                // Reload requests to reflect updated state from backend
+                await self.loadPendingRequests()
+                // Callback for UI feedback (notification already sent by service)
+                self.onUnlockRequestDenied(requestId: request.id.uuidString)
             } catch {
-                await MainActor.run {
-                    self.errorMessage = error.localizedDescription
-                    self.isLoading = false
-                }
+                self.errorMessage = error.localizedDescription
+                self.isLoading = false
             }
+        }
+    }
+    
+    // MARK: - Notification Callbacks (UI-only wiring)
+    
+    /// Callback for when unlock request is approved - can be called from UI or notification handlers
+    func onUnlockRequestApproved(requestId: String) {
+        // Refresh pending requests list
+        loadPendingRequests()
+        
+        // Show UI feedback (toast will be shown by NotificationService if notifications disabled)
+        // This is a UI-only callback for additional UI updates if needed
+    }
+    
+    /// Callback for when unlock request is denied - can be called from UI or notification handlers
+    func onUnlockRequestDenied(requestId: String) {
+        // Refresh pending requests list
+        loadPendingRequests()
+        
+        // Show UI feedback (toast will be shown by NotificationService if notifications disabled)
+        // This is a UI-only callback for additional UI updates if needed
+    }
+    
+    // MARK: - Notification Observer
+    
+    private func setupNotificationObserver() {
+        notificationObserver = NotificationCenter.default.addObserver(
+            forName: .unlockRequestStatusChanged,
+            object: nil,
+            queue: .main
+        ) { [weak self] _ in
+            // Reload requests when status changes to reflect real backend state
+            Task { @MainActor in
+                await self?.loadPendingRequests()
+            }
+        }
+    }
+    
+    private func removeNotificationObserver() {
+        if let observer = notificationObserver {
+            NotificationCenter.default.removeObserver(observer)
+            notificationObserver = nil
         }
     }
 }

@@ -35,7 +35,7 @@ struct OnboardingView: View {
                         HStack(spacing: 8) {
                             ForEach(0..<viewModel.totalPages, id: \.self) { index in
                                 Circle()
-                                    .fill(index == viewModel.currentPage ? AppColors.accent : AppColors.accent.opacity(0.3))
+                                    .fill(index == viewModel.currentPage ? AppColors.anchorAccent : AppColors.anchorAccent.opacity(0.3))
                                     .frame(width: 8, height: 8)
                                     .animation(.easeInOut(duration: 0.2), value: viewModel.currentPage)
                             }
@@ -57,7 +57,7 @@ struct OnboardingView: View {
                                 .foregroundColor(AppColors.textPrimary)
                                 .frame(maxWidth: .infinity)
                                 .padding(.vertical, Theme.padding)
-                                .background(AppColors.accent)
+                                .background(AppColors.anchorAccent)
                                 .cornerRadius(AppLayout.buttonCornerRadius)
                         }
                         .padding(.horizontal, Theme.padding * 2)
@@ -81,7 +81,7 @@ struct WelcomePage: View {
                 Circle()
                     .fill(
                         LinearGradient(
-                            colors: [AppColors.primary, AppColors.accentLight],
+                            colors: [AppColors.anchorPrimary, AppColors.anchorLavender],
                             startPoint: .topLeading,
                             endPoint: .bottomTrailing
                         )
@@ -93,7 +93,7 @@ struct WelcomePage: View {
                 // App icon placeholder or logo
                 Image(systemName: "anchor.fill")
                     .font(.system(size: 80, weight: .light))
-                    .foregroundColor(AppColors.accent)
+                    .foregroundColor(AppColors.anchorAccent)
             }
             .padding(.bottom, Theme.padding * 3)
             
@@ -130,7 +130,7 @@ struct AppBlockingPage: View {
                 
                 Image(systemName: "lock.shield.fill")
                     .font(.system(size: 50, weight: .light))
-                    .foregroundColor(AppColors.accent)
+                    .foregroundColor(AppColors.anchorAccent)
             }
             .padding(.bottom, Theme.padding * 3)
             
@@ -167,7 +167,7 @@ struct FriendsAccountabilityPage: View {
                 
                 Image(systemName: "person.2.fill")
                     .font(.system(size: 50, weight: .light))
-                    .foregroundColor(AppColors.accent)
+                    .foregroundColor(AppColors.anchorAccent)
             }
             .padding(.bottom, Theme.padding * 3)
             

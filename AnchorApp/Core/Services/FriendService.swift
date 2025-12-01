@@ -1,13 +1,6 @@
 import Foundation
 import Shared
 
-enum FriendServiceError: Error {
-    case network(Error)
-    case decoding(Error)
-    case invalidResponse
-    case invalidUUID(String)
-}
-
 protocol FriendServiceProtocol {
     func getFriends() async throws -> [Friend]
     func addFriend(friendId: String) async throws
@@ -28,86 +21,51 @@ final class FriendService: FriendServiceProtocol {
     
     // MARK: - GET /friends
     func getFriends() async throws -> [Friend] {
-        do {
-            let dtos: [FriendDTO] = try await apiClient.request(.getFriends, responseType: [FriendDTO].self)
-            return dtos.compactMap { $0.toFriend() }
-        } catch let error as APIError {
-            throw FriendServiceError.network(error)
-        } catch {
-            throw FriendServiceError.network(error)
-        }
+        let dtos: [FriendDTO] = try await apiClient.request(.getFriends, responseType: [FriendDTO].self)
+        return dtos.compactMap { $0.toFriend() }
     }
     
     // MARK: - POST /friends
     func addFriend(friendId: String) async throws {
-        guard let friendUUID = UUID(uuidString: friendId) else {
-            throw FriendServiceError.invalidUUID(friendId)
+        guard UUID(uuidString: friendId) != nil else {
+            throw AnchorAPIError.unknown
         }
         
-        do {
-            try await apiClient.request(.addFriend(friendId: friendUUID))
-        } catch let error as APIError {
-            throw FriendServiceError.network(error)
-        } catch {
-            throw FriendServiceError.network(error)
-        }
+        let friendUUID = UUID(uuidString: friendId)!
+        try await apiClient.request(.addFriend(friendId: friendUUID))
     }
     
     // MARK: - DELETE /friends/{id}
     func deleteFriend(id: String) async throws {
         guard let friendUUID = UUID(uuidString: id) else {
-            throw FriendServiceError.invalidUUID(id)
+            throw AnchorAPIError.unknown
         }
         
-        do {
-            try await apiClient.request(.deleteFriend(id: friendUUID))
-        } catch let error as APIError {
-            throw FriendServiceError.network(error)
-        } catch {
-            throw FriendServiceError.network(error)
-        }
+        try await apiClient.request(.deleteFriend(id: friendUUID))
     }
     
     // MARK: - GET /friends/requests
     func getFriendRequests() async throws -> [Friend] {
-        do {
-            let dtos: [FriendDTO] = try await apiClient.request(.getFriendRequests, responseType: [FriendDTO].self)
-            return dtos.compactMap { $0.toFriend() }
-        } catch let error as APIError {
-            throw FriendServiceError.network(error)
-        } catch {
-            throw FriendServiceError.network(error)
-        }
+        let dtos: [FriendDTO] = try await apiClient.request(.getFriendRequests, responseType: [FriendDTO].self)
+        return dtos.compactMap { $0.toFriend() }
     }
     
     // MARK: - POST /friends/requests/{id}/accept
     func acceptFriendRequest(id: String) async throws {
         guard let requestUUID = UUID(uuidString: id) else {
-            throw FriendServiceError.invalidUUID(id)
+            throw AnchorAPIError.unknown
         }
         
-        do {
-            try await apiClient.request(.acceptFriendRequest(id: requestUUID))
-        } catch let error as APIError {
-            throw FriendServiceError.network(error)
-        } catch {
-            throw FriendServiceError.network(error)
-        }
+        try await apiClient.request(.acceptFriendRequest(id: requestUUID))
     }
     
     // MARK: - POST /friends/requests/{id}/reject
     func rejectFriendRequest(id: String) async throws {
         guard let requestUUID = UUID(uuidString: id) else {
-            throw FriendServiceError.invalidUUID(id)
+            throw AnchorAPIError.unknown
         }
         
-        do {
-            try await apiClient.request(.rejectFriendRequest(id: requestUUID))
-        } catch let error as APIError {
-            throw FriendServiceError.network(error)
-        } catch {
-            throw FriendServiceError.network(error)
-        }
+        try await apiClient.request(.rejectFriendRequest(id: requestUUID))
     }
 }
 

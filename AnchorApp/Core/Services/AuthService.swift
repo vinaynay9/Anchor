@@ -101,8 +101,18 @@ class AuthService: AuthServiceProtocol {
                 .signInGoogle(token: idToken),
                 responseType: AuthResponse.self
             )
+        } catch let error as AnchorAPIError {
+            // Convert AnchorAPIError to AuthError for consistency with existing error handling
+            switch error {
+            case .unauthorized:
+                throw AuthError.invalidToken
+            case .networkError:
+                throw AuthError.networkError
+            default:
+                throw AuthError.failed(error)
+            }
         } catch {
-            throw AuthError.networkError
+            throw AuthError.failed(error)
         }
         
         // 3. Store access token in Keychain
@@ -135,8 +145,13 @@ class AuthService: AuthServiceProtocol {
     
     // MARK: - Sign Out
     func signOut() async throws {
-        // TODO: Call backend to invalidate token
-        // try await apiClient.request(.signOut)
+        // Call backend to invalidate token
+        do {
+            try await apiClient.request(.signOut)
+        } catch {
+            // Continue with local cleanup even if backend call fails
+            // This ensures user can still sign out locally
+        }
         
         // Clear local storage
         UserDefaults.standard.removeObject(forKey: AppConfig.UserDefaultsKeys.currentUserId)
@@ -159,11 +174,13 @@ class AuthService: AuthServiceProtocol {
             UserDefaults.standard.set(user.id.uuidString, forKey: AppConfig.UserDefaultsKeys.currentUserId)
             
             return user
-        } catch {
+        } catch let error as AnchorAPIError {
             // If unauthorized, clear stored user ID
-            if case APIError.unauthorized = error {
+            if case .unauthorized = error {
                 UserDefaults.standard.removeObject(forKey: AppConfig.UserDefaultsKeys.currentUserId)
             }
+            throw AuthError.notAuthenticated
+        } catch {
             throw AuthError.notAuthenticated
         }
     }

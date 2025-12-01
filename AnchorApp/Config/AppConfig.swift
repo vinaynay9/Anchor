@@ -1,8 +1,12 @@
 import Foundation
+import Shared
 
 struct AppConfig {
     // MARK: - App Group
-    static let appGroupIdentifier = "group.com.anchor.app"
+    /// App Group identifier for shared storage between AnchorApp and Shield Extension.
+    /// This should match AppGroupStorage.appGroupIdentifier for consistency.
+    /// Use AppGroupStorage.appGroupIdentifier as the single source of truth.
+    static let appGroupIdentifier = AppGroupStorage.appGroupIdentifier
     
     // MARK: - Backend
     static let apiBaseURL = "https://your-supabase-url.supabase.co"

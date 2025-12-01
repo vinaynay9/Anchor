@@ -64,7 +64,7 @@ struct OnboardingPermissionStepView: View {
                         .foregroundColor(AppColors.textPrimary)
                         .frame(maxWidth: .infinity)
                         .padding(.vertical, Theme.padding)
-                        .background(AppColors.accent)
+                        .background(AppColors.anchorAccent)
                         .cornerRadius(AppLayout.buttonCornerRadius)
                 }
                 .padding(.horizontal, Theme.padding * 2)
@@ -97,7 +97,7 @@ struct PermissionItemView: View {
                 
                 Image(systemName: icon)
                     .font(.system(size: 22, weight: .medium))
-                    .foregroundColor(isGranted ? AppColors.success : AppColors.accent)
+                    .foregroundColor(isGranted ? AppColors.success : AppColors.anchorAccent)
             }
             
             // Text content
@@ -116,7 +116,7 @@ struct PermissionItemView: View {
             // Status indicator
             ZStack {
                 Circle()
-                    .fill(isGranted ? AppColors.success : AppColors.accentLight.opacity(0.2))
+                    .fill(isGranted ? AppColors.success : AppColors.anchorLavender.opacity(0.2))
                     .frame(width: 24, height: 24)
                 
                 if isGranted {
@@ -126,7 +126,7 @@ struct PermissionItemView: View {
                 } else {
                     Image(systemName: "exclamationmark")
                         .font(.system(size: 10, weight: .bold))
-                        .foregroundColor(AppColors.accent)
+                        .foregroundColor(AppColors.anchorAccent)
                 }
             }
         }
@@ -136,7 +136,7 @@ struct PermissionItemView: View {
                 .fill(AppColors.secondaryBackground)
                 .overlay(
                     RoundedRectangle(cornerRadius: AppLayout.cardCornerRadius)
-                        .stroke(AppColors.accentLight.opacity(0.3), lineWidth: 1)
+                        .stroke(AppColors.anchorLavender.opacity(0.3), lineWidth: 1)
                 )
         )
     }

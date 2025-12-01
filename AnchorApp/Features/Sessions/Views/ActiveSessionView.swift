@@ -24,12 +24,12 @@ struct ActiveSessionView: View {
                         .foregroundColor(AppColors.textSecondary)
                     Text(formatTime(calculateTimeRemaining(currentTime: context.date)))
                         .font(AppTypography.largeTitle)
-                        .foregroundColor(AppColors.accent)
+                        .foregroundColor(AppColors.anchorAccent)
                 }
             }
             
             Divider()
-                .background(AppColors.accentLight.opacity(0.1))
+                .background(AppColors.anchorLavender.opacity(0.1))
                 .padding(.vertical, Theme.padding)
             
             // Session details
@@ -83,7 +83,7 @@ struct ActiveSessionView: View {
             .cornerRadius(AppLayout.chipCornerRadius)
             .overlay(
                 RoundedRectangle(cornerRadius: AppLayout.chipCornerRadius)
-                    .stroke(AppColors.accentLight.opacity(0.1), lineWidth: 1)
+                    .stroke(AppColors.anchorLavender.opacity(0.1), lineWidth: 1)
             )
             .padding(.horizontal, Theme.padding)
             

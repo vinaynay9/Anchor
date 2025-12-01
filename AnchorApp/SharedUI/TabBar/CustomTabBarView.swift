@@ -23,7 +23,7 @@ struct CustomTabBarView: View {
         .background(
             ZStack {
                 // Ultra-dark blur overlay
-                AppColors.primaryDark
+                AppColors.anchorPrimaryDark
                     .opacity(0.95)
                 
                 // Blur effect
@@ -49,8 +49,8 @@ struct CustomTabBarView: View {
             .stroke(
                 LinearGradient(
                     colors: [
-                        AppColors.accent.opacity(0.2),
-                        AppColors.accentLight.opacity(0.1)
+                        AppColors.anchorAccent.opacity(0.2),
+                        AppColors.anchorLavender.opacity(0.1)
                     ],
                     startPoint: .leading,
                     endPoint: .trailing
@@ -80,8 +80,8 @@ private struct TabBarButton: View {
                         .fill(
                             RadialGradient(
                                 colors: [
-                                    AppColors.accent.opacity(0.4),
-                                    AppColors.accentLight.opacity(0.2),
+                                    AppColors.anchorAccent.opacity(0.4),
+                                    AppColors.anchorLavender.opacity(0.2),
                                     Color.clear
                                 ],
                                 center: .center,
@@ -100,7 +100,7 @@ private struct TabBarButton: View {
                     .foregroundStyle(
                         isSelected
                             ? LinearGradient(
-                                colors: [AppColors.accent, AppColors.accentLight],
+                                colors: [AppColors.anchorAccent, AppColors.anchorLavender],
                                 startPoint: .topLeading,
                                 endPoint: .bottomTrailing
                             )

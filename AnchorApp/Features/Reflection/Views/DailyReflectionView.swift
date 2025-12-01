@@ -99,8 +99,8 @@ struct DailyReflectionView: View {
                             .fill(
                                 LinearGradient(
                                     gradient: Gradient(colors: [
-                                        AppColors.accent.opacity(0.1),
-                                        AppColors.accentLight.opacity(0.05)
+                                        AppColors.anchorAccent.opacity(0.1),
+                                        AppColors.anchorLavender.opacity(0.05)
                                     ]),
                                     startPoint: .topLeading,
                                     endPoint: .bottomTrailing
@@ -128,8 +128,8 @@ struct DailyReflectionView: View {
                 .stroke(
                     LinearGradient(
                         gradient: Gradient(colors: [
-                            AppColors.accentLight.opacity(0.4),
-                            AppColors.accent.opacity(0.2)
+                            AppColors.anchorLavender.opacity(0.4),
+                            AppColors.anchorAccent.opacity(0.2)
                         ]),
                         startPoint: .topLeading,
                         endPoint: .bottomTrailing
@@ -137,7 +137,7 @@ struct DailyReflectionView: View {
                     lineWidth: 1.5
                 )
         )
-        .shadow(color: AppColors.accent.opacity(0.2), radius: 20, x: 0, y: 10)
+        .shadow(color: AppColors.anchorAccent.opacity(0.2), radius: 20, x: 0, y: 10)
         .shadow(color: Color.black.opacity(0.3), radius: 10, x: 0, y: 5)
     }
     
@@ -167,7 +167,7 @@ struct DailyReflectionView: View {
                     Circle()
                         .fill(
                             viewModel.selectedMood == mood
-                                ? AppColors.accent.opacity(0.2)
+                                ? AppColors.anchorAccent.opacity(0.2)
                                 : Color.clear
                         )
                 )
@@ -175,14 +175,14 @@ struct DailyReflectionView: View {
                     Circle()
                         .stroke(
                             viewModel.selectedMood == mood
-                                ? AppColors.accentLight
+                                ? AppColors.anchorLavender
                                 : AppColors.textSecondary.opacity(0.3),
                             lineWidth: viewModel.selectedMood == mood ? 3 : 2
                         )
                 )
                 .shadow(
                     color: viewModel.selectedMood == mood
-                        ? AppColors.accent.opacity(0.6)
+                        ? AppColors.anchorAccent.opacity(0.6)
                         : Color.clear,
                     radius: viewModel.selectedMood == mood ? 12 : 0
                 )
@@ -216,11 +216,11 @@ struct DailyReflectionView: View {
                     .padding(8)
                     .background(
                         RoundedRectangle(cornerRadius: AppLayout.chipCornerRadius)
-                            .fill(AppColors.accentLight.opacity(0.1))
+                            .fill(AppColors.anchorLavender.opacity(0.1))
                     )
                     .overlay(
                         RoundedRectangle(cornerRadius: AppLayout.chipCornerRadius)
-                            .stroke(AppColors.accentLight.opacity(0.3), lineWidth: 1.5)
+                            .stroke(AppColors.anchorLavender.opacity(0.3), lineWidth: 1.5)
                     )
             }
         }
@@ -251,7 +251,7 @@ struct DailyReflectionView: View {
                     RoundedRectangle(cornerRadius: 6)
                         .fill(
                             viewModel.checkedGoals.contains(goal)
-                                ? AppColors.accent
+                                ? AppColors.anchorAccent
                                 : Color.clear
                         )
                         .frame(width: 24, height: 24)
@@ -259,14 +259,14 @@ struct DailyReflectionView: View {
                             RoundedRectangle(cornerRadius: 6)
                                 .stroke(
                                     viewModel.checkedGoals.contains(goal)
-                                        ? AppColors.accentLight
-                                        : AppColors.accent.opacity(0.5),
+                                        ? AppColors.anchorLavender
+                                        : AppColors.anchorAccent.opacity(0.5),
                                     lineWidth: 2
                                 )
                         )
                         .shadow(
                             color: viewModel.checkedGoals.contains(goal)
-                                ? AppColors.accent.opacity(0.4)
+                                ? AppColors.anchorAccent.opacity(0.4)
                                 : Color.clear,
                             radius: 6
                         )
@@ -317,18 +317,18 @@ struct DailyReflectionView: View {
             .background(
                 LinearGradient(
                     gradient: Gradient(colors: [
-                        AppColors.accent,
-                        AppColors.accentLight
+                        AppColors.anchorAccent,
+                        AppColors.anchorLavender
                     ]),
                     startPoint: .leading,
                     endPoint: .trailing
                 )
             )
             .cornerRadius(AppLayout.buttonCornerRadius)
-            .shadow(color: AppColors.accent.opacity(0.4), radius: 12, x: 0, y: 6)
+            .shadow(color: AppColors.anchorAccent.opacity(0.4), radius: 12, x: 0, y: 6)
             .overlay(
                 RoundedRectangle(cornerRadius: AppLayout.buttonCornerRadius)
-                    .stroke(AppColors.accentLight.opacity(0.5), lineWidth: 1)
+                    .stroke(AppColors.anchorLavender.opacity(0.5), lineWidth: 1)
             )
         }
         .buttonStyle(PlainButtonStyle())

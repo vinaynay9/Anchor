@@ -2,12 +2,12 @@ import SwiftUI
 
 struct AppColors {
     // Primary colors - Luxury deep royal purple
-    static let primary = Color(red: 0.227, green: 0.047, blue: 0.639) // #3A0CA3
-    static let primaryDark = Color(red: 0.102, green: 0.039, blue: 0.227) // #1A0A3A
+    static let anchorPrimary = Color(red: 0.227, green: 0.047, blue: 0.639) // #3A0CA3
+    static let anchorPrimaryDark = Color(red: 0.102, green: 0.039, blue: 0.227) // #1A0A3A
     
     // Accent colors - Soft electric violet and lavender
-    static let accent = Color(red: 0.545, green: 0.361, blue: 0.965) // #8B5CF6
-    static let accentLight = Color(red: 0.769, green: 0.710, blue: 0.992) // #C4B5FD
+    static let anchorAccent = Color(red: 0.545, green: 0.361, blue: 0.965) // #8B5CF6
+    static let anchorLavender = Color(red: 0.769, green: 0.710, blue: 0.992) // #C4B5FD
     
     // Background colors - Onyx black and ultra-dark purple
     static let background = Color(red: 0.039, green: 0.039, blue: 0.059) // #0A0A0F
@@ -27,14 +27,6 @@ struct AppColors {
     static let shieldText = Color(red: 0.961, green: 0.961, blue: 0.969) // #F5F5F7 (high-contrast soft white)
 }
 
-// MARK: - Color Aliases
-extension AppColors {
-    // Non-breaking aliases for anchor colors
-    static let anchorPrimary = AppColors.primary
-    static let anchorPrimaryDark = AppColors.primaryDark
-    static let anchorAccent = AppColors.accent
-    static let anchorLavender = AppColors.accentLight
-}
 
 // MARK: - Layout Constants
 struct AppLayout {

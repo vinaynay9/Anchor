@@ -155,54 +155,32 @@ class ScreenTimeService: ScreenTimeServiceProtocol {
     }
     
     // MARK: - Selection Persistence
+    /// Saves a session-specific FamilyActivitySelection to AppGroup storage.
+    /// Uses centralized AppGroupStorage service for consistency.
     func saveSelection(_ selection: FamilyActivitySelection, for sessionId: UUID) {
         // Update in-memory cache
         sessionSelections[sessionId] = selection
         
-        // Persist to UserDefaults using App Group storage
-        guard let defaults = UserDefaults(suiteName: AppConfig.appGroupIdentifier) else {
-            return
-        }
-        
-        // Use JSONEncoder to encode the selection
-        let encoder = JSONEncoder()
-        do {
-            let encoded = try encoder.encode(selection)
-            let key = "familyActivitySelection_\(sessionId.uuidString)"
-            defaults.set(encoded, forKey: key)
-        } catch {
-            // Log error but don't throw - persistence failure shouldn't break the flow
-            // The in-memory cache will still work
-        }
+        // Persist to AppGroup storage using centralized service
+        appGroupStorage.saveFamilyActivitySelection(selection, forSessionId: sessionId)
     }
     
+    /// Loads a session-specific FamilyActivitySelection from AppGroup storage.
+    /// Uses centralized AppGroupStorage service for consistency.
     func loadSelection(for sessionId: UUID) -> FamilyActivitySelection? {
         // First try to load from in-memory cache
         if let cached = sessionSelections[sessionId] {
             return cached
         }
         
-        // Load from UserDefaults using App Group storage
-        guard let defaults = UserDefaults(suiteName: AppConfig.appGroupIdentifier) else {
-            return nil
-        }
-        
-        let key = "familyActivitySelection_\(sessionId.uuidString)"
-        guard let data = defaults.data(forKey: key) else {
-            return nil
-        }
-        
-        // Use JSONDecoder to decode the selection
-        let decoder = JSONDecoder()
-        do {
-            let selection = try decoder.decode(FamilyActivitySelection.self, from: data)
+        // Load from AppGroup storage using centralized service
+        if let selection = appGroupStorage.loadFamilyActivitySelection(forSessionId: sessionId) {
             // Update in-memory cache for future access
             sessionSelections[sessionId] = selection
             return selection
-        } catch {
-            // If decoding fails, return nil
-            return nil
         }
+        
+        return nil
     }
 }
 

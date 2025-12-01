@@ -50,23 +50,23 @@ struct CreateSessionView: View {
         .background(
             LinearGradient(
                 gradient: Gradient(colors: [
-                    AppColors.primary,
-                    AppColors.accent,
-                    AppColors.accentLight
+                    AppColors.anchorPrimary,
+                    AppColors.anchorAccent,
+                    AppColors.anchorLavender
                 ]),
                 startPoint: UnitPoint(x: 0 - gradientOffset, y: 0),
                 endPoint: UnitPoint(x: 1 - gradientOffset, y: 1)
             )
         )
         .cornerRadius(AppLayout.cardCornerRadius)
-        .shadow(color: AppColors.accent.opacity(0.3), radius: 20, x: 0, y: 10)
+        .shadow(color: AppColors.anchorAccent.opacity(0.3), radius: 20, x: 0, y: 10)
         .overlay(
             RoundedRectangle(cornerRadius: AppLayout.cardCornerRadius)
                 .stroke(
                     LinearGradient(
                         gradient: Gradient(colors: [
-                            AppColors.accentLight.opacity(0.6),
-                            AppColors.accent.opacity(0.4)
+                            AppColors.anchorLavender.opacity(0.6),
+                            AppColors.anchorAccent.opacity(0.4)
                         ]),
                         startPoint: .topLeading,
                         endPoint: .bottomTrailing
@@ -99,7 +99,7 @@ struct CreateSessionView: View {
         .shadow(color: Color.black.opacity(0.3), radius: 8, x: 0, y: 4)
         .overlay(
             RoundedRectangle(cornerRadius: AppLayout.cardCornerRadius)
-                .stroke(AppColors.accentLight.opacity(0.3), lineWidth: 1)
+                .stroke(AppColors.anchorLavender.opacity(0.3), lineWidth: 1)
         )
     }
     
@@ -120,7 +120,7 @@ struct CreateSessionView: View {
                     .font(.system(size: 12, weight: .regular))
                     .foregroundColor(
                         viewModel.selectedDuration == duration
-                            ? AppColors.accentLight
+                            ? AppColors.anchorLavender
                             : AppColors.textSecondary.opacity(0.6)
                     )
             }
@@ -128,7 +128,7 @@ struct CreateSessionView: View {
             .padding(.vertical, 16)
             .background(
                 viewModel.selectedDuration == duration
-                    ? AppColors.accent.opacity(0.2)
+                    ? AppColors.anchorAccent.opacity(0.2)
                     : Color.clear
             )
             .cornerRadius(AppLayout.chipCornerRadius)
@@ -136,7 +136,7 @@ struct CreateSessionView: View {
                 RoundedRectangle(cornerRadius: AppLayout.chipCornerRadius)
                     .stroke(
                         viewModel.selectedDuration == duration
-                            ? AppColors.accentLight
+                            ? AppColors.anchorLavender
                             : Color.clear,
                         lineWidth: 2
                     )
@@ -164,7 +164,7 @@ struct CreateSessionView: View {
         .shadow(color: Color.black.opacity(0.3), radius: 8, x: 0, y: 4)
         .overlay(
             RoundedRectangle(cornerRadius: AppLayout.cardCornerRadius)
-                .stroke(AppColors.accentLight.opacity(0.3), lineWidth: 1)
+                .stroke(AppColors.anchorLavender.opacity(0.3), lineWidth: 1)
         )
     }
     
@@ -178,7 +178,7 @@ struct CreateSessionView: View {
                     RoundedRectangle(cornerRadius: 6)
                         .fill(
                             viewModel.selectedFriends.contains(friend.id)
-                                ? AppColors.accent
+                                ? AppColors.anchorAccent
                                 : Color.clear
                         )
                         .frame(width: 24, height: 24)
@@ -186,7 +186,7 @@ struct CreateSessionView: View {
                             RoundedRectangle(cornerRadius: 6)
                                 .stroke(
                                     viewModel.selectedFriends.contains(friend.id)
-                                        ? AppColors.accentLight
+                                        ? AppColors.anchorLavender
                                         : AppColors.textSecondary.opacity(0.4),
                                     lineWidth: 2
                                 )
@@ -227,18 +227,18 @@ struct CreateSessionView: View {
             .background(
                 LinearGradient(
                     gradient: Gradient(colors: [
-                        AppColors.accent,
-                        AppColors.accentLight
+                        AppColors.anchorAccent,
+                        AppColors.anchorLavender
                     ]),
                     startPoint: .leading,
                     endPoint: .trailing
                 )
             )
             .cornerRadius(AppLayout.buttonCornerRadius)
-            .shadow(color: AppColors.accent.opacity(0.4), radius: 12, x: 0, y: 6)
+            .shadow(color: AppColors.anchorAccent.opacity(0.4), radius: 12, x: 0, y: 6)
             .overlay(
                 RoundedRectangle(cornerRadius: AppLayout.buttonCornerRadius)
-                    .stroke(AppColors.accentLight.opacity(0.5), lineWidth: 1)
+                    .stroke(AppColors.anchorLavender.opacity(0.5), lineWidth: 1)
             )
         }
         .buttonStyle(PlainButtonStyle())

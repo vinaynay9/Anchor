@@ -38,8 +38,9 @@ class ProofViewModel: ObservableObject {
         isUploading = true
         errorMessage = nil
         
-        guard let imageData = image.jpegData(compressionQuality: 0.8) else {
-            errorMessage = "Failed to convert image to JPEG data"
+        // Process image: strip EXIF metadata and compress
+        guard let imageData = ImageProcessingUtility.processImageForUpload(image) else {
+            errorMessage = "Failed to process image for upload"
             isUploading = false
             return
         }

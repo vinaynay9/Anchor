@@ -50,8 +50,8 @@ struct ProofUploadView: View {
                     .stroke(
                         LinearGradient(
                             colors: [
-                                AppColors.accent.opacity(0.6),
-                                AppColors.accentLight.opacity(0.4)
+                                AppColors.anchorAccent.opacity(0.6),
+                                AppColors.anchorLavender.opacity(0.4)
                             ],
                             startPoint: .topLeading,
                             endPoint: .bottomTrailing
@@ -59,7 +59,7 @@ struct ProofUploadView: View {
                         lineWidth: 3
                     )
             )
-            .shadow(color: AppColors.accent.opacity(0.3), radius: 20, x: 0, y: 10)
+            .shadow(color: AppColors.anchorAccent.opacity(0.3), radius: 20, x: 0, y: 10)
     }
     
     private var uploadProgressSection: some View {
@@ -78,7 +78,7 @@ struct ProofUploadView: View {
                             RoundedRectangle(cornerRadius: 8)
                                 .fill(
                                     LinearGradient(
-                                        colors: [AppColors.accent, AppColors.accentLight],
+                                        colors: [AppColors.anchorAccent, AppColors.anchorLavender],
                                         startPoint: .leading,
                                         endPoint: .trailing
                                     )

@@ -25,5 +25,7 @@ struct ShieldMessages {
 // MARK: - URL Scheme
 public struct ShieldURLScheme {
     public static let anchorApp = "anchor://open"
+    public static let unlockRequest = "anchor://unlock-request"
+    public static let messagePartner = "anchor://message-partner"
 }
 

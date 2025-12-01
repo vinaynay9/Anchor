@@ -10,7 +10,9 @@ class ShieldViewModel: ObservableObject {
     @Published var subtitle: String = "This app is blocked during your focus session."
     @Published var remainingTimeText: String?
     @Published var isWaitingForFriendApproval: Bool = false
-    @Published var primaryButtonTitle: String = "Open Anchor"
+    @Published var primaryButtonTitle: String = "Request Unlock"
+    @Published var secondaryButtonTitle: String = "Message Your Accountability Partner"
+    @Published var explanationText: String = "Why is this blocked?"
     
     private let appGroupStorage = AppGroupStorage.shared
     private var cancellables = Set<AnyCancellable>()
@@ -37,12 +39,18 @@ class ShieldViewModel: ObservableObject {
             isWaitingForFriendApproval = true
             title = "Unlock Request Pending"
             subtitle = "Waiting for your accountability partner to review your unlock request."
+            primaryButtonTitle = "Open Anchor"
+            secondaryButtonTitle = "Message Your Accountability Partner"
+            explanationText = "Your unlock request is being reviewed. You'll be notified once your partner responds."
             remainingTimeText = nil
         } else if let state = state, state.isActive {
             // Active session
             isWaitingForFriendApproval = false
             title = "Stay Focused"
             subtitle = "This app is blocked during your focus session."
+            primaryButtonTitle = "Request Unlock"
+            secondaryButtonTitle = "Message Your Accountability Partner"
+            explanationText = "This app is blocked to help you stay focused. You can request temporary access or message your accountability partner."
             
             // Calculate remaining time from remainingSeconds or endTime
             if let seconds = state.remainingSeconds {
@@ -58,12 +66,27 @@ class ShieldViewModel: ObservableObject {
             isWaitingForFriendApproval = false
             title = "App Blocked"
             subtitle = "You're currently blocked by Anchor."
+            primaryButtonTitle = "Open Anchor"
+            secondaryButtonTitle = "Message Your Accountability Partner"
+            explanationText = "This app is blocked. Open Anchor to manage your session."
             remainingTimeText = nil
         }
     }
     
     func openAnchorApp() {
-        guard let url = URL(string: ShieldURLScheme.anchorApp) else { return }
+        openURL(ShieldURLScheme.anchorApp)
+    }
+    
+    func openUnlockRequest() {
+        openURL(ShieldURLScheme.unlockRequest)
+    }
+    
+    func openMessagePartner() {
+        openURL(ShieldURLScheme.messagePartner)
+    }
+    
+    private func openURL(_ urlString: String) {
+        guard let url = URL(string: urlString) else { return }
         
         // In a shield extension, open the main app via URL scheme
         // Note: UIApplication.shared is available in App Extensions including shield extensions

@@ -17,7 +17,7 @@ class UserService: UserServiceProtocol {
         // GET /user/me
         let dto: UserDTO = try await apiClient.request(.getCurrentUser, responseType: UserDTO.self)
         guard let user = dto.toUser() else {
-            throw APIError.decodingError(NSError(domain: "UserService", code: -1))
+            throw AnchorAPIError.decodingError(NSError(domain: "UserService", code: -1, userInfo: [NSLocalizedDescriptionKey: "Failed to decode user from DTO"]))
         }
         return user
     }
@@ -30,7 +30,7 @@ class UserService: UserServiceProtocol {
            currentUserId == id {
             return try await getCurrentUser()
         }
-        throw APIError.unauthorized
+        throw AnchorAPIError.unauthorized
     }
     
     func updateUser(username: String?, displayName: String?) async throws -> User {
@@ -40,15 +40,18 @@ class UserService: UserServiceProtocol {
             responseType: UserDTO.self
         )
         guard let user = dto.toUser() else {
-            throw APIError.decodingError(NSError(domain: "UserService", code: -1))
+            throw AnchorAPIError.decodingError(NSError(domain: "UserService", code: -1, userInfo: [NSLocalizedDescriptionKey: "Failed to decode user from DTO"]))
         }
         return user
     }
     
     func searchUsers(query: String) async throws -> [User] {
-        // TODO: Implement search endpoint response parsing
-        // For now, return empty array
-        return []
+        // GET /users/search?query=...
+        let dtos: [UserDTO] = try await apiClient.request(
+            .searchUsers(query: query),
+            responseType: [UserDTO].self
+        )
+        return dtos.compactMap { $0.toUser() }
     }
 }
 

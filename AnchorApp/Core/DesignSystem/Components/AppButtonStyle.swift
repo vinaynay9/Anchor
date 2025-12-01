@@ -7,7 +7,7 @@ struct PrimaryButtonStyle: ButtonStyle {
             .foregroundColor(AppColors.textPrimary)
             .frame(maxWidth: .infinity)
             .padding()
-            .background(AppColors.accent)
+            .background(AppColors.anchorAccent)
             .cornerRadius(AppLayout.buttonCornerRadius)
             .scaleEffect(configuration.isPressed ? 0.97 : 1.0)
             .opacity(configuration.isPressed ? 0.85 : 1.0)
@@ -25,7 +25,7 @@ struct SecondaryButtonStyle: ButtonStyle {
             .cornerRadius(AppLayout.buttonCornerRadius)
             .overlay(
                 RoundedRectangle(cornerRadius: AppLayout.buttonCornerRadius)
-                    .stroke(AppColors.accentLight.opacity(0.3), lineWidth: 1)
+                    .stroke(AppColors.anchorLavender.opacity(0.3), lineWidth: 1)
             )
             .scaleEffect(configuration.isPressed ? 0.97 : 1.0)
             .opacity(configuration.isPressed ? 0.85 : 1.0)

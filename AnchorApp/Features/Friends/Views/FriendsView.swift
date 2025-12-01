@@ -15,8 +15,28 @@ struct FriendsView: View {
                     .padding(.top, Theme.spacing)
                     .padding(.bottom, Theme.spacing * 2)
                 
-                // Friends List
-                if viewModel.filteredFriends.isEmpty {
+                // Error Banner
+                if let errorMessage = viewModel.errorMessage {
+                    ErrorBanner(message: errorMessage) {
+                        viewModel.errorMessage = nil
+                    }
+                    .padding(.bottom, Theme.spacing)
+                    .transition(.move(edge: .top).combined(with: .opacity))
+                }
+                
+                // Content
+                if viewModel.isLoading && viewModel.friends.isEmpty {
+                    // Show skeleton loaders during initial load
+                    ScrollView {
+                        LazyVStack(spacing: Theme.spacing) {
+                            ForEach(0..<3, id: \.self) { _ in
+                                SkeletonRow()
+                            }
+                        }
+                        .padding(.horizontal, Theme.padding)
+                        .padding(.top, Theme.padding)
+                    }
+                } else if viewModel.filteredFriends.isEmpty {
                     emptyStateView
                 } else {
                     friendsList
@@ -34,9 +54,13 @@ struct FriendsView: View {
                 }) {
                     Image(systemName: "plus")
                         .font(AppTypography.bodyBold)
-                        .foregroundColor(AppColors.accent)
+                        .foregroundColor(AppColors.anchorAccent)
                 }
             }
+        }
+        .withGlobalToasts()
+        .onAppear {
+            viewModel.loadFriends()
         }
     }
     
@@ -76,34 +100,30 @@ struct FriendsView: View {
                         viewModel.removeFriend(friend)
                     })
                     .transition(.asymmetric(
-                        insertion: .move(edge: .trailing).combined(with: .opacity),
-                        removal: .move(edge: .leading).combined(with: .opacity)
+                        insertion: .move(edge: .trailing).combined(with: .opacity).combined(with: .scale(scale: 0.95)),
+                        removal: .move(edge: .leading).combined(with: .opacity).combined(with: .scale(scale: 0.95))
                     ))
                 }
             }
             .padding(.horizontal, Theme.padding)
             .padding(.bottom, Theme.padding)
         }
+        .animation(.spring(response: 0.4, dampingFraction: 0.8), value: viewModel.filteredFriends.count)
     }
     
     private var emptyStateView: some View {
-        VStack(spacing: Theme.spacing * 2) {
-            Image(systemName: "person.2.slash")
-                .font(.system(size: 60))
-                .foregroundColor(AppColors.textSecondary.opacity(0.5))
-            
-            Text(viewModel.searchQuery.isEmpty ? "No friends yet" : "No friends found")
-                .font(AppTypography.title3)
-                .foregroundColor(AppColors.textSecondary)
-            
-            if viewModel.searchQuery.isEmpty {
-                Text("Tap + to add your first friend")
-                    .font(AppTypography.caption)
-                    .foregroundColor(AppColors.textSecondary.opacity(0.7))
-            }
-        }
-        .frame(maxWidth: .infinity, maxHeight: .infinity)
-        .padding(Theme.padding * 2)
+        EmptyStateView(
+            icon: viewModel.searchQuery.isEmpty ? "person.2.slash" : "magnifyingglass",
+            title: viewModel.searchQuery.isEmpty ? "No friends yet" : "No friends found",
+            message: viewModel.searchQuery.isEmpty 
+                ? "Start building your accountability network by adding friends" 
+                : "Try adjusting your search terms",
+            actionTitle: viewModel.searchQuery.isEmpty ? "Add Friend" : nil,
+            action: viewModel.searchQuery.isEmpty ? {
+                coordinator.navigateToAddFriend()
+            } : nil
+        )
+        .transition(.opacity.combined(with: .scale(scale: 0.95)))
     }
 }
 
@@ -119,8 +139,8 @@ struct FriendCardView: View {
                     .fill(
                         LinearGradient(
                             colors: [
-                                AppColors.primary,
-                                AppColors.accent
+                                AppColors.anchorPrimary,
+                                AppColors.anchorAccent
                             ],
                             startPoint: .topLeading,
                             endPoint: .bottomTrailing
@@ -158,7 +178,7 @@ struct FriendCardView: View {
             }) {
                 Text("Remove")
                     .font(AppTypography.captionBold)
-                    .foregroundColor(AppColors.accentLight)
+                    .foregroundColor(AppColors.anchorLavender)
                     .padding(.horizontal, Theme.padding)
                     .padding(.vertical, Theme.spacing)
                     .background(Color.clear)
@@ -187,8 +207,8 @@ struct FriendCardView: View {
                 .stroke(
                     LinearGradient(
                         colors: [
-                            AppColors.primary.opacity(0.3),
-                            AppColors.accent.opacity(0.2)
+                            AppColors.anchorPrimary.opacity(0.3),
+                            AppColors.anchorAccent.opacity(0.2)
                         ],
                         startPoint: .topLeading,
                         endPoint: .bottomTrailing

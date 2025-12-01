@@ -43,7 +43,7 @@ struct SessionSetupView: View {
                         Spacer()
                         if hasSelectedApps {
                             Image(systemName: "checkmark.circle.fill")
-                                .foregroundColor(AppColors.accent)
+                                .foregroundColor(AppColors.anchorAccent)
                         } else {
                             Image(systemName: "chevron.right")
                                 .foregroundColor(AppColors.textSecondary)
@@ -73,7 +73,7 @@ struct SessionSetupView: View {
                             .font(AppTypography.body)
                             .foregroundColor(AppColors.textPrimary)
                     }
-                    .tint(AppColors.accent)
+                    .tint(AppColors.anchorAccent)
                 }
             }
             .listRowBackground(AppColors.secondaryBackground)

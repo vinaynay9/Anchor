@@ -1,6 +1,7 @@
 import Foundation
 import FamilyControls
 import Combine
+import Shared
 
 @MainActor
 class SelectAppsViewModel: ObservableObject {
@@ -9,20 +10,19 @@ class SelectAppsViewModel: ObservableObject {
     @Published var isLoading = false
     @Published var errorMessage: String?
     
-    private let tokensStorageKey = "selectedAppTokens"
-    private let selectionStorageKey = "familyActivitySelection"
+    private let activitySelectionService = ActivitySelectionService.shared
     
     init() {
         loadSelection()
     }
     
+    /// Loads the FamilyActivitySelection from AppGroup storage via ActivitySelectionService.
+    /// This ensures consistency with the rest of the app and makes the selection accessible to the Shield Extension.
     private func loadSelection() {
-        // Load FamilyActivitySelection
-        if let data = UserDefaults.standard.data(forKey: selectionStorageKey),
-           let decoded = try? JSONDecoder().decode(FamilyActivitySelection.self, from: data) {
-            selection = decoded
+        if let loadedSelection = activitySelectionService.loadSelection() {
+            selection = loadedSelection
             // Derive token identifiers from the selection
-            selectedAppTokens = Array(decoded.applicationTokens).enumerated().map { index, _ in
+            selectedAppTokens = Array(loadedSelection.applicationTokens).enumerated().map { index, _ in
                 "app_token_\(index)"
             }
         } else {
@@ -31,17 +31,18 @@ class SelectAppsViewModel: ObservableObject {
         }
     }
     
+    /// Saves the FamilyActivitySelection to AppGroup storage via ActivitySelectionService.
+    /// This ensures consistency with the rest of the app and makes the selection accessible to the Shield Extension.
     private func saveSelection() {
-        // Save FamilyActivitySelection
-        if let encoded = try? JSONEncoder().encode(selection) {
-            UserDefaults.standard.set(encoded, forKey: selectionStorageKey)
-        }
-        // Save token identifiers as strings
-        if let tokensEncoded = try? JSONEncoder().encode(selectedAppTokens) {
-            UserDefaults.standard.set(tokensEncoded, forKey: tokensStorageKey)
+        do {
+            try activitySelectionService.saveSelection(selection)
+        } catch {
+            errorMessage = "Failed to save app selection: \(error.localizedDescription)"
         }
     }
     
+    /// Updates the selection and persists it to AppGroup storage.
+    /// - Parameter selection: The new FamilyActivitySelection to save
     func updateSelection(from selection: FamilyActivitySelection) {
         self.selection = selection
         // Convert ApplicationToken array to String identifiers
@@ -53,10 +54,11 @@ class SelectAppsViewModel: ObservableObject {
         saveSelection()
     }
     
+    /// Clears the selection and removes it from AppGroup storage.
     func clearSelection() {
         selectedAppTokens = []
         selection = FamilyActivitySelection()
-        saveSelection()
+        activitySelectionService.clearSelection()
     }
 }
 

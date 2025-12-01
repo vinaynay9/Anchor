@@ -26,7 +26,7 @@ struct ToastView: View {
         .padding(.vertical, 16)
         .background(
             RoundedRectangle(cornerRadius: AppLayout.cardCornerRadius)
-                .fill(AppColors.primaryDark.opacity(0.9))
+                .fill(AppColors.anchorPrimaryDark.opacity(0.9))
                 .background(
                     // Frosted glass blur effect
                     RoundedRectangle(cornerRadius: AppLayout.cardCornerRadius)
@@ -57,7 +57,7 @@ struct ToastView: View {
     private var iconColor: Color {
         switch toast.type {
         case .success:
-            return AppColors.accent
+            return AppColors.anchorAccent
         case .error:
             return AppColors.error
         }
@@ -69,8 +69,8 @@ struct ToastView: View {
             // Lavender → Violet gradient for success
             return LinearGradient(
                 colors: [
-                    AppColors.accentLight,
-                    AppColors.accent
+                    AppColors.anchorLavender,
+                    AppColors.anchorAccent
                 ],
                 startPoint: .leading,
                 endPoint: .trailing
@@ -92,7 +92,7 @@ struct ToastView: View {
     private var borderGlowColor: Color {
         switch toast.type {
         case .success:
-            return AppColors.accent
+            return AppColors.anchorAccent
         case .error:
             return AppColors.error
         }

@@ -1,5 +1,6 @@
 import Foundation
 import UserNotifications
+import SwiftUI
 
 enum NotificationError: Error {
     case notAuthorized
@@ -12,6 +13,11 @@ protocol NotificationServiceProtocol {
     func registerForPushNotifications() async throws -> String
     func handleNotification(_ notification: UNNotification) -> Bool
     func scheduleLocalNotification(title: String, body: String, identifier: String)
+    func checkAuthorizationStatus() async -> Bool
+    func notifyUnlockRequestApproved(requestId: String) async
+    func notifyUnlockRequestRejected(requestId: String) async
+    func notifySessionEnded() async
+    func notifySessionExpired() async
 }
 
 class NotificationService: NotificationServiceProtocol {
@@ -93,6 +99,83 @@ class NotificationService: NotificationServiceProtocol {
         
         // Store the token we just sent
         UserDefaults.standard.set(tokenString, forKey: lastTokenSentKey)
+    }
+    
+    // MARK: - Authorization Status Check
+    func checkAuthorizationStatus() async -> Bool {
+        let center = UNUserNotificationCenter.current()
+        let settings = await center.notificationSettings()
+        return settings.authorizationStatus == .authorized
+    }
+    
+    // MARK: - Unlock Request Notifications
+    func notifyUnlockRequestApproved(requestId: String) async {
+        let isAuthorized = await checkAuthorizationStatus()
+        
+        if isAuthorized {
+            scheduleLocalNotification(
+                title: "Unlock Request Approved",
+                body: "Your unlock request has been approved. Apps are now accessible.",
+                identifier: "unlock-request-approved-\(requestId)"
+            )
+        } else {
+            // Fallback banner when notifications are disabled
+            await MainActor.run {
+                ToastManager.shared.showSuccess("Unlock Request Approved - Apps are now accessible")
+            }
+        }
+    }
+    
+    func notifyUnlockRequestRejected(requestId: String) async {
+        let isAuthorized = await checkAuthorizationStatus()
+        
+        if isAuthorized {
+            scheduleLocalNotification(
+                title: "Unlock Request Denied",
+                body: "Your unlock request has been denied. Session continues.",
+                identifier: "unlock-request-rejected-\(requestId)"
+            )
+        } else {
+            // Fallback banner when notifications are disabled
+            await MainActor.run {
+                ToastManager.shared.showError("Unlock Request Denied - Session continues")
+            }
+        }
+    }
+    
+    // MARK: - Session Event Notifications
+    func notifySessionEnded() async {
+        let isAuthorized = await checkAuthorizationStatus()
+        
+        if isAuthorized {
+            scheduleLocalNotification(
+                title: "Session Ended",
+                body: "Your lock session has ended. Apps are now accessible.",
+                identifier: "session-ended-\(UUID().uuidString)"
+            )
+        } else {
+            // Fallback banner when notifications are disabled
+            await MainActor.run {
+                ToastManager.shared.showSuccess("Session Ended - Apps are now accessible")
+            }
+        }
+    }
+    
+    func notifySessionExpired() async {
+        let isAuthorized = await checkAuthorizationStatus()
+        
+        if isAuthorized {
+            scheduleLocalNotification(
+                title: "Session Expired",
+                body: "Your lock session has expired. Apps are now accessible.",
+                identifier: "session-expired-\(UUID().uuidString)"
+            )
+        } else {
+            // Fallback banner when notifications are disabled
+            await MainActor.run {
+                ToastManager.shared.showSuccess("Session Expired - Apps are now accessible")
+            }
+        }
     }
     
     // MARK: - Notification Preferences

@@ -47,7 +47,7 @@ extension APIEndpoint {
             let (boundary, _) = createMultipartFormData(sessionId: sessionId, imageData: imageData)
             headers["Content-Type"] = "multipart/form-data; boundary=\(boundary)"
         case .getCurrentUser, .getFriends, .getFriendRequests, .getActiveSession, 
-             .getPendingUnlockRequests, .getProof, .getProofsForUser:
+             .getPendingUnlockRequests, .getProof, .getProofsForUser, .searchUsers:
             // GET requests don't need Content-Type
             break
         default:
@@ -96,8 +96,10 @@ enum APIEndpoint: Endpoint {
     // Auth
     case signInApple(token: String)
     case signInGoogle(token: String)
+    case signOut
     case getCurrentUser
     case updateCurrentUser(username: String?, displayName: String?)
+    case searchUsers(query: String)
     
     // Friends
     case getFriends
@@ -117,6 +119,7 @@ enum APIEndpoint: Endpoint {
     case getPendingUnlockRequests
     case approveUnlockRequest(id: UUID)
     case rejectUnlockRequest(id: UUID)
+    case cancelUnlockRequest(sessionId: UUID)
     
     // Proofs
     case uploadProof(sessionId: String, imageData: Data)
@@ -130,8 +133,12 @@ enum APIEndpoint: Endpoint {
         switch self {
         // Auth
         case .signInApple: return "/auth/apple"
+        case .signOut: return "/auth/signout"
         case .getCurrentUser: return "/user/me"
         case .updateCurrentUser: return "/user/me"
+        case .searchUsers(let query):
+            let encodedQuery = query.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? ""
+            return "/users/search?query=\(encodedQuery)"
         
         // Friends
         case .getFriends: return "/friends"
@@ -151,6 +158,7 @@ enum APIEndpoint: Endpoint {
         case .getPendingUnlockRequests: return "/unlock-requests/pending"
         case .approveUnlockRequest(let id): return "/unlock-requests/\(id.uuidString)/approve"
         case .rejectUnlockRequest(let id): return "/unlock-requests/\(id.uuidString)/reject"
+        case .cancelUnlockRequest(let sessionId): return "/unlock-requests/cancel?sessionId=\(sessionId.uuidString)"
         
         // Proofs
         case .uploadProof: return "/proofs"
@@ -166,14 +174,14 @@ enum APIEndpoint: Endpoint {
         switch self {
         // GET
         case .getCurrentUser, .getFriends, .getFriendRequests, .getActiveSession,
-             .getPendingUnlockRequests, .getProof, .getProofsForUser:
+             .getPendingUnlockRequests, .getProof, .getProofsForUser, .searchUsers:
             return .get
         
         // POST
-        case .signInApple, .addFriend, .startSession, .endSession,
+        case .signInApple, .signOut, .addFriend, .startSession, .endSession,
              .createUnlockRequest, .uploadProof, .registerDeviceToken,
              .acceptFriendRequest, .rejectFriendRequest,
-             .approveUnlockRequest, .rejectUnlockRequest:
+             .approveUnlockRequest, .rejectUnlockRequest, .cancelUnlockRequest:
             return .post
         
         // PATCH

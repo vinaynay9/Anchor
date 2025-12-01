@@ -12,6 +12,7 @@ class SessionService: SessionServiceProtocol {
     
     private let appGroupStorage = AppGroupStorage.shared
     private let screenTimeService: ScreenTimeServiceProtocol
+    private let notificationService: NotificationServiceProtocol
     private var activeSession: LockSession?
     private var timer: Timer?
     private let userId: UUID
@@ -19,8 +20,12 @@ class SessionService: SessionServiceProtocol {
     // Store friendIds separately since LockSession only has accountabilityPartnerId
     private var currentFriendIds: [String] = []
     
-    init(screenTimeService: ScreenTimeServiceProtocol = ScreenTimeService.shared) {
+    init(
+        screenTimeService: ScreenTimeServiceProtocol = ScreenTimeService.shared,
+        notificationService: NotificationServiceProtocol = NotificationService.shared
+    ) {
         self.screenTimeService = screenTimeService
+        self.notificationService = notificationService
         // Get or create user ID
         if let userIdString = UserDefaults.standard.string(forKey: AppConfig.UserDefaultsKeys.currentUserId),
            let uuid = UUID(uuidString: userIdString) {
@@ -47,6 +52,7 @@ class SessionService: SessionServiceProtocol {
         guard endTime > Date() else {
             // Session expired, clear it
             Task {
+                await notificationService.notifySessionExpired()
                 try? await endSession()
             }
             return
@@ -55,10 +61,8 @@ class SessionService: SessionServiceProtocol {
         // Rebuild session from stored state
         let startTime = endTime.addingTimeInterval(-Double(sharedState.remainingSeconds ?? 0))
         
-        // Try to restore friendIds from UserDefaults
-        if let friendIdsData = UserDefaults.standard.array(forKey: "currentSessionFriendIds") as? [String] {
-            currentFriendIds = friendIdsData
-        }
+        // Try to restore friendIds from AppGroup storage
+        currentFriendIds = appGroupStorage.loadCurrentSessionFriendIds()
         
         let accountabilityPartnerId = currentFriendIds.first.flatMap { UUID(uuidString: $0) }
         
@@ -89,9 +93,9 @@ class SessionService: SessionServiceProtocol {
         let endTime = startTime.addingTimeInterval(Double(durationMinutes) * 60)
         let remainingSeconds = durationMinutes * 60
         
-        // Store friendIds
+        // Store friendIds in AppGroup storage
         currentFriendIds = friendIds
-        UserDefaults.standard.set(friendIds, forKey: "currentSessionFriendIds")
+        appGroupStorage.saveCurrentSessionFriendIds(friendIds)
         
         // Convert friend IDs from String to UUID (use first one as accountabilityPartnerId)
         let accountabilityPartnerId = friendIds.first.flatMap { UUID(uuidString: $0) }
@@ -113,7 +117,7 @@ class SessionService: SessionServiceProtocol {
         let dto: LockSessionDTO = try await apiClient.request(.startSession(session: session), responseType: LockSessionDTO.self)
         
         guard let createdSession = dto.toLockSession() else {
-            throw NSError(domain: "SessionService", code: -1, userInfo: [NSLocalizedDescriptionKey: "Failed to decode session from API"])
+            throw AnchorAPIError.decodingError(NSError(domain: "SessionService", code: -1, userInfo: [NSLocalizedDescriptionKey: "Failed to decode session from API"]))
         }
         
         activeSession = createdSession
@@ -160,12 +164,15 @@ class SessionService: SessionServiceProtocol {
         // Clear pending unlock request if exists
         appGroupStorage.setPendingUnlockRequest(false)
         
-        // Clear stored friendIds
-        UserDefaults.standard.removeObject(forKey: "currentSessionFriendIds")
+        // Clear stored friendIds from AppGroup storage
+        appGroupStorage.clearCurrentSessionFriendIds()
         currentFriendIds = []
         
         // Clear active session
         activeSession = nil
+        
+        // Send notification that session ended
+        await notificationService.notifySessionEnded()
     }
     
     func getActiveSession() async throws -> LockSession? {
@@ -181,7 +188,8 @@ class SessionService: SessionServiceProtocol {
                 
                 // Check if session has expired
                 if let endTime = session.endTime, endTime <= Date() {
-                    // Session expired, end it
+                    // Session expired, send notification and end it
+                    await notificationService.notifySessionExpired()
                     try await endSession()
                     return nil
                 }
@@ -197,7 +205,8 @@ class SessionService: SessionServiceProtocol {
             if let session = activeSession,
                let endTime = session.endTime,
                endTime <= Date() {
-                // Session expired, clear it
+                // Session expired, send notification and clear it
+                await notificationService.notifySessionExpired()
                 try await endSession()
                 return nil
             }
@@ -242,6 +251,8 @@ class SessionService: SessionServiceProtocol {
         // If session expired, end it
         if remainingSeconds <= 0 {
             Task {
+                // Send notification that session expired before ending
+                await notificationService.notifySessionExpired()
                 try? await endSession()
             }
         }

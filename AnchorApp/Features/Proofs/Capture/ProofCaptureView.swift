@@ -64,9 +64,9 @@ struct ProofCaptureView: View {
                         .stroke(
                             LinearGradient(
                                 colors: [
-                                    AppColors.accent.opacity(0.6),
-                                    AppColors.accentLight.opacity(0.4),
-                                    AppColors.accent.opacity(0.6)
+                                    AppColors.anchorAccent.opacity(0.6),
+                                    AppColors.anchorLavender.opacity(0.4),
+                                    AppColors.anchorAccent.opacity(0.6)
                                 ],
                                 startPoint: .topLeading,
                                 endPoint: .bottomTrailing
@@ -89,8 +89,8 @@ struct ProofCaptureView: View {
                             .fill(
                                 LinearGradient(
                                     colors: [
-                                        AppColors.accent.opacity(0.3),
-                                        AppColors.accentLight.opacity(0.2)
+                                        AppColors.anchorAccent.opacity(0.3),
+                                        AppColors.anchorLavender.opacity(0.2)
                                     ],
                                     startPoint: .topLeading,
                                     endPoint: .bottomTrailing
@@ -104,8 +104,8 @@ struct ProofCaptureView: View {
                             .fill(
                                 LinearGradient(
                                     colors: [
-                                        AppColors.accent,
-                                        AppColors.accentLight
+                                        AppColors.anchorAccent,
+                                        AppColors.anchorLavender
                                     ],
                                     startPoint: .topLeading,
                                     endPoint: .bottomTrailing
@@ -167,8 +167,8 @@ struct ProofCaptureView: View {
                         .stroke(
                             LinearGradient(
                                 colors: [
-                                    AppColors.accent.opacity(0.4),
-                                    AppColors.accentLight.opacity(0.3)
+                                    AppColors.anchorAccent.opacity(0.4),
+                                    AppColors.anchorLavender.opacity(0.3)
                                 ],
                                 startPoint: .topLeading,
                                 endPoint: .bottomTrailing
@@ -199,7 +199,7 @@ struct ProofCaptureView: View {
                         .cornerRadius(AppLayout.cardCornerRadius)
                         .overlay(
                             RoundedRectangle(cornerRadius: AppLayout.cardCornerRadius)
-                                .stroke(AppColors.accentLight.opacity(0.3), lineWidth: 1)
+                                .stroke(AppColors.anchorLavender.opacity(0.3), lineWidth: 1)
                         )
                     }
                     
@@ -219,7 +219,7 @@ struct ProofCaptureView: View {
                         .padding(.vertical, 16)
                         .background(
                             LinearGradient(
-                                colors: [AppColors.accent, AppColors.accentLight],
+                                colors: [AppColors.anchorAccent, AppColors.anchorLavender],
                                 startPoint: .leading,
                                 endPoint: .trailing
                             )
