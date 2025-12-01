@@ -11,6 +11,8 @@ struct UnlockRequestDetailView: View {
     @State private var isLoadingProof = false
     @State private var proofError: String?
     @State private var actionSuccessMessage: String?
+    @State private var cardScale: CGFloat = 1.0
+    @State private var cardOpacity: Double = 1.0
     
     private let proofService: ProofServiceProtocol
     
@@ -27,10 +29,11 @@ struct UnlockRequestDetailView: View {
             ScrollView {
                 VStack(alignment: .leading, spacing: Theme.padding) {
                     if let request = currentRequest ?? initialRequest {
-                        Text("Unlock Request")
-                            .font(AppTypography.title)
-                            .foregroundColor(AppColors.textPrimary)
-                            .transition(.opacity)
+                        VStack(alignment: .leading, spacing: Theme.padding) {
+                            Text("Unlock Request")
+                                .font(AppTypography.title)
+                                .foregroundColor(AppColors.textPrimary)
+                                .transition(.opacity)
                         
                         // Status indicator
                         HStack(spacing: Theme.spacing) {
@@ -152,6 +155,7 @@ struct UnlockRequestDetailView: View {
                     if request.status == .pending && !viewModel.isLoading {
                         HStack(spacing: Theme.spacing) {
                             Button(action: {
+                                HapticFeedback.soft()
                                 withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
                                     handleDenyRequest(request)
                                 }
@@ -164,6 +168,7 @@ struct UnlockRequestDetailView: View {
                             .disabled(viewModel.isLoading)
                             
                             Button(action: {
+                                HapticFeedback.soft()
                                 withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
                                     handleApproveRequest(request)
                                 }
@@ -198,8 +203,10 @@ struct UnlockRequestDetailView: View {
                             .frame(maxWidth: .infinity)
                             .background(AppColors.secondaryBackground)
                             .cornerRadius(AppLayout.chipCornerRadius)
-                    }
-                } else {
+                        }
+                        .scaleEffect(cardScale)
+                        .opacity(cardOpacity)
+                    } else {
                     // Creating new unlock request
                     Text("Request Unlock")
                         .font(AppTypography.title)
@@ -214,7 +221,7 @@ struct UnlockRequestDetailView: View {
                     .buttonStyle(SecondaryButtonStyle())
                     
                     Button(action: {
-                        // TODO: Create unlock request
+                        viewModel.sendRequest()
                     }) {
                         Text("Send Request")
                     }
@@ -315,6 +322,20 @@ struct UnlockRequestDetailView: View {
     
     private func handleApproveRequest(_ request: UnlockRequest) {
         actionSuccessMessage = nil
+        
+        // Scale up animation
+        withAnimation(.spring(response: 0.3, dampingFraction: 0.6)) {
+            cardScale = 1.05
+        }
+        
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) {
+            // Fade/slide out
+            withAnimation(.easeOut(duration: 0.3)) {
+                cardScale = 0.95
+                cardOpacity = 0.0
+            }
+        }
+        
         viewModel.approveRequest(request)
         
         // Set success message after a delay to allow the action to complete
@@ -330,6 +351,20 @@ struct UnlockRequestDetailView: View {
     
     private func handleDenyRequest(_ request: UnlockRequest) {
         actionSuccessMessage = nil
+        
+        // Scale up animation
+        withAnimation(.spring(response: 0.3, dampingFraction: 0.6)) {
+            cardScale = 1.05
+        }
+        
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) {
+            // Fade/slide out
+            withAnimation(.easeOut(duration: 0.3)) {
+                cardScale = 0.95
+                cardOpacity = 0.0
+            }
+        }
+        
         viewModel.denyRequest(request)
         
         // Set success message after a delay to allow the action to complete

@@ -1,11 +1,14 @@
 import SwiftUI
+import Shared
 
 struct MainTabView: View {
     @EnvironmentObject var coordinator: MainTabFlow
     @State private var selectedTab = 0
+    @State private var previousTab = 0
     
     var body: some View {
         TabView(selection: $selectedTab) {
+            // Tab 0: Home (Active Session)
             NavigationStack(path: $coordinator.sessionsPath) {
                 SessionHomeView()
                     .navigationDestination(for: LockSession.self) { session in
@@ -20,33 +23,27 @@ struct MainTabView: View {
                     }
             }
             .tabItem {
-                Label("Sessions", systemImage: "lock.shield")
+                Label("Home", systemImage: "house.fill")
             }
             .tag(0)
             
+            // Tab 1: Friends (combines Friends + Unlock Requests)
             NavigationStack(path: $coordinator.friendsPath) {
-                FriendsView()
+                FriendsTabView()
                     .navigationDestination(for: Friend.self) { friend in
                         // Friend detail view would go here
                         Text("Friend Detail: \(friend.id.uuidString)")
                     }
-            }
-            .tabItem {
-                Label("Friends", systemImage: "person.2")
-            }
-            .tag(1)
-            
-            NavigationStack(path: $coordinator.requestsPath) {
-                IncomingRequestsListView()
                     .navigationDestination(for: UnlockRequest.self) { request in
                         UnlockRequestDetailView(request: request)
                     }
             }
             .tabItem {
-                Label("Requests", systemImage: "bell")
+                Label("Friends", systemImage: "person.2.fill")
             }
-            .tag(2)
+            .tag(1)
             
+            // Tab 2: Settings
             NavigationStack(path: $coordinator.settingsPath) {
                 SettingsView()
                     .navigationDestination(for: String.self) { destination in
@@ -60,9 +57,9 @@ struct MainTabView: View {
                     }
             }
             .tabItem {
-                Label("Settings", systemImage: "gearshape")
+                Label("Settings", systemImage: "gearshape.fill")
             }
-            .tag(3)
+            .tag(2)
         }
         .sheet(item: $coordinator.presentedSheet) { sheet in
             switch sheet {
@@ -72,6 +69,12 @@ struct MainTabView: View {
                 SessionSetupView(viewModel: SessionViewModel())
             case .selectApps:
                 SelectAppsView()
+            }
+        }
+        .onChange(of: selectedTab) { newTab in
+            if newTab != previousTab {
+                HapticFeedback.soft()
+                previousTab = newTab
             }
         }
     }

@@ -133,6 +133,7 @@ enum APIEndpoint: Endpoint {
         switch self {
         // Auth
         case .signInApple: return "/auth/apple"
+        case .signInGoogle: return "/auth/google"
         case .signOut: return "/auth/signout"
         case .getCurrentUser: return "/user/me"
         case .updateCurrentUser: return "/user/me"

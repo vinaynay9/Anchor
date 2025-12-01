@@ -3,6 +3,7 @@ import SwiftUI
 struct SettingsRowView: View {
     let icon: String
     let title: String
+    let titleColor: Color?
     let action: (() -> Void)?
     let trailingContent: AnyView?
     @State private var isPressed = false
@@ -10,11 +11,13 @@ struct SettingsRowView: View {
     init(
         icon: String,
         title: String,
+        titleColor: Color? = nil,
         action: (() -> Void)? = nil,
         trailingContent: AnyView? = nil
     ) {
         self.icon = icon
         self.title = title
+        self.titleColor = titleColor
         self.action = action
         self.trailingContent = trailingContent
     }
@@ -33,7 +36,7 @@ struct SettingsRowView: View {
                 // Title
                 Text(title)
                     .font(.system(size: 17, weight: .medium, design: .default))
-                    .foregroundColor(AppColors.textPrimary)
+                    .foregroundColor(titleColor ?? AppColors.textPrimary)
                 
                 Spacer()
                 
@@ -46,8 +49,8 @@ struct SettingsRowView: View {
                         .foregroundColor(AppColors.textSecondary)
                 }
             }
-            .padding(.horizontal, 20)
-            .padding(.vertical, 16)
+            .padding(.horizontal, Theme.spacing2)
+            .padding(.vertical, Theme.spacing2)
             .background(
                 RoundedRectangle(cornerRadius: AppLayout.cardCornerRadius)
                     .fill(AppColors.secondaryBackground)
@@ -89,18 +92,19 @@ struct SettingsRowView: View {
 
 // Convenience initializers
 extension SettingsRowView {
-    init(icon: String, title: String, action: @escaping () -> Void) {
-        self.init(icon: icon, title: title, action: action, trailingContent: nil)
+    init(icon: String, title: String, titleColor: Color? = nil, action: @escaping () -> Void) {
+        self.init(icon: icon, title: title, titleColor: titleColor, action: action, trailingContent: nil)
     }
     
-    init<T: View>(icon: String, title: String, trailing: T) {
-        self.init(icon: icon, title: title, action: nil, trailingContent: AnyView(trailing))
+    init<T: View>(icon: String, title: String, titleColor: Color? = nil, trailing: T) {
+        self.init(icon: icon, title: title, titleColor: titleColor, action: nil, trailingContent: AnyView(trailing))
     }
     
-    init(icon: String, title: String, isOn: Binding<Bool>) {
+    init(icon: String, title: String, titleColor: Color? = nil, isOn: Binding<Bool>) {
         self.init(
             icon: icon,
             title: title,
+            titleColor: titleColor,
             action: nil,
             trailingContent: AnyView(
                 Toggle("", isOn: isOn)

@@ -9,7 +9,7 @@ struct AppConfig {
     static let appGroupIdentifier = AppGroupStorage.appGroupIdentifier
     
     // MARK: - Backend
-    static let apiBaseURL = "https://your-supabase-url.supabase.co"
+    static let apiBaseURL = "https://chkwsfgnvkmuvwtxfore.supabase.co"
     static let apiVersion = "v1"
     
     // MARK: - API Endpoints

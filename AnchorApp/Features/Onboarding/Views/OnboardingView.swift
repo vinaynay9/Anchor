@@ -2,70 +2,98 @@ import SwiftUI
 
 struct OnboardingView: View {
     @StateObject private var viewModel = OnboardingViewModel()
-    @State private var showPermissionStep = false
+    @StateObject private var authViewModel = AuthViewModel()
+    @StateObject private var goalService = GoalService.shared
+    @State private var currentStep: OnboardingStep = .welcome
+    @State private var showGoalCreation = false
+    @State private var showFriendSelection = false
+    
+    enum OnboardingStep {
+        case welcome
+        case description
+        case signIn
+        case permissions
+        case goalsExplanation
+        case goalCreation
+        case friendSelection
+    }
     
     var body: some View {
         ZStack {
-            // Background
-            AppColors.background
-                .ignoresSafeArea()
+            AppColors.background.ignoresSafeArea()
             
-            if showPermissionStep {
-                OnboardingPermissionStepView(viewModel: viewModel)
-                    .transition(.move(edge: .trailing).combined(with: .opacity))
-            } else {
-                VStack(spacing: 0) {
-                    // Page content
-                    TabView(selection: $viewModel.currentPage) {
-                        WelcomePage()
-                            .tag(0)
-                        
-                        AppBlockingPage()
-                            .tag(1)
-                        
-                        FriendsAccountabilityPage()
-                            .tag(2)
-                    }
-                    .tabViewStyle(.page(indexDisplayMode: .never))
-                    .animation(.easeInOut(duration: 0.3), value: viewModel.currentPage)
+            Group {
+                switch currentStep {
+                case .welcome:
+                    WelcomeOnboardingPage(onContinue: {
+                        withAnimation(Theme.springAnimation) {
+                            currentStep = .description
+                        }
+                    })
                     
-                    // Bottom section with dots and button
-                    VStack(spacing: Theme.padding * 1.5) {
-                        // Pager dots
-                        HStack(spacing: 8) {
-                            ForEach(0..<viewModel.totalPages, id: \.self) { index in
-                                Circle()
-                                    .fill(index == viewModel.currentPage ? AppColors.anchorAccent : AppColors.anchorAccent.opacity(0.3))
-                                    .frame(width: 8, height: 8)
-                                    .animation(.easeInOut(duration: 0.2), value: viewModel.currentPage)
+                case .description:
+                    DescriptionSlidesPage(onContinue: {
+                        withAnimation(Theme.springAnimation) {
+                            currentStep = .signIn
+                        }
+                    })
+                    
+                case .signIn:
+                    SignInOnboardingPage(
+                        authViewModel: authViewModel,
+                        onSignIn: {
+                            withAnimation(Theme.springAnimation) {
+                                currentStep = .permissions
+                            }
+                        },
+                        onLogin: {
+                            // Handle login for existing users
+                            withAnimation(Theme.springAnimation) {
+                                currentStep = .permissions
                             }
                         }
-                        .padding(.top, Theme.padding)
-                        
-                        // Continue button
-                        Button(action: {
-                            if viewModel.isLastPage {
-                                withAnimation(.easeInOut(duration: 0.3)) {
-                                    showPermissionStep = true
-                                }
-                            } else {
-                                viewModel.nextPage()
+                    )
+                    
+                case .permissions:
+                    PermissionsExplanationPage(
+                        viewModel: viewModel,
+                        onContinue: {
+                            withAnimation(Theme.springAnimation) {
+                                currentStep = .goalsExplanation
                             }
-                        }) {
-                            Text(viewModel.isLastPage ? "Get Started" : "Continue")
-                                .font(AppTypography.bodyBold)
-                                .foregroundColor(AppColors.textPrimary)
-                                .frame(maxWidth: .infinity)
-                                .padding(.vertical, Theme.padding)
-                                .background(AppColors.anchorAccent)
-                                .cornerRadius(AppLayout.buttonCornerRadius)
                         }
-                        .padding(.horizontal, Theme.padding * 2)
-                        .padding(.bottom, Theme.padding * 2)
-                    }
+                    )
+                    
+                case .goalsExplanation:
+                    GoalsExplanationView(onContinue: {
+                        withAnimation(Theme.springAnimation) {
+                            currentStep = .goalCreation
+                        }
+                    })
+                    
+                case .goalCreation:
+                    GoalCreationOnboardingPage(
+                        goalService: goalService,
+                        onContinue: {
+                            withAnimation(Theme.springAnimation) {
+                                currentStep = .friendSelection
+                            }
+                        }
+                    )
+                    
+                case .friendSelection:
+                    FriendSelectionOnboardingPage(
+                        onComplete: {
+                            viewModel.completeOnboarding()
+                        }
+                    )
                 }
-                .transition(.move(edge: .leading).combined(with: .opacity))
             }
+            .transition(.asymmetric(
+                insertion: .move(edge: .trailing).combined(with: .opacity),
+                removal: .move(edge: .leading).combined(with: .opacity)
+            ))
+            .animation(.easeOut(duration: 0.25), value: currentStep)
         }
     }
 }

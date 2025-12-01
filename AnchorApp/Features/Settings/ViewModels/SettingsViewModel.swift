@@ -6,9 +6,26 @@ class SettingsViewModel: ObservableObject {
     // Notification toggles with @AppStorage
     @AppStorage("sessionRemindersEnabled") var sessionRemindersEnabled: Bool = true
     @AppStorage("unlockRequestAlertsEnabled") var unlockRequestAlertsEnabled: Bool = true
+    @AppStorage("witnessRequestEnabled") var witnessRequestEnabled: Bool = true
     
     // Alert state
     @Published var showClearDataAlert = false
+    
+    // User info (mock for now - should come from AuthService)
+    var userInitials: String {
+        // TODO: Get from actual user data
+        return "U"
+    }
+    
+    var displayName: String {
+        // TODO: Get from actual user data
+        return "User"
+    }
+    
+    var userEmail: String {
+        // TODO: Get from actual user data
+        return "user@example.com"
+    }
     
     // Simulated actions
     func editProfile() {
@@ -49,6 +66,23 @@ class SettingsViewModel: ObservableObject {
     func openTerms() {
         // Simulated action - no backend
         print("Terms tapped")
+    }
+    
+    func signOut() {
+        // TODO: Integrate with AuthService
+        Task {
+            do {
+                try await AuthService.shared.signOut()
+                // Navigation will be handled by AppCoordinator
+            } catch {
+                print("Sign out error: \(error)")
+            }
+        }
+    }
+    
+    func deleteAccount() {
+        // TODO: Implement account deletion
+        print("Delete Account tapped")
     }
     
     // Get app version

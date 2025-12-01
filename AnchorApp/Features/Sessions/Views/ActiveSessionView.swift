@@ -4,136 +4,236 @@ import Shared
 struct ActiveSessionView: View {
     let session: LockSession
     @ObservedObject var viewModel: SessionViewModel
-    
-    private var sessionDuration: TimeInterval {
-        guard let endTime = session.endTime else { return 0 }
-        return endTime.timeIntervalSince(session.startTime)
-    }
+    @StateObject private var goalService = GoalService.shared
+    @State private var goals: [Goal] = []
+    @EnvironmentObject var coordinator: MainTabFlow
     
     var body: some View {
-        VStack(spacing: Theme.padding * 2) {
-            Text("Active Session")
-                .font(AppTypography.title)
+        ZStack {
+            AppColors.background.ignoresSafeArea()
+            
+            ScrollView {
+                VStack(spacing: Theme.spacing3) {
+                    // Header with status indicator
+                    headerSection
+                    
+                    // Elapsed time display
+                    elapsedTimeSection
+                    
+                    // Daily Goals Checklist
+                    dailyGoalsSection
+                    
+                    // Progress Summary
+                    progressSummarySection
+                    
+                    Spacer(minLength: Theme.spacing4)
+                    
+                    // Subtle unlock request button
+                    unlockRequestButton
+                }
+                .padding(Theme.spacing2)
+            }
+        }
+        .navigationBarTitleDisplayMode(.inline)
+        .onAppear {
+            loadGoals()
+        }
+        .onReceive(NotificationCenter.default.publisher(for: .goalsUpdated)) { _ in
+            loadGoals()
+        }
+    }
+    
+    // MARK: - Header Section
+    private var headerSection: some View {
+        HStack(spacing: Theme.spacing) {
+            Text("Session Active")
+                .font(AppTypography.title2)
                 .foregroundColor(AppColors.textPrimary)
-            
-            // Remaining time with live countdown
-            TimelineView(.periodic(from: Date(), by: 1.0)) { context in
-                VStack(spacing: Theme.spacing) {
-                    Text("Time Remaining")
-                        .font(AppTypography.caption)
-                        .foregroundColor(AppColors.textSecondary)
-                    Text(formatTime(calculateTimeRemaining(currentTime: context.date)))
-                        .font(AppTypography.largeTitle)
-                        .foregroundColor(AppColors.anchorAccent)
-                }
-            }
-            
-            Divider()
-                .background(AppColors.anchorLavender.opacity(0.1))
-                .padding(.vertical, Theme.padding)
-            
-            // Session details
-            VStack(alignment: .leading, spacing: Theme.spacing) {
-                HStack {
-                    Text("Start Time:")
-                        .font(AppTypography.body)
-                        .foregroundColor(AppColors.textSecondary)
-                    Spacer()
-                    Text(session.startTime, style: .time)
-                        .font(AppTypography.bodyBold)
-                        .foregroundColor(AppColors.textPrimary)
-                }
-                
-                if let endTime = session.endTime {
-                    HStack {
-                        Text("End Time:")
-                            .font(AppTypography.body)
-                            .foregroundColor(AppColors.textSecondary)
-                        Spacer()
-                        Text(endTime, style: .time)
-                            .font(AppTypography.bodyBold)
-                            .foregroundColor(AppColors.textPrimary)
-                    }
-                }
-                
-                HStack {
-                    Text("Duration:")
-                        .font(AppTypography.body)
-                        .foregroundColor(AppColors.textSecondary)
-                    Spacer()
-                    Text("\(Int(sessionDuration / 60)) minutes")
-                        .font(AppTypography.bodyBold)
-                        .foregroundColor(AppColors.textPrimary)
-                }
-                
-                if session.accountabilityPartnerId != nil || !viewModel.selectedFriendIds.isEmpty {
-                    HStack {
-                        Text("Accountability:")
-                            .font(AppTypography.body)
-                            .foregroundColor(AppColors.textSecondary)
-                        Spacer()
-                        Text("\(viewModel.selectedFriendIds.count) friend(s)")
-                            .font(AppTypography.bodyBold)
-                            .foregroundColor(AppColors.textPrimary)
-                    }
-                }
-            }
-            .padding(Theme.padding)
-            .background(AppColors.secondaryBackground)
-            .cornerRadius(AppLayout.chipCornerRadius)
-            .overlay(
-                RoundedRectangle(cornerRadius: AppLayout.chipCornerRadius)
-                    .stroke(AppColors.anchorLavender.opacity(0.1), lineWidth: 1)
-            )
-            .padding(.horizontal, Theme.padding)
             
             Spacer()
             
-            if let errorMessage = viewModel.errorMessage {
-                Text(errorMessage)
+            // Status indicator dot
+            HStack(spacing: Theme.smallSpacing) {
+                BreathingDotView()
+                Text("Blocking Apps")
                     .font(AppTypography.caption)
-                    .foregroundColor(AppColors.error)
-                    .padding(.horizontal, Theme.padding)
+                    .foregroundColor(AppColors.textSecondary)
             }
+        }
+        .padding(.horizontal, Theme.spacing2)
+        .padding(.top, Theme.spacing)
+    }
+    
+    // MARK: - Elapsed Time Section
+    private var elapsedTimeSection: some View {
+        TimelineView(.periodic(from: Date(), by: 1.0)) { context in
+            VStack(spacing: Theme.spacing) {
+                Text("Locked for:")
+                    .font(AppTypography.caption)
+                    .foregroundColor(AppColors.textSecondary)
+                
+                Text(formatElapsedTime(from: session.startTime, to: context.date))
+                    .font(AppTypography.display2)
+                    .foregroundColor(AppColors.anchorAccent)
+            }
+            .frame(maxWidth: .infinity)
+            .padding(.vertical, Theme.spacing3)
+        }
+    }
+    
+    // MARK: - Daily Goals Section
+    private var dailyGoalsSection: some View {
+        VStack(alignment: .leading, spacing: Theme.spacing2) {
+            Text("Today's Goals")
+                .font(AppTypography.title3)
+                .foregroundColor(AppColors.textPrimary)
+                .padding(.horizontal, Theme.spacing2)
             
-            Button(action: {
-                viewModel.endSession()
-            }) {
-                HStack {
-                    if viewModel.isLoading {
-                        ProgressView()
-                            .progressViewStyle(CircularProgressViewStyle(tint: AppColors.textPrimary))
-                            .padding(.trailing, Theme.spacing)
-                    }
-                    Text("End Session")
+            if goals.isEmpty {
+                emptyGoalsView
+            } else {
+                goalsList
+            }
+        }
+    }
+    
+    private var emptyGoalsView: some View {
+        VStack(spacing: Theme.spacing) {
+            Image(systemName: "checkmark.circle")
+                .font(.system(size: 32))
+                .foregroundColor(AppColors.textSecondary.opacity(0.5))
+            Text("No goals set")
+                .font(AppTypography.body)
+                .foregroundColor(AppColors.textSecondary)
+        }
+        .frame(maxWidth: .infinity)
+        .padding(Theme.spacing3)
+        .background(AppColors.secondaryBackground)
+        .cornerRadius(Theme.cornerRadiusMedium)
+        .padding(.horizontal, Theme.spacing2)
+    }
+    
+    private var goalsList: some View {
+        VStack(spacing: Theme.spacing) {
+            ForEach(goals) { goal in
+                GoalRowView(goal: goal) {
+                    goalService.toggleGoal(goal)
+                    loadGoals()
                 }
             }
-            .buttonStyle(DangerButtonStyle())
-            .padding(.horizontal, Theme.padding)
-            .disabled(viewModel.isLoading)
         }
-        .padding(Theme.padding)
-        .background(AppColors.background)
-        .navigationTitle("Session")
-        .navigationBarTitleDisplayMode(.inline)
+        .padding(Theme.spacing2)
+        .background(AppColors.secondaryBackground)
+        .cornerRadius(Theme.cornerRadiusMedium)
+        .overlay(
+            RoundedRectangle(cornerRadius: Theme.cornerRadiusMedium)
+                .stroke(
+                    LinearGradient(
+                        colors: [
+                            AppColors.anchorLavender.opacity(0.3),
+                            AppColors.anchorAccent.opacity(0.2)
+                        ],
+                        startPoint: .topLeading,
+                        endPoint: .bottomTrailing
+                    ),
+                    lineWidth: 1
+                )
+        )
+        .padding(.horizontal, Theme.spacing2)
     }
     
-    private func calculateTimeRemaining(currentTime: Date) -> TimeInterval {
-        guard let endTime = session.endTime else { return 0 }
-        let remaining = endTime.timeIntervalSince(currentTime)
-        return max(0, remaining)
+    // MARK: - Progress Summary
+    private var progressSummarySection: some View {
+        Text("Complete all goals to unlock apps.")
+            .font(AppTypography.caption)
+            .foregroundColor(AppColors.textSecondary)
+            .frame(maxWidth: .infinity, alignment: .center)
+            .padding(.horizontal, Theme.spacing2)
     }
     
-    private func formatTime(_ interval: TimeInterval) -> String {
-        let hours = Int(interval) / 3600
-        let minutes = Int(interval) / 60 % 60
-        let seconds = Int(interval) % 60
+    // MARK: - Unlock Request Button
+    private var unlockRequestButton: some View {
+        Button(action: {
+            // Navigate to unlock request flow
+            if let sessionId = viewModel.activeSession?.id {
+                // TODO: Navigate to unlock request view
+            }
+        }) {
+            Text("Request Unlock")
+                .font(AppTypography.caption)
+                .foregroundColor(AppColors.anchorAccent)
+        }
+        .buttonStyle(GhostButtonStyle())
+        .padding(.bottom, Theme.spacing2)
+    }
+    
+    // MARK: - Helper Methods
+    private func loadGoals() {
+        goals = goalService.loadGoals()
+    }
+    
+    private func formatElapsedTime(from startDate: Date, to currentDate: Date) -> String {
+        let elapsed = currentDate.timeIntervalSince(startDate)
+        let hours = Int(elapsed) / 3600
+        let minutes = Int(elapsed) / 60 % 60
         
         if hours > 0 {
-            return String(format: "%d:%02d:%02d", hours, minutes, seconds)
+            return "\(hours)h \(minutes)m"
         } else {
-            return String(format: "%d:%02d", minutes, seconds)
+            return "\(minutes)m"
         }
+    }
+}
+
+// MARK: - Goal Row View
+struct GoalRowView: View {
+    let goal: Goal
+    let onToggle: () -> Void
+    @State private var checkmarkScale: CGFloat = 1.0
+    @State private var highlightOpacity: Double = 0.0
+    
+    var body: some View {
+        HStack(spacing: Theme.spacing2) {
+            Button(action: {
+                HapticFeedback.soft()
+                withAnimation(.spring(response: 0.3, dampingFraction: 0.5)) {
+                    checkmarkScale = 0.8
+                }
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+                    withAnimation(.spring(response: 0.3, dampingFraction: 0.5)) {
+                        checkmarkScale = 1.0
+                    }
+                }
+                withAnimation(.easeOut(duration: 0.3)) {
+                    highlightOpacity = 0.2
+                }
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
+                    withAnimation(.easeOut(duration: 0.2)) {
+                        highlightOpacity = 0.0
+                    }
+                }
+                onToggle()
+            }) {
+                Image(systemName: goal.isCompleted ? "checkmark.circle.fill" : "circle")
+                    .font(.system(size: 24))
+                    .foregroundColor(goal.isCompleted ? AppColors.success : AppColors.textSecondary)
+                    .scaleEffect(checkmarkScale)
+            }
+            .buttonStyle(.plain)
+            
+            Text(goal.name)
+                .font(AppTypography.body)
+                .foregroundColor(goal.isCompleted ? AppColors.textSecondary : AppColors.textPrimary)
+                .strikethrough(goal.isCompleted)
+            
+            Spacer()
+        }
+        .padding(.vertical, Theme.spacing)
+        .background(
+            RoundedRectangle(cornerRadius: Theme.cornerRadius)
+                .fill(AppColors.anchorLavender.opacity(highlightOpacity))
+        )
+        .contentShape(Rectangle())
     }
 }
 

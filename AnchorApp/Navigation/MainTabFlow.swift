@@ -7,11 +7,10 @@ class MainTabFlow: Coordinator, SheetPresenting {
     @Published var path = NavigationPath()
     @Published var presentedSheet: SheetDestination?
     
-    // Navigation paths for each tab
-    @Published var sessionsPath = NavigationPath()
-    @Published var friendsPath = NavigationPath()
-    @Published var requestsPath = NavigationPath()
-    @Published var settingsPath = NavigationPath()
+    // Navigation paths for each tab (3 tabs: Home, Friends, Settings)
+    @Published var sessionsPath = NavigationPath()  // Home tab navigation
+    @Published var friendsPath = NavigationPath()    // Friends tab navigation (includes unlock requests)
+    @Published var settingsPath = NavigationPath()  // Settings tab navigation
     
     func start() {
         // Main tab flow starts with the tab view
@@ -41,10 +40,10 @@ class MainTabFlow: Coordinator, SheetPresenting {
         friendsPath.append(friend)
     }
     
-    // MARK: - Requests Navigation
+    // MARK: - Requests Navigation (now part of Friends tab)
     
     func navigateToUnlockRequestDetail(request: UnlockRequest) {
-        requestsPath.append(request)
+        friendsPath.append(request)
     }
     
     // MARK: - Settings Navigation

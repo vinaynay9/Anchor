@@ -2,97 +2,29 @@ import SwiftUI
 
 struct SettingsView: View {
     @StateObject private var viewModel = SettingsViewModel()
+    @StateObject private var goalService = GoalService.shared
+    @EnvironmentObject var coordinator: MainTabFlow
     
     var body: some View {
         ZStack {
-            // Ultra-dark matte background
-            AppColors.background
-                .ignoresSafeArea()
+            AppColors.background.ignoresSafeArea()
             
             ScrollView {
-                VStack(spacing: 24) {
+                VStack(spacing: Theme.spacing3) {
+                    // Profile Section
+                    profileSection
+                    
+                    // Friends & Accountability Section
+                    friendsAccountabilitySection
+                    
+                    // App Controls Section
+                    appControlsSection
+                    
                     // Account Section
-                    settingsSection(title: "Account") {
-                        SettingsRowView(
-                            icon: "person.circle",
-                            title: "Edit Profile",
-                            action: {
-                                viewModel.editProfile()
-                            }
-                        )
-                        
-                        SettingsRowView(
-                            icon: "textformat",
-                            title: "Change Display Name",
-                            action: {
-                                viewModel.changeDisplayName()
-                            }
-                        )
-                    }
-                    
-                    // Notifications Section
-                    settingsSection(title: "Notifications") {
-                        SettingsRowView(
-                            icon: "bell",
-                            title: "Session Reminders",
-                            isOn: $viewModel.sessionRemindersEnabled
-                        )
-                        
-                        SettingsRowView(
-                            icon: "lock.open",
-                            title: "Unlock Request Alerts",
-                            isOn: $viewModel.unlockRequestAlertsEnabled
-                        )
-                    }
-                    
-                    // Privacy Section
-                    settingsSection(title: "Privacy") {
-                        SettingsRowView(
-                            icon: "trash",
-                            title: "Clear Local Data",
-                            action: {
-                                viewModel.clearLocalData()
-                            }
-                        )
-                        
-                        SettingsRowView(
-                            icon: "square.and.arrow.up",
-                            title: "Export Activity Log",
-                            action: {
-                                viewModel.exportActivityLog()
-                            }
-                        )
-                    }
-                    
-                    // About Section
-                    settingsSection(title: "About") {
-                        SettingsRowView(
-                            icon: "info.circle",
-                            title: "Version",
-                            trailing: Text(viewModel.appVersion)
-                                .font(.system(size: 15, weight: .medium))
-                                .foregroundColor(AppColors.textSecondary)
-                        )
-                        
-                        SettingsRowView(
-                            icon: "hand.raised",
-                            title: "Privacy Policy",
-                            action: {
-                                viewModel.openPrivacyPolicy()
-                            }
-                        )
-                        
-                        SettingsRowView(
-                            icon: "doc.text",
-                            title: "Terms",
-                            action: {
-                                viewModel.openTerms()
-                            }
-                        )
-                    }
+                    accountSection
                 }
-                .padding(.horizontal, 20)
-                .padding(.vertical, 24)
+                .padding(.horizontal, Theme.spacing2)
+                .padding(.vertical, Theme.spacing3)
             }
         }
         .navigationTitle("Settings")
@@ -109,22 +41,149 @@ struct SettingsView: View {
         }
     }
     
-    @ViewBuilder
-    private func settingsSection<Content: View>(
-        title: String,
-        @ViewBuilder content: () -> Content
-    ) -> some View {
-        VStack(alignment: .leading, spacing: 12) {
-            Text(title)
-                .font(.system(size: 13, weight: .semibold, design: .default))
+    // MARK: - Profile Section
+    private var profileSection: some View {
+        VStack(alignment: .leading, spacing: Theme.spacing) {
+            Text("PROFILE")
+                .font(AppTypography.captionBold)
                 .foregroundColor(AppColors.textSecondary)
-                .textCase(.uppercase)
                 .tracking(0.5)
-                .padding(.horizontal, 4)
             
-            VStack(spacing: 12) {
-                content()
+            VStack(spacing: Theme.spacing2) {
+                // Profile Image
+                ZStack {
+                    Circle()
+                        .fill(
+                            LinearGradient(
+                                colors: [AppColors.anchorPrimary, AppColors.anchorAccent],
+                                startPoint: .topLeading,
+                                endPoint: .bottomTrailing
+                            )
+                        )
+                        .frame(width: 80, height: 80)
+                    
+                    Text(viewModel.userInitials)
+                        .font(AppTypography.title)
+                        .foregroundColor(AppColors.onPrimary)
+                }
+                .padding(.top, Theme.spacing)
+                
+                // Name
+                Text(viewModel.displayName)
+                    .font(AppTypography.title3)
+                    .foregroundColor(AppColors.textPrimary)
+                
+                // Email
+                Text(viewModel.userEmail)
+                    .font(AppTypography.caption)
+                    .foregroundColor(AppColors.textSecondary)
             }
+            .frame(maxWidth: .infinity)
+            .padding(Theme.spacing2)
+            .background(AppColors.secondaryBackground)
+            .cornerRadius(Theme.cornerRadiusMedium)
+        }
+    }
+    
+    // MARK: - Friends & Accountability Section
+    private var friendsAccountabilitySection: some View {
+        VStack(alignment: .leading, spacing: Theme.spacing) {
+            Text("FRIENDS & ACCOUNTABILITY")
+                .font(AppTypography.captionBold)
+                .foregroundColor(AppColors.textSecondary)
+                .tracking(0.5)
+            
+            VStack(spacing: 0) {
+                SettingsRowView(
+                    icon: "person.2",
+                    title: "Manage Friends",
+                    action: {
+                        // Navigate to friends tab
+                        coordinator.friendsPath = NavigationPath()
+                    }
+                )
+                
+                Divider()
+                    .background(AppColors.textSecondary.opacity(0.2))
+                    .padding(.leading, 50)
+                
+                SettingsRowView(
+                    icon: "checkmark.shield",
+                    title: "Witness Request Toggle",
+                    isOn: $viewModel.witnessRequestEnabled
+                )
+            }
+            .background(AppColors.secondaryBackground)
+            .cornerRadius(Theme.cornerRadiusMedium)
+        }
+    }
+    
+    // MARK: - App Controls Section
+    private var appControlsSection: some View {
+        VStack(alignment: .leading, spacing: Theme.spacing) {
+            Text("APP CONTROLS")
+                .font(AppTypography.captionBold)
+                .foregroundColor(AppColors.textSecondary)
+                .tracking(0.5)
+            
+            VStack(spacing: 0) {
+                SettingsRowView(
+                    icon: "arrow.clockwise",
+                    title: "Reset Daily Habits",
+                    action: {
+                        goalService.resetGoalsDaily()
+                    }
+                )
+                
+                Divider()
+                    .background(AppColors.textSecondary.opacity(0.2))
+                    .padding(.leading, 50)
+                
+                SettingsRowView(
+                    icon: "trash",
+                    title: "Clear Session Data",
+                    action: {
+                        viewModel.clearLocalData()
+                    }
+                )
+            }
+            .background(AppColors.secondaryBackground)
+            .cornerRadius(Theme.cornerRadiusMedium)
+        }
+    }
+    
+    // MARK: - Account Section
+    private var accountSection: some View {
+        VStack(alignment: .leading, spacing: Theme.spacing) {
+            Text("ACCOUNT")
+                .font(AppTypography.captionBold)
+                .foregroundColor(AppColors.textSecondary)
+                .tracking(0.5)
+            
+            VStack(spacing: 0) {
+                SettingsRowView(
+                    icon: "rectangle.portrait.and.arrow.right",
+                    title: "Sign Out",
+                    action: {
+                        viewModel.signOut()
+                    }
+                )
+                
+                Divider()
+                    .background(AppColors.textSecondary.opacity(0.2))
+                    .padding(.leading, 50)
+                
+                SettingsRowView(
+                    icon: "trash",
+                    title: "Delete Account",
+                    titleColor: AppColors.error,
+                    action: {
+                        viewModel.deleteAccount()
+                    }
+                )
+            }
+            .background(AppColors.secondaryBackground)
+            .cornerRadius(Theme.cornerRadiusMedium)
         }
     }
 }
