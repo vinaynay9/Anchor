@@ -51,6 +51,10 @@ struct ToastView: View {
             return "checkmark.circle.fill"
         case .error:
             return "exclamationmark.triangle.fill"
+        case .info:
+            return "info.circle.fill"
+        case .warning:
+            return "exclamationmark.circle.fill"
         }
     }
     
@@ -60,6 +64,10 @@ struct ToastView: View {
             return AppColors.anchorAccent
         case .error:
             return AppColors.error
+        case .info:
+            return AppColors.anchorLavender
+        case .warning:
+            return AppColors.warning
         }
     }
     
@@ -81,7 +89,27 @@ struct ToastView: View {
                 colors: [
                     AppColors.error.opacity(0.8),
                     AppColors.error.opacity(0.9),
-                    AppColors.error.opacity(0.95) // Magenta tint variant
+                    AppColors.error.opacity(0.95)
+                ],
+                startPoint: .leading,
+                endPoint: .trailing
+            )
+        case .info:
+            // Lavender → Primary gradient for info
+            return LinearGradient(
+                colors: [
+                    AppColors.anchorLavender.opacity(0.8),
+                    AppColors.anchorPrimary.opacity(0.8)
+                ],
+                startPoint: .leading,
+                endPoint: .trailing
+            )
+        case .warning:
+            // Amber gradient for warning
+            return LinearGradient(
+                colors: [
+                    AppColors.warning.opacity(0.7),
+                    AppColors.warning.opacity(0.9)
                 ],
                 startPoint: .leading,
                 endPoint: .trailing
@@ -95,6 +123,10 @@ struct ToastView: View {
             return AppColors.anchorAccent
         case .error:
             return AppColors.error
+        case .info:
+            return AppColors.anchorLavender
+        case .warning:
+            return AppColors.warning
         }
     }
 }

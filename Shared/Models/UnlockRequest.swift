@@ -7,6 +7,7 @@ struct UnlockRequest: Identifiable, Codable, Hashable {
     let partnerId: UUID
     let status: UnlockRequestStatus
     let message: String?
+    let appBundleId: String?
     let createdAt: Date
     let resolvedAt: Date?
     
@@ -17,6 +18,7 @@ struct UnlockRequest: Identifiable, Codable, Hashable {
         case partnerId = "partner_id"
         case status
         case message
+        case appBundleId = "app_bundle_id"
         case createdAt = "created_at"
         case resolvedAt = "resolved_at"
     }
@@ -26,6 +28,7 @@ enum UnlockRequestStatus: String, Codable, Hashable {
     case pending
     case approved
     case denied
+    case queued  // Offline: queued for retry when network is restored
 }
 
 // MARK: - API DTOs
@@ -36,6 +39,7 @@ struct UnlockRequestDTO: Codable {
     let partnerId: String
     let status: String
     let message: String?
+    let appBundleId: String?
     let createdAt: String
     let resolvedAt: String?
     
@@ -59,6 +63,7 @@ struct UnlockRequestDTO: Codable {
             partnerId: partnerIdUUID,
             status: statusEnum,
             message: message,
+            appBundleId: appBundleId,
             createdAt: createdAtDate,
             resolvedAt: resolvedAtDate
         )

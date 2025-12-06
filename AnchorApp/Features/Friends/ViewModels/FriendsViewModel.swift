@@ -1,9 +1,12 @@
 import Foundation
 import SwiftUI
+import Shared
 
 @MainActor
 class FriendsViewModel: ObservableObject {
-    @Published var friends: [FriendMockModel] = []
+    // MARK: - Published State
+    @Published var friends: [Friend] = []
+    @Published var friendRequests: [Friend] = []
     @Published var searchQuery: String = ""
     @Published var isShowingAddSheet = false
     @Published var addFriendText = ""
@@ -12,56 +15,64 @@ class FriendsViewModel: ObservableObject {
     @Published var isLoading: Bool = false
     @Published var errorMessage: String?
     
-    private var allFriends: [FriendMockModel] = []
+    // MARK: - Dependencies (Protocol-based injection)
+    private let friendService: FriendServiceProtocol
     
-    init() {
-        // Initialize with mock data
-        allFriends = [
-            FriendMockModel(displayName: "Alex Johnson", username: "@alexj"),
-            FriendMockModel(displayName: "Sarah Chen", username: "@sarahc"),
-            FriendMockModel(displayName: "Michael Brown", username: "@mikeb"),
-            FriendMockModel(displayName: "Emma Davis", username: "@emmad"),
-            FriendMockModel(displayName: "James Wilson", username: "@jamesw")
-        ]
-        friends = allFriends
+    // MARK: - Initialization
+    
+    init(friendService: FriendServiceProtocol = FriendService.shared) {
+        self.friendService = friendService
     }
+    
+    // MARK: - Computed Properties
+    
+    var filteredFriends: [Friend] {
+        if searchQuery.isEmpty {
+            return friends
+        }
+        return friends.filter { friend in
+            let displayName = friend.friend?.displayName ?? ""
+            let username = friend.friend?.username ?? ""
+            return displayName.localizedCaseInsensitiveContains(searchQuery) ||
+                   username.localizedCaseInsensitiveContains(searchQuery)
+        }
+    }
+    
+    // MARK: - Data Loading
     
     func loadFriends() {
         isLoading = true
         errorMessage = nil
         
         Task {
-            // Simulate network delay
-            try? await Task.sleep(nanoseconds: 500_000_000) // 0.5 seconds
-            
-            // Simulate potential error (10% chance for demo)
-            if Int.random(in: 0..<10) == 0 {
-                await MainActor.run {
-                    self.errorMessage = "Failed to load friends. Please try again."
-                    self.isLoading = false
-                }
-                return
-            }
-            
-            await MainActor.run {
-                self.friends = self.allFriends
+            do {
+                let loadedFriends = try await friendService.getFriends()
+                self.friends = loadedFriends
                 self.isLoading = false
+            } catch {
+                self.errorMessage = "Failed to load friends: \(error.localizedDescription)"
+                self.isLoading = false
+                ToastManager.shared.showError("Failed to load friends. Please try again.")
             }
         }
     }
     
-    var filteredFriends: [FriendMockModel] {
-        if searchQuery.isEmpty {
-            return friends
-        }
-        return friends.filter { friend in
-            friend.displayName.localizedCaseInsensitiveContains(searchQuery) ||
-            friend.username.localizedCaseInsensitiveContains(searchQuery)
+    func loadFriendRequests() {
+        Task {
+            do {
+                let requests = try await friendService.getFriendRequests()
+                self.friendRequests = requests
+            } catch {
+                // Silently fail for friend requests - not critical
+                print("Failed to load friend requests: \(error)")
+            }
         }
     }
     
-    func addFriend(_ name: String) {
-        guard !name.trimmingCharacters(in: .whitespaces).isEmpty else {
+    // MARK: - Friend Management
+    
+    func addFriend(_ friendId: String) {
+        guard !friendId.trimmingCharacters(in: .whitespaces).isEmpty else {
             withAnimation {
                 addError = "Please enter a friend ID or username"
             }
@@ -73,34 +84,18 @@ class FriendsViewModel: ObservableObject {
         isLoading = true
         
         Task {
-            // Simulate network delay
-            try? await Task.sleep(nanoseconds: 800_000_000) // 0.8 seconds
-            
-            // Simulate potential error (15% chance for demo)
-            if Int.random(in: 0..<100) < 15 {
-                await MainActor.run {
-                    self.addError = "Failed to add friend. Please try again."
-                    self.isLoading = false
-                }
-                ToastManager.shared.showError("Failed to add friend. Please try again.")
-                return
-            }
-            
-            // Create a new mock friend from the input
-            let newFriend = FriendMockModel(
-                displayName: name.trimmingCharacters(in: .whitespaces),
-                username: "@\(name.trimmingCharacters(in: .whitespaces).lowercased())"
-            )
-            
-            await MainActor.run {
+            do {
+                try await friendService.addFriend(friendId: friendId.trimmingCharacters(in: .whitespaces))
+                
                 withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
-                    self.friends.append(newFriend)
-                    self.allFriends.append(newFriend)
                     self.showAddSuccess = true
                     self.isLoading = false
                 }
                 
-                ToastManager.shared.showSuccess("Friend added successfully!")
+                ToastManager.shared.showSuccess("Friend request sent!")
+                
+                // Reload friends list
+                loadFriends()
                 
                 // Reset after showing success
                 DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) {
@@ -110,6 +105,10 @@ class FriendsViewModel: ObservableObject {
                         self.isShowingAddSheet = false
                     }
                 }
+            } catch {
+                self.addError = "Failed to add friend: \(error.localizedDescription)"
+                self.isLoading = false
+                ToastManager.shared.showError("Failed to add friend. Please try again.")
             }
         }
     }
@@ -118,21 +117,79 @@ class FriendsViewModel: ObservableObject {
         addFriend(addFriendText)
     }
     
-    func removeFriend(_ friend: FriendMockModel) {
+    func removeFriend(_ friend: Friend) {
         isLoading = true
         
         Task {
-            // Simulate network delay
-            try? await Task.sleep(nanoseconds: 400_000_000) // 0.4 seconds
-            
-            await MainActor.run {
+            do {
+                try await friendService.deleteFriend(id: friend.id.uuidString)
+                
                 withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
                     self.friends.removeAll { $0.id == friend.id }
-                    self.allFriends.removeAll { $0.id == friend.id }
                     self.isLoading = false
                 }
                 ToastManager.shared.showSuccess("Friend removed")
+            } catch {
+                self.isLoading = false
+                ToastManager.shared.showError("Failed to remove friend")
             }
         }
+    }
+    
+    // MARK: - Friend Requests
+    
+    func acceptFriendRequest(_ request: Friend) {
+        Task {
+            do {
+                try await friendService.acceptFriendRequest(id: request.id.uuidString)
+                
+                // Remove from requests and reload friends
+                self.friendRequests.removeAll { $0.id == request.id }
+                loadFriends()
+                
+                ToastManager.shared.showSuccess("Friend request accepted!")
+            } catch {
+                ToastManager.shared.showError("Failed to accept friend request")
+            }
+        }
+    }
+    
+    func rejectFriendRequest(_ request: Friend) {
+        Task {
+            do {
+                try await friendService.rejectFriendRequest(id: request.id.uuidString)
+                
+                // Remove from requests
+                withAnimation {
+                    self.friendRequests.removeAll { $0.id == request.id }
+                }
+                
+                ToastManager.shared.showInfo("Friend request declined")
+            } catch {
+                ToastManager.shared.showError("Failed to decline friend request")
+            }
+        }
+    }
+    
+    // MARK: - Helper Methods
+    
+    /// Gets the display name for a friend (from nested User object)
+    func displayName(for friend: Friend) -> String {
+        return friend.friend?.displayName ?? friend.friend?.username ?? "Unknown"
+    }
+    
+    /// Gets the username for a friend (from nested User object)
+    func username(for friend: Friend) -> String {
+        return friend.friend?.username ?? ""
+    }
+    
+    /// Gets initials for a friend
+    func initials(for friend: Friend) -> String {
+        let name = displayName(for: friend)
+        let components = name.components(separatedBy: " ")
+        if components.count >= 2 {
+            return String(components[0].prefix(1)) + String(components[1].prefix(1))
+        }
+        return String(name.prefix(2).uppercased())
     }
 }

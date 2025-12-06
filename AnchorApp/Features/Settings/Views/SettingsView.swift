@@ -14,6 +14,9 @@ struct SettingsView: View {
                     // Profile Section
                     profileSection
                     
+                    // Permissions Section
+                    permissionsSection
+                    
                     // Friends & Accountability Section
                     friendsAccountabilitySection
                     
@@ -85,6 +88,43 @@ struct SettingsView: View {
         }
     }
     
+    // MARK: - Permissions Section
+    private var permissionsSection: some View {
+        VStack(alignment: .leading, spacing: Theme.spacing) {
+            Text("PERMISSIONS")
+                .font(AppTypography.captionBold)
+                .foregroundColor(AppColors.textSecondary)
+                .tracking(0.5)
+            
+            VStack(spacing: 0) {
+                NavigationLink(destination: ScreenTimePermissionView()) {
+                    SettingsRowView(
+                        icon: "lock.shield.fill",
+                        title: "Screen Time Permissions",
+                        subtitle: screenTimePermissionStatus,
+                        showChevron: true
+                    )
+                }
+            }
+            .background(AppColors.secondaryBackground)
+            .cornerRadius(Theme.cornerRadiusMedium)
+        }
+    }
+    
+    private var screenTimePermissionStatus: String {
+        let status = ScreenTimeService.shared.getAuthorizationStatus()
+        switch status {
+        case .approved:
+            return "Authorized"
+        case .denied:
+            return "Not Authorized"
+        case .restricted:
+            return "Restricted"
+        case .notDetermined:
+            return "Not Set"
+        }
+    }
+    
     // MARK: - Friends & Accountability Section
     private var friendsAccountabilitySection: some View {
         VStack(alignment: .leading, spacing: Theme.spacing) {
@@ -146,6 +186,19 @@ struct SettingsView: View {
                         viewModel.clearLocalData()
                     }
                 )
+                
+                Divider()
+                    .background(AppColors.textSecondary.opacity(0.2))
+                    .padding(.leading, 50)
+                
+                NavigationLink(destination: DebugDiagnosticsView()) {
+                    SettingsRowView(
+                        icon: "stethoscope",
+                        title: "Debug Diagnostics",
+                        subtitle: "View logs and diagnostics",
+                        showChevron: true
+                    )
+                }
             }
             .background(AppColors.secondaryBackground)
             .cornerRadius(Theme.cornerRadiusMedium)

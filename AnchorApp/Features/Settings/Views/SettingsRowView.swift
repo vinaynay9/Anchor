@@ -3,23 +3,29 @@ import SwiftUI
 struct SettingsRowView: View {
     let icon: String
     let title: String
+    let subtitle: String?
     let titleColor: Color?
     let action: (() -> Void)?
     let trailingContent: AnyView?
+    let showChevron: Bool
     @State private var isPressed = false
     
     init(
         icon: String,
         title: String,
+        subtitle: String? = nil,
         titleColor: Color? = nil,
         action: (() -> Void)? = nil,
-        trailingContent: AnyView? = nil
+        trailingContent: AnyView? = nil,
+        showChevron: Bool = false
     ) {
         self.icon = icon
         self.title = title
+        self.subtitle = subtitle
         self.titleColor = titleColor
         self.action = action
         self.trailingContent = trailingContent
+        self.showChevron = showChevron
     }
     
     var body: some View {
@@ -33,17 +39,25 @@ struct SettingsRowView: View {
                     .foregroundColor(AppColors.anchorLavender)
                     .frame(width: 24, height: 24)
                 
-                // Title
-                Text(title)
-                    .font(.system(size: 17, weight: .medium, design: .default))
-                    .foregroundColor(titleColor ?? AppColors.textPrimary)
+                // Title and subtitle
+                VStack(alignment: .leading, spacing: 2) {
+                    Text(title)
+                        .font(.system(size: 17, weight: .medium, design: .default))
+                        .foregroundColor(titleColor ?? AppColors.textPrimary)
+                    
+                    if let subtitle = subtitle {
+                        Text(subtitle)
+                            .font(.system(size: 13, weight: .regular, design: .default))
+                            .foregroundColor(AppColors.textSecondary)
+                    }
+                }
                 
                 Spacer()
                 
                 // Trailing content (chevron, toggle, etc.)
                 if let trailing = trailingContent {
                     trailing
-                } else if action != nil {
+                } else if action != nil || showChevron {
                     Image(systemName: "chevron.right")
                         .font(.system(size: 14, weight: .semibold))
                         .foregroundColor(AppColors.textSecondary)
@@ -93,24 +107,26 @@ struct SettingsRowView: View {
 // Convenience initializers
 extension SettingsRowView {
     init(icon: String, title: String, titleColor: Color? = nil, action: @escaping () -> Void) {
-        self.init(icon: icon, title: title, titleColor: titleColor, action: action, trailingContent: nil)
+        self.init(icon: icon, title: title, subtitle: nil, titleColor: titleColor, action: action, trailingContent: nil, showChevron: false)
     }
     
     init<T: View>(icon: String, title: String, titleColor: Color? = nil, trailing: T) {
-        self.init(icon: icon, title: title, titleColor: titleColor, action: nil, trailingContent: AnyView(trailing))
+        self.init(icon: icon, title: title, subtitle: nil, titleColor: titleColor, action: nil, trailingContent: AnyView(trailing), showChevron: false)
     }
     
     init(icon: String, title: String, titleColor: Color? = nil, isOn: Binding<Bool>) {
         self.init(
             icon: icon,
             title: title,
+            subtitle: nil,
             titleColor: titleColor,
             action: nil,
             trailingContent: AnyView(
                 Toggle("", isOn: isOn)
                     .tint(AppColors.anchorAccent)
                     .labelsHidden()
-            )
+            ),
+            showChevron: false
         )
     }
 }

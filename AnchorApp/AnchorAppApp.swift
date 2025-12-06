@@ -2,6 +2,7 @@ import SwiftUI
 import UIKit
 import UserNotifications
 import GoogleSignIn
+import Shared
 
 // MARK: - App Delegate for APNs
 class AppDelegate: NSObject, UIApplicationDelegate {
@@ -60,6 +61,18 @@ class AppDelegate: NSObject, UIApplicationDelegate {
     
     // MARK: - UIApplicationDelegate Methods
     func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey : Any]? = nil) -> Bool {
+        // Initialize DeviceActivityMonitor to ensure it's discovered by iOS
+        // This must be called on app launch for the monitor to be registered
+        _ = AnchorDeviceActivityMonitor()
+        
+        // Initialize offline sync service for background syncing
+        Task { @MainActor in
+            OfflineSyncService.shared.startPeriodicSync()
+        }
+        
+        // Cleanup old cached data on app launch
+        PersistenceService.shared.cleanupOldData()
+        
         return true
     }
     
@@ -93,9 +106,20 @@ class AppDelegate: NSObject, UIApplicationDelegate {
         }
     }
     
-    // MARK: - Google Sign-In URL Handling
+    // MARK: - URL Handling (Google Sign-In + Deep Links)
     func application(_ app: UIApplication, open url: URL, options: [UIApplication.OpenURLOptionsKey : Any] = [:]) -> Bool {
-        return GIDSignIn.sharedInstance.handle(url)
+        // Handle Google Sign-In URLs first
+        if GIDSignIn.sharedInstance.handle(url) {
+            return true
+        }
+        
+        // Handle Anchor deep links
+        Task { @MainActor in
+            _ = DeepLinkHandler.shared.handleURL(url)
+        }
+        
+        // Return true if it's an anchor:// URL, false otherwise
+        return url.scheme == "anchor"
     }
 }
 

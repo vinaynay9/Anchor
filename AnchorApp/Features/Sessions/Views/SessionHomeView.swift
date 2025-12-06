@@ -34,9 +34,20 @@ struct SessionHomeView: View {
                         ))
                 } else {
                     // Show call-to-action to start session
-                    emptyStateCard
+                    VStack(spacing: Theme.padding) {
+                        emptyStateCard
+                        insightsCard
+                    }
+                    .padding(.horizontal, Theme.padding)
+                    .padding(.top, Theme.padding * 2)
+                    .transition(.opacity.combined(with: .scale(scale: 0.95)))
+                }
+                
+                // Show insights card even when there's an active session
+                if viewModel.activeSession != nil {
+                    insightsCard
                         .padding(.horizontal, Theme.padding)
-                        .padding(.top, Theme.padding * 2)
+                        .padding(.top, Theme.padding)
                         .transition(.opacity.combined(with: .scale(scale: 0.95)))
                 }
                 
@@ -168,6 +179,64 @@ struct SessionHomeView: View {
         }
         .padding(Theme.padding * 2)
         .frame(maxWidth: .infinity)
+    }
+    
+    private var insightsCard: some View {
+        Button(action: {
+            // Switch to Insights tab (tab index 1)
+            // Note: This requires access to the TabView selection
+            // For now, we'll use a navigation approach
+            withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
+                // Navigate to insights - we'll need to update coordinator
+                coordinator.navigateToInsights()
+            }
+        }) {
+            HStack(spacing: Theme.spacing) {
+                VStack(alignment: .leading, spacing: Theme.spacing / 2) {
+                    Text("View your weekly focus insights")
+                        .font(AppTypography.bodyBold)
+                        .foregroundColor(AppColors.textPrimary)
+                    
+                    Text("Track your productivity and habits")
+                        .font(AppTypography.caption)
+                        .foregroundColor(AppColors.textSecondary)
+                }
+                
+                Spacer()
+                
+                Image(systemName: "arrow.right")
+                    .font(.system(size: 16, weight: .semibold))
+                    .foregroundColor(AppColors.anchorAccent)
+            }
+            .padding(Theme.padding)
+        }
+        .background(
+            RoundedRectangle(cornerRadius: AppLayout.cardCornerRadius)
+                .fill(
+                    LinearGradient(
+                        colors: [
+                            AppColors.anchorPrimary.opacity(0.1),
+                            AppColors.anchorAccent.opacity(0.05)
+                        ],
+                        startPoint: .topLeading,
+                        endPoint: .bottomTrailing
+                    )
+                )
+        )
+        .overlay(
+            RoundedRectangle(cornerRadius: AppLayout.cardCornerRadius)
+                .stroke(
+                    LinearGradient(
+                        colors: [
+                            AppColors.anchorLavender.opacity(0.3),
+                            AppColors.anchorAccent.opacity(0.2)
+                        ],
+                        startPoint: .topLeading,
+                        endPoint: .bottomTrailing
+                    ),
+                    lineWidth: 1
+                )
+        )
     }
 }
 

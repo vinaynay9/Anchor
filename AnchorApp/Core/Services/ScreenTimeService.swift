@@ -9,11 +9,36 @@ import ManagedSettings
 // MARK: - Screen Time Service
 // Handles all FamilyControls and ManagedSettings interactions
 
-enum ScreenTimeError: Error {
+enum ScreenTimeError: Error, LocalizedError {
     case authorizationDenied
     case authorizationFailed
+    case authorizationRestricted
     case noAppsSelected
     case shieldConfigurationFailed
+    case entitlementMissing
+    case familyControlsUnavailable(underlying: Error?)
+    
+    var errorDescription: String? {
+        switch self {
+        case .authorizationDenied:
+            return "Screen Time authorization was denied. Please enable it in Settings."
+        case .authorizationFailed:
+            return "Failed to request Screen Time authorization."
+        case .authorizationRestricted:
+            return "Screen Time is restricted on this device (possibly by parental controls)."
+        case .noAppsSelected:
+            return "No apps have been selected to block."
+        case .shieldConfigurationFailed:
+            return "Failed to configure the app shield."
+        case .entitlementMissing:
+            return "FamilyControls entitlement is not available. Please contact support."
+        case .familyControlsUnavailable(let underlying):
+            if let error = underlying {
+                return "FamilyControls is unavailable: \(error.localizedDescription)"
+            }
+            return "FamilyControls is unavailable on this device."
+        }
+    }
 }
 
 // MARK: - Real Screen Time Service Implementation
@@ -31,54 +56,233 @@ class ScreenTimeService: ScreenTimeServiceProtocol {
     private var sessionSelections: [UUID: FamilyActivitySelection] = [:]
     
     // MARK: - Authorization
+    
+    /// Requests FamilyControls authorization for Screen Time blocking.
+    /// This method gracefully handles missing entitlements and various failure scenarios.
+    /// - Throws: ScreenTimeError with specific reason for failure
     func requestAuthorization() async throws {
+        LoggerService.shared.logInfo("Requesting Screen Time authorization", category: "ScreenTime")
+        
         do {
             try await authorizationCenter.requestAuthorization(for: .individual)
+            LoggerService.shared.logInfo("Screen Time authorization granted", category: "ScreenTime")
+        } catch let error as NSError {
+            LoggerService.shared.logError("Screen Time authorization failed", error: error, category: "ScreenTime")
+            
+            // Check for common FamilyControls errors
+            // Error domain: FamilyControls.FamilyControlsError
+            if error.domain.contains("FamilyControls") {
+                // Check error code for specific issues
+                switch error.code {
+                case 0: // FamilyControlsError.restricted
+                    throw ScreenTimeError.authorizationRestricted
+                case 1: // FamilyControlsError.unavailable
+                    throw ScreenTimeError.familyControlsUnavailable(underlying: error)
+                case 2: // FamilyControlsError.invalidAccountType
+                    throw ScreenTimeError.authorizationDenied
+                case 3: // FamilyControlsError.invalidArgument
+                    throw ScreenTimeError.authorizationFailed
+                case 4: // FamilyControlsError.authorizationConflict
+                    throw ScreenTimeError.authorizationDenied
+                case 5: // FamilyControlsError.authorizationCanceled
+                    throw ScreenTimeError.authorizationDenied
+                case 6: // FamilyControlsError.networkError
+                    throw ScreenTimeError.authorizationFailed
+                default:
+                    break
+                }
+            }
+            
+            // Check for entitlement-related errors (common when entitlement is missing)
+            let errorDescription = error.localizedDescription.lowercased()
+            if errorDescription.contains("entitlement") || 
+               errorDescription.contains("not entitled") ||
+               errorDescription.contains("missing capability") {
+                LoggerService.shared.logError("FamilyControls entitlement appears to be missing", category: "ScreenTime")
+                throw ScreenTimeError.entitlementMissing
+            }
+            
+            // Check if user explicitly denied
+            if errorDescription.contains("denied") || errorDescription.contains("cancel") {
+                throw ScreenTimeError.authorizationDenied
+            }
+            
+            // Generic failure
+            throw ScreenTimeError.familyControlsUnavailable(underlying: error)
         } catch {
-            throw ScreenTimeError.authorizationFailed
+            LoggerService.shared.logError("Screen Time authorization failed with unknown error", error: error, category: "ScreenTime")
+            throw ScreenTimeError.familyControlsUnavailable(underlying: error)
         }
     }
     
+    /// Gets the current FamilyControls authorization status.
+    /// Properly handles .restricted status (does NOT treat as .notDetermined).
+    /// - Returns: The current authorization status
     func getAuthorizationStatus() -> ScreenTimeAuthorizationStatus {
-        switch authorizationCenter.authorizationStatus {
+        let status = authorizationCenter.authorizationStatus
+        let statusString: String
+        switch status {
         case .notDetermined:
-            return .notDetermined
+            statusString = "notDetermined"
         case .denied:
-            return .denied
+            statusString = "denied"
+        case .restricted:
+            // Important: Do NOT treat .restricted as .notDetermined
+            // .restricted means Screen Time is controlled by parental controls/MDM
+            statusString = "restricted"
         case .approved:
-            return .approved
+            statusString = "approved"
         @unknown default:
-            return .notDetermined
+            statusString = "unknown"
         }
+        LoggerService.shared.logInfo("Authorization status: \(statusString)", category: "ScreenTime")
+        return status
     }
     
+    /// Synchronous check for authorization status.
+    /// - Returns: true only if status is .approved
     func isAuthorized() -> Bool {
         authorizationCenter.authorizationStatus == .approved
     }
     
+    /// Async property to check authorization status.
+    /// - Returns: true only if status is .approved
+    var isAuthorized: Bool {
+        get async {
+            authorizationCenter.authorizationStatus == .approved
+        }
+    }
+    
     // MARK: - Protocol Implementation
     func startBlocking(for session: LockSession) async {
-        // First try to load from ActivitySelectionService (persisted selection)
+        LoggerService.shared.logInfo("Starting blocking for session \(session.id.uuidString)", category: "ScreenTime")
+        // Load application tokens and categories from persisted selection
         let tokens = activitySelectionService.loadApplicationTokens()
+        let selection = activitySelectionService.loadSelection()
         
-        if !tokens.isEmpty {
-            activateShields(for: tokens)
+        // Get category tokens from selection if available
+        let categoryTokens = selection?.categoryTokens ?? Set<ActivityCategoryToken>()
+        
+        // Use session-specific categories if provided, otherwise use selection categories
+        let categoriesToBlock = session.selectedCategories ?? []
+        
+        LoggerService.shared.logInfo("Blocking \(tokens.count) apps, \(categoryTokens.count) category tokens", category: "ScreenTime")
+        
+        // If we have tokens or category tokens, activate shields
+        if !tokens.isEmpty || !categoryTokens.isEmpty {
+            activateShields(
+                for: tokens,
+                categories: categoriesToBlock.isEmpty ? nil : categoriesToBlock,
+                categoryTokens: categoryTokens.isEmpty ? nil : categoryTokens
+            )
+            LoggerService.shared.logInfo("Shields activated successfully", category: "ScreenTime")
             return
         }
         
         // Fallback to session-specific selection
-        guard let selection = loadSelection(for: session.id) else {
+        guard let sessionSelection = loadSelection(for: session.id) else {
+            // If no selection at all, but categories are specified, use .all() for categories
+            if !categoriesToBlock.isEmpty {
+                activateShields(
+                    for: [],
+                    categories: categoriesToBlock,
+                    categoryTokens: nil
+                )
+            }
             return
         }
         
-        let selectionTokens = Array(selection.applicationTokens)
-        if !selectionTokens.isEmpty {
-            activateShields(for: selectionTokens)
+        let selectionTokens = Array(sessionSelection.applicationTokens)
+        let sessionCategoryTokens = sessionSelection.categoryTokens
+        
+        if !selectionTokens.isEmpty || !sessionCategoryTokens.isEmpty {
+            activateShields(
+                for: selectionTokens,
+                categories: session.selectedCategories,
+                categoryTokens: sessionCategoryTokens.isEmpty ? nil : sessionCategoryTokens
+            )
+        } else if !categoriesToBlock.isEmpty {
+            // If no tokens but categories specified, use .all() for categories
+            activateShields(
+                for: [],
+                categories: categoriesToBlock,
+                categoryTokens: nil
+            )
+        }
+    }
+    
+    func startBlockingForScheduledSession(sessionId: UUID, categories: [AppCategory]?, schedule: LockSessionSchedule) async {
+        // Load application tokens and categories from persisted selection
+        let tokens = activitySelectionService.loadApplicationTokens()
+        let selection = activitySelectionService.loadSelection()
+        let categoryTokens = selection?.categoryTokens ?? Set<ActivityCategoryToken>()
+        
+        // Also try to load from session-specific selection
+        let sessionSelection = loadSelection(for: sessionId)
+        let sessionTokens = sessionSelection != nil ? Array(sessionSelection!.applicationTokens) : tokens
+        let sessionCategoryTokens = sessionSelection?.categoryTokens ?? categoryTokens
+        
+        // Activate shields with the provided categories or selection categories
+        activateShields(
+            for: sessionTokens.isEmpty ? tokens : sessionTokens,
+            categories: categories,
+            categoryTokens: sessionCategoryTokens.isEmpty ? (categoryTokens.isEmpty ? nil : categoryTokens) : sessionCategoryTokens
+        )
+    }
+    
+    /// Updates blocking for an existing session.
+    /// Used when session configuration changes mid-session (e.g., apps/categories changed).
+    /// - Parameter session: The updated session configuration
+    func updateBlocking(for session: LockSession) async throws {
+        LoggerService.shared.logInfo("Updating blocking for session \(session.id.uuidString)", category: "ScreenTime")
+        
+        // Safely update by stopping current blocking and restarting
+        // This prevents flickering by doing it atomically
+        do {
+            // Load updated application tokens and categories
+            let tokens = activitySelectionService.loadApplicationTokens()
+            let selection = activitySelectionService.loadSelection()
+            let categoryTokens = selection?.categoryTokens ?? Set<ActivityCategoryToken>()
+            
+            // Use session-specific categories if provided
+            let categoriesToBlock = session.selectedCategories ?? []
+            
+            LoggerService.shared.logInfo("Updating blocking with \(tokens.count) apps, \(categoryTokens.count) category tokens", category: "ScreenTime")
+            
+            // Apply updated restrictions
+            if !tokens.isEmpty || !categoryTokens.isEmpty {
+                activateShields(
+                    for: tokens,
+                    categories: categoriesToBlock.isEmpty ? nil : categoriesToBlock,
+                    categoryTokens: categoryTokens.isEmpty ? nil : categoryTokens
+                )
+            } else if let sessionSelection = loadSelection(for: session.id) {
+                // Fall back to session-specific selection
+                let selectionTokens = Array(sessionSelection.applicationTokens)
+                let sessionCategoryTokens = sessionSelection.categoryTokens
+                
+                activateShields(
+                    for: selectionTokens,
+                    categories: session.selectedCategories,
+                    categoryTokens: sessionCategoryTokens.isEmpty ? nil : sessionCategoryTokens
+                )
+            }
+            
+            LoggerService.shared.logInfo("Blocking updated successfully", category: "ScreenTime")
+        } catch {
+            LoggerService.shared.logError("Failed to update blocking", error: error, category: "ScreenTime")
+            throw error
         }
     }
     
     func stopBlocking() async {
-        try? deactivateShields()
+        LoggerService.shared.logInfo("Stopping blocking", category: "ScreenTime")
+        do {
+            try deactivateShields()
+            LoggerService.shared.logInfo("Blocking stopped successfully", category: "ScreenTime")
+        } catch {
+            LoggerService.shared.logError("Failed to stop blocking", error: error, category: "ScreenTime")
+        }
     }
     
     // MARK: - App Selection
@@ -121,12 +325,51 @@ class ScreenTimeService: ScreenTimeServiceProtocol {
     
     /// Activates shields for the given application tokens
     func activateShields(for tokens: [ApplicationToken]) {
+        LoggerService.shared.logInfo("Activating shields for \(tokens.count) apps", category: "ScreenTime")
         store.shield.applications = .init(tokens)
         store.shield.applicationCategories = .all()
         store.shield.webDomains = .all()
     }
     
+    /// Activates shields with selective category blocking
+    /// - Parameters:
+    ///   - tokens: Application tokens to block
+    ///   - categories: App categories to block (if nil, uses categoryTokens or .all())
+    ///   - categoryTokens: ActivityCategoryToken set from FamilyActivitySelection (if nil, uses categories or .all())
+    func activateShields(
+        for tokens: [ApplicationToken],
+        categories: [AppCategory]?,
+        categoryTokens: Set<ActivityCategoryToken>?
+    ) {
+        // Set application tokens
+        if !tokens.isEmpty {
+            store.shield.applications = Set(tokens)
+        }
+        
+        // Set category blocking
+        // Priority: categoryTokens > categories
+        if let categoryTokens = categoryTokens, !categoryTokens.isEmpty {
+            // Use category tokens directly from FamilyActivitySelection
+            store.shield.applicationCategories = categoryTokens
+        } else if let categories = categories, !categories.isEmpty {
+            // Note: We cannot directly map AppCategory to ActivityCategoryToken
+            // ActivityCategoryToken only comes from FamilyActivitySelection via FamilyActivityPicker
+            // If user selected categories but we don't have tokens, we cannot block selectively
+            // In this case, we set to nil (no category blocking) rather than .all()
+            // The user must select categories via FamilyActivityPicker to get ActivityCategoryToken
+            LoggerService.shared.logWarning("Categories specified but no ActivityCategoryToken available. Category blocking requires FamilyActivityPicker selection.", category: "ScreenTime")
+            store.shield.applicationCategories = nil
+        } else {
+            // Default: block all categories if no specific selection
+            store.shield.applicationCategories = .all()
+        }
+        
+        // Set web domains (use all for now, can be enhanced later)
+        store.shield.webDomains = .all()
+    }
+    
     func deactivateShields() throws {
+        LoggerService.shared.logInfo("Deactivating shields", category: "ScreenTime")
         // Remove all restrictions
         store.shield.applications = nil
         store.shield.applicationCategories = nil
@@ -137,6 +380,7 @@ class ScreenTimeService: ScreenTimeServiceProtocol {
         
         // Clear session selections
         sessionSelections.removeAll()
+        LoggerService.shared.logInfo("Shields deactivated", category: "ScreenTime")
     }
     
     // MARK: - Session Integration (Legacy - kept for backward compatibility)

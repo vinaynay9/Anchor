@@ -16,7 +16,9 @@ struct ShieldView: View {
     @State private var rippleOpacity: Double = 0.0
     let context: ShieldConfigurationContext
     
-    private let goalService = GoalService.shared
+    init(context: ShieldConfigurationContext) {
+        self.context = context
+    }
     
     var body: some View {
         ZStack {
@@ -185,21 +187,28 @@ struct ShieldView: View {
             }
         }
         .onAppear {
+            // Set context in viewModel to enable bundle ID extraction and matching
+            // This also stores the bundle ID (if extractable) in AppGroupStorage
+            viewModel.setContext(context)
+            
+            // Refresh to show current state (pending unlock, approved, etc.)
             viewModel.refresh()
+            
+            // Refresh goal progress (business logic in ViewModel)
+            viewModel.refreshGoalProgress()
+            
+            // Start visual animations
             startAnimations()
         }
     }
     
     // MARK: - Progress Indicator
+    // Note: Goal state is managed by ShieldViewModel (MVVM pattern)
     private var progressIndicator: some View {
-        let goals = goalService.loadGoals()
-        let completed = goals.filter { $0.isCompleted }.count
-        let total = goals.count
-        
-        return VStack(spacing: ShieldTheme.smallSpacing) {
-                if total > 0 {
+        VStack(spacing: ShieldTheme.smallSpacing) {
+            if viewModel.goalTotalCount > 0 {
                 HStack(spacing: ShieldTheme.smallSpacing) {
-                    Text("\(completed)/\(total) goals completed")
+                    Text(viewModel.goalProgressText ?? "")
                         .font(.system(size: 14, weight: .medium, design: .rounded))
                         .foregroundColor(AppColors.onPrimarySecondary)
                 }
@@ -222,7 +231,7 @@ struct ShieldView: View {
                                     endPoint: .trailing
                                 )
                             )
-                            .frame(width: geometry.size.width * CGFloat(completed) / CGFloat(max(total, 1)), height: 6)
+                            .frame(width: geometry.size.width * CGFloat(viewModel.goalCompletedCount) / CGFloat(max(viewModel.goalTotalCount, 1)), height: 6)
                     }
                 }
                 .frame(height: 6)

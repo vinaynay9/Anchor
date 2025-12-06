@@ -3,11 +3,10 @@ import Shared
 
 struct MainTabView: View {
     @EnvironmentObject var coordinator: MainTabFlow
-    @State private var selectedTab = 0
     @State private var previousTab = 0
     
     var body: some View {
-        TabView(selection: $selectedTab) {
+        TabView(selection: $coordinator.selectedTab) {
             // Tab 0: Home (Active Session)
             NavigationStack(path: $coordinator.sessionsPath) {
                 SessionHomeView()
@@ -27,7 +26,16 @@ struct MainTabView: View {
             }
             .tag(0)
             
-            // Tab 1: Friends (combines Friends + Unlock Requests)
+            // Tab 1: Insights
+            NavigationStack(path: $coordinator.insightsPath) {
+                InsightsView()
+            }
+            .tabItem {
+                Label("Insights", systemImage: "chart.bar.fill")
+            }
+            .tag(1)
+            
+            // Tab 2: Friends (combines Friends + Unlock Requests)
             NavigationStack(path: $coordinator.friendsPath) {
                 FriendsTabView()
                     .navigationDestination(for: Friend.self) { friend in
@@ -41,9 +49,9 @@ struct MainTabView: View {
             .tabItem {
                 Label("Friends", systemImage: "person.2.fill")
             }
-            .tag(1)
+            .tag(2)
             
-            // Tab 2: Settings
+            // Tab 3: Settings
             NavigationStack(path: $coordinator.settingsPath) {
                 SettingsView()
                     .navigationDestination(for: String.self) { destination in
@@ -59,7 +67,7 @@ struct MainTabView: View {
             .tabItem {
                 Label("Settings", systemImage: "gearshape.fill")
             }
-            .tag(2)
+            .tag(3)
         }
         .sheet(item: $coordinator.presentedSheet) { sheet in
             switch sheet {
@@ -71,7 +79,7 @@ struct MainTabView: View {
                 SelectAppsView()
             }
         }
-        .onChange(of: selectedTab) { newTab in
+        .onChange(of: coordinator.selectedTab) { newTab in
             if newTab != previousTab {
                 HapticFeedback.soft()
                 previousTab = newTab

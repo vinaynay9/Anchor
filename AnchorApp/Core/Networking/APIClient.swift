@@ -80,6 +80,11 @@ class APIClient {
                 }
             }
             
+            // Handle 204 No Content - return empty data error that can be caught by caller
+            if httpResponse.statusCode == 204 || data.isEmpty {
+                throw AnchorAPIError.decodingError(NSError(domain: "APIClient", code: 204, userInfo: [NSLocalizedDescriptionKey: "No content (204) or empty response body"]))
+            }
+            
             do {
                 let decoder = JSONDecoder()
                 decoder.dateDecodingStrategy = .iso8601

@@ -24,5 +24,7 @@ struct ToastModel: Identifiable, Equatable {
 enum ToastType {
     case success
     case error
+    case info
+    case warning
 }
 

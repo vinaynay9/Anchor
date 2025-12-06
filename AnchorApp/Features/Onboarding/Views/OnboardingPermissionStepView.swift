@@ -73,7 +73,6 @@ struct OnboardingPermissionStepView: View {
             }
         }
         .onAppear {
-            // Check permissions when view appears (mock)
             viewModel.checkScreenTimePermission()
             viewModel.checkNotificationsPermission()
         }

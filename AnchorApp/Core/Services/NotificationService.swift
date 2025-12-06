@@ -58,9 +58,23 @@ class NotificationService: NotificationServiceProtocol {
         
         // Check if this is an unlock request notification
         if let unlockRequestId = userInfo["unlock_request_id"] as? String,
-           let uuid = UUID(uuidString: unlockRequestId) {
-            // TODO: Navigate to unlock request detail view
-            // This should be handled by a coordinator or router
+           UUID(uuidString: unlockRequestId) != nil {
+            // Navigate to unlock request detail view using DeepLinkHandler
+            // The deep link will be picked up by AppCoordinator which observes pendingDeepLink
+            Task { @MainActor in
+                let url = URL(string: "anchor://unlock-request/\(unlockRequestId)")!
+                _ = DeepLinkHandler.shared.handleURL(url)
+            }
+            return true
+        }
+        
+        // Check for session notification
+        if let sessionId = userInfo["session_id"] as? String,
+           UUID(uuidString: sessionId) != nil {
+            Task { @MainActor in
+                let url = URL(string: "anchor://session/\(sessionId)")!
+                _ = DeepLinkHandler.shared.handleURL(url)
+            }
             return true
         }
         

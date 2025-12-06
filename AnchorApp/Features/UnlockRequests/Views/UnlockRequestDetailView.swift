@@ -74,11 +74,11 @@ struct UnlockRequestDetailView: View {
                     
                     // Proof display
                     if isLoadingProof {
-                        HStack {
+                        HStack(spacing: 12) {
                             ProgressView()
                                 .progressViewStyle(CircularProgressViewStyle(tint: AppColors.anchorAccent))
                             Text("Loading proof...")
-                                .font(AppTypography.caption)
+                                .font(AppTypography.body)
                                 .foregroundColor(AppColors.textSecondary)
                         }
                         .padding()
@@ -94,22 +94,47 @@ struct UnlockRequestDetailView: View {
                             AsyncImage(url: proof.thumbnailUrl ?? proof.fileUrl) { phase in
                                 switch phase {
                                 case .empty:
-                                    ProgressView()
-                                        .frame(height: 200)
+                                    ZStack {
+                                        RoundedRectangle(cornerRadius: AppLayout.cardCornerRadius)
+                                            .fill(AppColors.secondaryBackground)
+                                        ProgressView()
+                                            .progressViewStyle(CircularProgressViewStyle(tint: AppColors.anchorAccent))
+                                    }
+                                    .frame(height: 300)
                                 case .success(let image):
                                     image
                                         .resizable()
                                         .aspectRatio(contentMode: .fit)
                                         .frame(maxHeight: 300)
                                         .cornerRadius(AppLayout.cardCornerRadius)
+                                        .overlay(
+                                            RoundedRectangle(cornerRadius: AppLayout.cardCornerRadius)
+                                                .stroke(
+                                                    LinearGradient(
+                                                        colors: [
+                                                            AppColors.anchorAccent.opacity(0.4),
+                                                            AppColors.anchorLavender.opacity(0.3)
+                                                        ],
+                                                        startPoint: .topLeading,
+                                                        endPoint: .bottomTrailing
+                                                    ),
+                                                    lineWidth: 2
+                                                )
+                                        )
+                                        .shadow(color: AppColors.anchorAccent.opacity(0.2), radius: 12, x: 0, y: 4)
                                 case .failure:
-                                    Text("Failed to load image")
-                                        .font(AppTypography.caption)
-                                        .foregroundColor(AppColors.error)
-                                        .frame(height: 200)
-                                        .frame(maxWidth: .infinity)
-                                        .background(AppColors.secondaryBackground)
-                                        .cornerRadius(AppLayout.cardCornerRadius)
+                                    VStack(spacing: 12) {
+                                        Image(systemName: "exclamationmark.triangle")
+                                            .font(.system(size: 32))
+                                            .foregroundColor(AppColors.error.opacity(0.7))
+                                        Text("Failed to load image")
+                                            .font(AppTypography.body)
+                                            .foregroundColor(AppColors.textSecondary)
+                                    }
+                                    .frame(height: 200)
+                                    .frame(maxWidth: .infinity)
+                                    .background(AppColors.secondaryBackground)
+                                    .cornerRadius(AppLayout.cardCornerRadius)
                                 @unknown default:
                                     EmptyView()
                                 }
@@ -118,14 +143,26 @@ struct UnlockRequestDetailView: View {
                         .padding()
                         .background(AppColors.secondaryBackground)
                         .cornerRadius(AppLayout.cardCornerRadius)
+                        .overlay(
+                            RoundedRectangle(cornerRadius: AppLayout.cardCornerRadius)
+                                .stroke(AppColors.anchorLavender.opacity(0.1), lineWidth: 1)
+                        )
                     } else if let proofError = proofError {
-                        Text("Error loading proof: \(proofError)")
-                            .font(AppTypography.caption)
-                            .foregroundColor(AppColors.error)
-                            .padding()
-                            .frame(maxWidth: .infinity, alignment: .leading)
-                            .background(AppColors.error.opacity(0.1))
-                            .cornerRadius(AppLayout.chipCornerRadius)
+                        HStack(spacing: 12) {
+                            Image(systemName: "exclamationmark.circle.fill")
+                                .foregroundColor(AppColors.error)
+                            Text("Error loading proof: \(proofError)")
+                                .font(AppTypography.body)
+                                .foregroundColor(AppColors.textPrimary)
+                        }
+                        .padding()
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                        .background(AppColors.error.opacity(0.1))
+                        .cornerRadius(AppLayout.chipCornerRadius)
+                        .overlay(
+                            RoundedRectangle(cornerRadius: AppLayout.chipCornerRadius)
+                                .stroke(AppColors.error.opacity(0.3), lineWidth: 1)
+                        )
                     }
                     
                     // Success message
@@ -160,8 +197,11 @@ struct UnlockRequestDetailView: View {
                                     handleDenyRequest(request)
                                 }
                             }) {
-                                HStack {
+                                HStack(spacing: 8) {
+                                    Image(systemName: "xmark.circle.fill")
+                                        .font(.system(size: 16, weight: .semibold))
                                     Text("Deny")
+                                        .font(AppTypography.bodyBold)
                                 }
                             }
                             .buttonStyle(SecondaryButtonStyle())
@@ -173,8 +213,11 @@ struct UnlockRequestDetailView: View {
                                     handleApproveRequest(request)
                                 }
                             }) {
-                                HStack {
+                                HStack(spacing: 8) {
+                                    Image(systemName: "checkmark.circle.fill")
+                                        .font(.system(size: 16, weight: .semibold))
                                     Text("Approve")
+                                        .font(AppTypography.bodyBold)
                                 }
                             }
                             .buttonStyle(PrimaryButtonStyle())
@@ -298,6 +341,7 @@ struct UnlockRequestDetailView: View {
                         partnerId: initialRequest.partnerId,
                         status: .approved,
                         message: initialRequest.message,
+                        appBundleId: initialRequest.appBundleId,
                         createdAt: initialRequest.createdAt,
                         resolvedAt: Date()
                     )
@@ -309,6 +353,7 @@ struct UnlockRequestDetailView: View {
                         partnerId: initialRequest.partnerId,
                         status: .denied,
                         message: initialRequest.message,
+                        appBundleId: initialRequest.appBundleId,
                         createdAt: initialRequest.createdAt,
                         resolvedAt: Date()
                     )
@@ -323,16 +368,14 @@ struct UnlockRequestDetailView: View {
     private func handleApproveRequest(_ request: UnlockRequest) {
         actionSuccessMessage = nil
         
-        // Scale up animation
-        withAnimation(.spring(response: 0.3, dampingFraction: 0.6)) {
-            cardScale = 1.05
+        // Subtle scale + opacity animation on approve
+        withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
+            cardScale = 1.02
         }
         
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) {
-            // Fade/slide out
-            withAnimation(.easeOut(duration: 0.3)) {
-                cardScale = 0.95
-                cardOpacity = 0.0
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.15) {
+            withAnimation(.spring(response: 0.4, dampingFraction: 0.8)) {
+                cardScale = 1.0
             }
         }
         
@@ -352,16 +395,14 @@ struct UnlockRequestDetailView: View {
     private func handleDenyRequest(_ request: UnlockRequest) {
         actionSuccessMessage = nil
         
-        // Scale up animation
-        withAnimation(.spring(response: 0.3, dampingFraction: 0.6)) {
-            cardScale = 1.05
+        // Subtle scale + opacity animation on deny
+        withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
+            cardScale = 0.98
         }
         
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) {
-            // Fade/slide out
-            withAnimation(.easeOut(duration: 0.3)) {
-                cardScale = 0.95
-                cardOpacity = 0.0
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.15) {
+            withAnimation(.spring(response: 0.4, dampingFraction: 0.8)) {
+                cardScale = 1.0
             }
         }
         

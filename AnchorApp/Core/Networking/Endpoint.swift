@@ -47,7 +47,8 @@ extension APIEndpoint {
             let (boundary, _) = createMultipartFormData(sessionId: sessionId, imageData: imageData)
             headers["Content-Type"] = "multipart/form-data; boundary=\(boundary)"
         case .getCurrentUser, .getFriends, .getFriendRequests, .getActiveSession, 
-             .getPendingUnlockRequests, .getProof, .getProofsForUser, .searchUsers:
+             .getPendingUnlockRequests, .getProof, .getProofsForUser, .searchUsers,
+             .getActivityFeed:
             // GET requests don't need Content-Type
             break
         default:
@@ -129,6 +130,9 @@ enum APIEndpoint: Endpoint {
     // Notifications
     case registerDeviceToken(token: String)
     
+    // Activity Feed
+    case getActivityFeed
+    
     var path: String {
         switch self {
         // Auth
@@ -168,6 +172,9 @@ enum APIEndpoint: Endpoint {
         
         // Notifications
         case .registerDeviceToken: return "/notifications/device-token"
+        
+        // Activity Feed
+        case .getActivityFeed: return "/activity/feed"
         }
     }
     
@@ -175,7 +182,8 @@ enum APIEndpoint: Endpoint {
         switch self {
         // GET
         case .getCurrentUser, .getFriends, .getFriendRequests, .getActiveSession,
-             .getPendingUnlockRequests, .getProof, .getProofsForUser, .searchUsers:
+             .getPendingUnlockRequests, .getProof, .getProofsForUser, .searchUsers,
+             .getActivityFeed:
             return .get
         
         // POST
@@ -202,7 +210,7 @@ enum APIEndpoint: Endpoint {
             return try? JSONEncoder().encode(["token": token])
         case .signInGoogle(let token):
             return try? JSONEncoder().encode(["token": token])
-        case .updateCurrentUser(_, let username, let displayName):
+        case .updateCurrentUser(let username, let displayName):
             var dict: [String: Any] = [:]
             if let username = username { dict["username"] = username }
             if let displayName = displayName { dict["display_name"] = displayName }

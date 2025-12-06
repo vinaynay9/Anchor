@@ -13,5 +13,24 @@ extension Date {
         formatter.timeStyle = .short
         return formatter.string(from: self)
     }
+    
+    /// Formats date for activity feed sections (Today, Yesterday, This Week, etc.)
+    func activityFeedSectionTitle() -> String {
+        let calendar = Calendar.current
+        let now = Date()
+        
+        if calendar.isDateInToday(self) {
+            return "Today"
+        } else if calendar.isDateInYesterday(self) {
+            return "Yesterday"
+        } else {
+            let daysAgo = calendar.dateComponents([.day], from: self, to: now).day ?? 0
+            if daysAgo <= 7 {
+                return "This Week"
+            } else {
+                return "Earlier"
+            }
+        }
+    }
 }
 

@@ -6,6 +6,7 @@ protocol ActivitySelectionServiceProtocol {
     func saveSelection(_ selection: FamilyActivitySelection) throws
     func loadSelection() -> FamilyActivitySelection?
     func loadApplicationTokens() -> [ApplicationToken]
+    func loadCategoryTokens() -> Set<ActivityCategoryToken>
     func clearSelection()
 }
 
@@ -44,6 +45,18 @@ class ActivitySelectionService: ActivitySelectionServiceProtocol {
         }
         
         return Array(selection.applicationTokens)
+    }
+    
+    // MARK: - Load Category Tokens
+    
+    /// Loads category tokens from the stored FamilyActivitySelection.
+    /// Returns an empty set if no selection is stored.
+    func loadCategoryTokens() -> Set<ActivityCategoryToken> {
+        guard let selection = loadSelection() else {
+            return []
+        }
+        
+        return selection.categoryTokens
     }
     
     // MARK: - Clear Selection

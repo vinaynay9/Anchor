@@ -46,7 +46,8 @@ class UnlockRequestsViewModel: ObservableObject {
         
         Task { @MainActor in
             do {
-                try await unlockRequestService.approveUnlockRequest(requestId: request.id.uuidString)
+                // Use new method that accepts UnlockRequest and writes bundle ID to AppGroupStorage
+                _ = try await unlockRequestService.approveUnlockRequest(request)
                 // Reload requests to reflect updated state from backend
                 await self.loadPendingRequests()
                 // Callback for UI feedback (notification already sent by service)
@@ -66,7 +67,8 @@ class UnlockRequestsViewModel: ObservableObject {
         
         Task { @MainActor in
             do {
-                try await unlockRequestService.denyUnlockRequest(requestId: request.id.uuidString)
+                // Use new method that accepts UnlockRequest
+                _ = try await unlockRequestService.denyUnlockRequest(request)
                 // Reload requests to reflect updated state from backend
                 await self.loadPendingRequests()
                 // Callback for UI feedback (notification already sent by service)

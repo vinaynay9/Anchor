@@ -9,15 +9,15 @@ class OnboardingViewModel: ObservableObject {
     
     private let userDefaults = UserDefaults.standard
     private let hasCompletedOnboardingKey = "hasCompletedOnboarding"
+    private let screenTimeService = ScreenTimeService.shared
     
     init() {
         // Load initial state from UserDefaults
         hasCompletedOnboarding = userDefaults.bool(forKey: hasCompletedOnboardingKey)
         
-        // Mock permission statuses (no real API calls)
-        // In a real app, these would check actual permission status
-        screenTimePermissionGranted = false
-        notificationsPermissionGranted = false
+        // Check real permission statuses
+        checkScreenTimePermission()
+        checkNotificationsPermission()
     }
     
     var totalPages: Int {
@@ -49,17 +49,31 @@ class OnboardingViewModel: ObservableObject {
         userDefaults.set(true, forKey: hasCompletedOnboardingKey)
     }
     
-    // Mock methods for permission status (no real API calls)
+    // Real permission status checks
     func checkScreenTimePermission() {
-        // Mock: randomly set to true for demonstration
-        // In real app, this would check actual Screen Time authorization
-        screenTimePermissionGranted = Bool.random()
+        let status = screenTimeService.getAuthorizationStatus()
+        screenTimePermissionGranted = (status == .approved)
     }
     
     func checkNotificationsPermission() {
-        // Mock: randomly set to true for demonstration
-        // In real app, this would check actual notification authorization
-        notificationsPermissionGranted = Bool.random()
+        // TODO: Implement real notification permission check
+        // For now, keep as false to indicate it needs to be requested
+        notificationsPermissionGranted = false
+    }
+    
+    /// Request Screen Time authorization
+    func requestScreenTimePermission() async {
+        do {
+            try await screenTimeService.requestAuthorization()
+            await MainActor.run {
+                checkScreenTimePermission()
+            }
+        } catch {
+            // Error handled by the service
+            await MainActor.run {
+                checkScreenTimePermission()
+            }
+        }
     }
 }
 

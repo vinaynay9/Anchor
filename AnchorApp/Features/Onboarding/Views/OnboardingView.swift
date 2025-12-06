@@ -55,14 +55,11 @@ struct OnboardingView: View {
                     )
                     
                 case .permissions:
-                    PermissionsExplanationPage(
-                        viewModel: viewModel,
-                        onContinue: {
-                            withAnimation(Theme.springAnimation) {
-                                currentStep = .goalsExplanation
-                            }
+                    ScreenTimeOnboardingFlowView(onComplete: {
+                        withAnimation(Theme.springAnimation) {
+                            currentStep = .goalsExplanation
                         }
-                    )
+                    })
                     
                 case .goalsExplanation:
                     GoalsExplanationView(onContinue: {

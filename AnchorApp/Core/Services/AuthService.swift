@@ -22,6 +22,7 @@ class AuthService: AuthServiceProtocol {
     private let apiClient = APIClient.shared
     private let keychainService = KeychainService.shared
     private let googleSignInCoordinator = GoogleSignInCoordinator.shared
+    private let appleSignInCoordinator = AppleSignInCoordinator()
     
     // MARK: - Apple Sign In
     func signInWithApple() async throws -> User {

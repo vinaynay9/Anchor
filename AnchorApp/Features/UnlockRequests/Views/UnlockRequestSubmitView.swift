@@ -7,6 +7,7 @@ struct UnlockRequestSubmitView: View {
     @StateObject private var viewModel = UnlockRequestsViewModel()
     @StateObject private var goalService = GoalService.shared
     @Environment(\.dismiss) var dismiss
+    private let appGroupStorage = AppGroupStorage.shared
     
     @State private var selectedEvidenceType: EvidenceType?
     @State private var message: String = ""
@@ -269,12 +270,49 @@ struct UnlockRequestSubmitView: View {
         HapticFeedback.success()
         
         Task {
-            // TODO: Integrate with UnlockRequestService to send request
-            // For now, just show success
-            try? await Task.sleep(nanoseconds: 1_000_000_000)
-            await MainActor.run {
-                withAnimation(Theme.springAnimation) {
-                    showSuccessView = true
+            do {
+                // Get active session
+                let sessionService = SessionService.shared
+                guard let activeSession = try await sessionService.getActiveSession() else {
+                    await MainActor.run {
+                        viewModel.errorMessage = "No active session found"
+                    }
+                    return
+                }
+                
+                // Get bundle ID from deep link context (set by shield extension)
+                let appGroupStorage = AppGroupStorage.shared
+                let deepLinkContext = appGroupStorage.getPendingDeepLinkContext()
+                guard let bundleId = deepLinkContext["bundleId"] else {
+                    await MainActor.run {
+                        viewModel.errorMessage = "Unable to determine which app to unlock"
+                    }
+                    return
+                }
+                
+                // Submit unlock request
+                let unlockRequestService = UnlockRequestService.shared
+                let trimmedMessage = message.trimmingCharacters(in: .whitespacesAndNewlines)
+                let reason = trimmedMessage.isEmpty ? nil : trimmedMessage
+                
+                _ = try await unlockRequestService.submitUnlockRequest(
+                    session: activeSession,
+                    appBundleId: bundleId,
+                    reason: reason
+                )
+                
+                // Clear deep link context after use
+                appGroupStorage.clearPendingDeepLinkContext()
+                
+                // Show success view
+                await MainActor.run {
+                    withAnimation(Theme.springAnimation) {
+                        showSuccessView = true
+                    }
+                }
+            } catch {
+                await MainActor.run {
+                    viewModel.errorMessage = error.localizedDescription
                 }
             }
         }

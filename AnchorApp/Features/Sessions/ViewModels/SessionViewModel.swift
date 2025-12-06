@@ -9,6 +9,8 @@ class SessionViewModel: ObservableObject {
     @Published var errorMessage: String?
     @Published var selectedDurationMinutes: Int = 25
     @Published var selectedFriendIds: [String] = []
+    @Published var selectedCategories: Set<AppCategory> = []
+    @Published var schedule: LockSessionSchedule? = nil
     
     private let sessionService: SessionServiceProtocol
     private let screenTimeService: ScreenTimeServiceProtocol
@@ -81,9 +83,12 @@ class SessionViewModel: ObservableObject {
         
         // Authorization granted, proceed with starting session
         do {
+            let categories = selectedCategories.isEmpty ? nil : Array(selectedCategories)
             let session = try await sessionService.startSession(
                 durationMinutes: selectedDurationMinutes,
-                friendIds: selectedFriendIds
+                friendIds: selectedFriendIds,
+                categories: categories,
+                schedule: schedule
             )
             self.activeSession = session
             self.isLoading = false

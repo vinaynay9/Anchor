@@ -2,6 +2,7 @@ import SwiftUI
 import UIKit
 
 struct ProofCaptureView: View {
+    let sessionId: String
     @StateObject private var viewModel = ProofCaptureViewModel()
     @State private var isCapturing = false
     @State private var showUploadView = false
@@ -10,7 +11,7 @@ struct ProofCaptureView: View {
     var body: some View {
         Group {
             if showUploadView {
-                ProofUploadView(viewModel: viewModel)
+                ProofUploadView(viewModel: viewModel, sessionId: sessionId)
             } else {
                 captureView
             }
@@ -45,42 +46,77 @@ struct ProofCaptureView: View {
     
     private var cameraPreviewView: some View {
         VStack(spacing: 0) {
-            // Camera preview
-            CameraView(
-                capturedImage: Binding(
-                    get: { nil },
-                    set: { newImage in
-                        if let image = newImage {
-                            viewModel.capturePhoto(from: image)
+            // Header section
+            VStack(spacing: 12) {
+                Text("Send proof to your friend")
+                    .font(AppTypography.title2)
+                    .foregroundColor(AppColors.textPrimary)
+                    .multilineTextAlignment(.center)
+                
+                Text("Snap a quick photo to show what you're working on.")
+                    .font(AppTypography.body)
+                    .foregroundColor(AppColors.textSecondary)
+                    .multilineTextAlignment(.center)
+            }
+            .padding(.horizontal, 24)
+            .padding(.top, 20)
+            .padding(.bottom, 24)
+            
+            // Camera preview with glassmorphism
+            ZStack {
+                CameraView(
+                    capturedImage: Binding(
+                        get: { nil },
+                        set: { newImage in
+                            if let image = newImage {
+                                viewModel.capturePhoto(from: image)
+                            }
                         }
-                    }
-                ),
-                isCapturing: $isCapturing
-            )
-                .frame(maxWidth: .infinity, maxHeight: .infinity)
-                .overlay(
-                    // Gradient violet ring overlay
-                    RoundedRectangle(cornerRadius: AppLayout.cardCornerRadius)
-                        .stroke(
-                            LinearGradient(
-                                colors: [
-                                    AppColors.anchorAccent.opacity(0.6),
-                                    AppColors.anchorLavender.opacity(0.4),
-                                    AppColors.anchorAccent.opacity(0.6)
-                                ],
-                                startPoint: .topLeading,
-                                endPoint: .bottomTrailing
-                            ),
-                            lineWidth: 3
-                        )
-                        .padding(8)
+                    ),
+                    isCapturing: $isCapturing
                 )
+                .frame(maxWidth: .infinity)
+                .frame(height: UIScreen.main.bounds.height * 0.5)
+                .clipShape(RoundedRectangle(cornerRadius: AppLayout.cardCornerRadius))
+                
+                // Glassmorphism overlay
+                RoundedRectangle(cornerRadius: AppLayout.cardCornerRadius)
+                    .background(.ultraThinMaterial)
+                    .overlay(
+                        LinearGradient(
+                            colors: [
+                                AppColors.anchorPrimary.opacity(0.1),
+                                AppColors.anchorAccent.opacity(0.05)
+                            ],
+                            startPoint: .topLeading,
+                            endPoint: .bottomTrailing
+                        )
+                    )
+                    .overlay(
+                        RoundedRectangle(cornerRadius: AppLayout.cardCornerRadius)
+                            .stroke(
+                                LinearGradient(
+                                    colors: [
+                                        AppColors.anchorAccent.opacity(0.6),
+                                        AppColors.anchorLavender.opacity(0.4),
+                                        AppColors.anchorAccent.opacity(0.6)
+                                    ],
+                                    startPoint: .topLeading,
+                                    endPoint: .bottomTrailing
+                                ),
+                                lineWidth: 2
+                            )
+                    )
+            }
+            .padding(.horizontal, 20)
+            
+            Spacer()
             
             // Bottom controls
             VStack(spacing: 24) {
                 // Shutter button
                 Button(action: {
-                    triggerHaptic(.medium)
+                    HapticFeedback.soft()
                     isCapturing = true
                 }) {
                     ZStack {
@@ -141,15 +177,12 @@ struct ProofCaptureView: View {
         }
         .onChange(of: isCapturing) { capturing in
             if capturing {
-                // Small delay to ensure camera is ready
-                DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
-                    // This will trigger the capture
-                }
+                // Small delay to ensure camera is ready before capture
             }
         }
         .onChange(of: viewModel.capturedImage) { image in
             if image != nil {
-                triggerHaptic(.success)
+                HapticFeedback.success()
             }
         }
     }
@@ -183,7 +216,7 @@ struct ProofCaptureView: View {
                 HStack(spacing: 16) {
                     // Retake button
                     Button(action: {
-                        triggerHaptic(.light)
+                        HapticFeedback.light()
                         viewModel.retakePhoto()
                     }) {
                         HStack(spacing: 8) {
@@ -205,7 +238,7 @@ struct ProofCaptureView: View {
                     
                     // Use Photo button
                     Button(action: {
-                        triggerHaptic(.medium)
+                        HapticFeedback.soft()
                         showUploadView = true
                     }) {
                         HStack(spacing: 8) {
@@ -245,9 +278,5 @@ struct ProofCaptureView: View {
         }
     }
     
-    private func triggerHaptic(_ style: UIImpactFeedbackGenerator.FeedbackStyle) {
-        let generator = UIImpactFeedbackGenerator(style: style)
-        generator.impactOccurred()
-    }
 }
 

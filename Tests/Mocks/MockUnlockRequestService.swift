@@ -24,6 +24,7 @@ final class MockUnlockRequestService: UnlockRequestServiceProtocol {
             partnerId: UUID(),
             status: .pending,
             message: reason,
+            appBundleId: nil,
             createdAt: Date(),
             resolvedAt: nil
         )
@@ -61,6 +62,73 @@ final class MockUnlockRequestService: UnlockRequestServiceProtocol {
         }
         denyUnlockRequestCalled = true
         pendingRequests.removeAll { $0.id.uuidString == requestId }
+    }
+    
+    // MARK: - New Methods (Matching Requirements)
+    
+    func submitUnlockRequest(session: LockSession, appBundleId: String, reason: String?) async throws -> UnlockRequest {
+        if let error = shouldThrowError {
+            throw error
+        }
+        sendUnlockRequestCalled = true
+        
+        let request = UnlockRequest(
+            id: UUID(),
+            sessionId: session.id,
+            requesterId: UUID(),
+            partnerId: session.accountabilityPartnerId ?? UUID(),
+            status: .pending,
+            message: reason,
+            appBundleId: appBundleId,
+            createdAt: Date(),
+            resolvedAt: nil
+        )
+        pendingRequests.append(request)
+        return request
+    }
+    
+    func approveUnlockRequest(_ request: UnlockRequest) async throws -> UnlockRequest {
+        if let error = shouldThrowError {
+            throw error
+        }
+        approveUnlockRequestCalled = true
+        if let index = pendingRequests.firstIndex(where: { $0.id == request.id }) {
+            pendingRequests.remove(at: index)
+        }
+        return UnlockRequest(
+            id: request.id,
+            sessionId: request.sessionId,
+            requesterId: request.requesterId,
+            partnerId: request.partnerId,
+            status: .approved,
+            message: request.message,
+            appBundleId: request.appBundleId,
+            createdAt: request.createdAt,
+            resolvedAt: Date()
+        )
+    }
+    
+    func denyUnlockRequest(_ request: UnlockRequest) async throws -> UnlockRequest {
+        if let error = shouldThrowError {
+            throw error
+        }
+        denyUnlockRequestCalled = true
+        pendingRequests.removeAll { $0.id == request.id }
+        return UnlockRequest(
+            id: request.id,
+            sessionId: request.sessionId,
+            requesterId: request.requesterId,
+            partnerId: request.partnerId,
+            status: .denied,
+            message: request.message,
+            appBundleId: request.appBundleId,
+            createdAt: request.createdAt,
+            resolvedAt: Date()
+        )
+    }
+    
+    func fetchPendingRequests() async throws -> [UnlockRequest] {
+        return try await getPendingUnlockRequests()
     }
     
     func reset() {

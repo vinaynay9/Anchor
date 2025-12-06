@@ -76,6 +76,9 @@ class ProofService: ProofServiceProtocol {
     
     private let apiClient: APIClient
     private let uploadSession: URLSession
+    private let sessionService: SessionServiceProtocol
+    private let persistenceService = PersistenceService.shared
+    private let networkMonitor = NetworkMonitor.shared
     
     /// Maximum number of retry attempts (total attempts = maxRetries + 1)
     private let maxRetries = 2
@@ -83,7 +86,9 @@ class ProofService: ProofServiceProtocol {
     /// Initial retry delay in seconds
     private let initialRetryDelay: TimeInterval = 1.0
     
-    private init() {
+    init(sessionService: SessionServiceProtocol = SessionService.shared) {
+        self.sessionService = sessionService
+        
         // Create background-compatible URLSession configuration
         let config = URLSessionConfiguration.default
         config.allowsCellularAccess = true
@@ -120,13 +125,16 @@ class ProofService: ProofServiceProtocol {
     /// - Returns: Uploaded Proof object
     /// - Throws: ProofError for validation or upload failures
     func uploadProof(imageData: Data, sessionId: String) async throws -> Proof {
+        LoggerService.shared.logInfo("Uploading proof for session: \(sessionId), size: \(imageData.count) bytes", category: "Proofs")
         // Validate image data
         guard imageData.count > 0 else {
+            LoggerService.shared.logError("Invalid image data: empty", category: "Proofs")
             throw ProofError.invalidImageData
         }
         
         // Convert sessionId string to UUID for validation
         guard UUID(uuidString: sessionId) != nil else {
+            LoggerService.shared.logError("Invalid session ID format: \(sessionId)", category: "Proofs")
             throw ProofError.invalidImageData
         }
         
@@ -143,6 +151,13 @@ class ProofService: ProofServiceProtocol {
                     throw ProofError.invalidResponse
                 }
                 
+                // Add proof submitted event to active session
+                if let sessionService = sessionService as? SessionService {
+                    let metadata: [String: String]? = ["bundleId": sessionId] // Store sessionId as metadata
+                    let event = SessionEvent(type: .proofSubmitted, timestamp: Date(), metadata: metadata)
+                    sessionService.addEventToActiveSession(event)
+                }
+                
                 return proof
                 
             } catch let error as AnchorAPIError {
@@ -151,6 +166,25 @@ class ProofService: ProofServiceProtocol {
                 
                 if !shouldRetry {
                     // Don't retry validation/auth errors
+                    // But if network is unavailable, save for offline
+                    if !networkMonitor.isConnected, case .networkError = error {
+                        do {
+                            guard let sessionIdUUID = UUID(uuidString: sessionId) else {
+                                throw ProofError.invalidImageData
+                            }
+                            
+                            let proofId = UUID()
+                            _ = try persistenceService.savePendingProofPhoto(
+                                imageData,
+                                proofId: proofId,
+                                sessionId: sessionIdUUID
+                            )
+                            
+                            LoggerService.shared.logInfo("Saved proof photo for offline retry: \(proofId.uuidString)", category: "Proofs")
+                        } catch {
+                            LoggerService.shared.logError("Failed to save proof photo for offline retry", error: error, category: "Proofs")
+                        }
+                    }
                     throw mapAPIError(error)
                 }
                 
@@ -170,16 +204,69 @@ class ProofService: ProofServiceProtocol {
                     let delay = initialRetryDelay * pow(2.0, Double(attempt))
                     try await Task.sleep(nanoseconds: UInt64(delay * 1_000_000_000))
                 } else {
+                    // On last attempt, save for offline if network unavailable
+                    if !networkMonitor.isConnected {
+                        do {
+                            guard let sessionIdUUID = UUID(uuidString: sessionId) else {
+                                throw ProofError.invalidImageData
+                            }
+                            
+                            let proofId = UUID()
+                            _ = try persistenceService.savePendingProofPhoto(
+                                imageData,
+                                proofId: proofId,
+                                sessionId: sessionIdUUID
+                            )
+                            
+                            LoggerService.shared.logInfo("Saved proof photo for offline retry: \(proofId.uuidString)", category: "Proofs")
+                        } catch {
+                            LoggerService.shared.logError("Failed to save proof photo for offline retry", error: error, category: "Proofs")
+                        }
+                    }
                     throw ProofError.networkError(error)
                 }
             }
         }
         
-        // All retries exhausted
+        // All retries exhausted - save to offline queue if network is unavailable
+        LoggerService.shared.logError("Proof upload failed after \(maxRetries + 1) attempts", error: lastError, category: "Proofs")
         if let lastError = lastError {
-            throw mapAPIError(lastError as? AnchorAPIError ?? AnchorAPIError.networkError(lastError))
+            let apiError = lastError as? AnchorAPIError ?? AnchorAPIError.networkError(lastError)
+            
+            // Save photo for later upload if network is unavailable or it's a transient error
+            let shouldQueueForRetry = !networkMonitor.isConnected || isTransientError(apiError)
+            
+            if shouldQueueForRetry {
+                do {
+                    guard let sessionIdUUID = UUID(uuidString: sessionId) else {
+                        throw ProofError.invalidImageData
+                    }
+                    
+                    let proofId = UUID()
+                    _ = try persistenceService.savePendingProofPhoto(
+                        imageData,
+                        proofId: proofId,
+                        sessionId: sessionIdUUID
+                    )
+                    
+                    LoggerService.shared.logInfo("Saved proof photo for offline retry: \(proofId.uuidString)", category: "Proofs")
+                } catch {
+                    LoggerService.shared.logError("Failed to save proof photo for offline retry", error: error, category: "Proofs")
+                }
+            }
+            throw mapAPIError(apiError)
         } else {
             throw ProofError.uploadFailedAfterRetries
+        }
+    }
+    
+    /// Checks if error is transient and should trigger offline queue
+    private func isTransientError(_ error: AnchorAPIError) -> Bool {
+        switch error {
+        case .networkError, .serverError:
+            return true
+        case .unauthorized, .notFound, .decodingError, .unknown:
+            return false
         }
     }
     

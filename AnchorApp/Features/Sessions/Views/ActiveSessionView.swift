@@ -26,6 +26,9 @@ struct ActiveSessionView: View {
                     // Progress Summary
                     progressSummarySection
                     
+                    // Session Timeline
+                    sessionTimelineSection
+                    
                     Spacer(minLength: Theme.spacing4)
                     
                     // Subtle unlock request button
@@ -40,6 +43,20 @@ struct ActiveSessionView: View {
         }
         .onReceive(NotificationCenter.default.publisher(for: .goalsUpdated)) { _ in
             loadGoals()
+        }
+        .onReceive(NotificationCenter.default.publisher(for: .appGroupDidUpdate)) { notification in
+            // Reload session to get updated events when storage updates
+            if let key = notification.object as? String, key.contains("sessionEvents") {
+                viewModel.loadActiveSession()
+            }
+        }
+            // Reload session to get updated events
+            Task {
+                if let updatedSession = try? await SessionService.shared.getActiveSession() {
+                    // Update view model's active session if needed
+                    // Note: This is a workaround - ideally SessionViewModel would observe session changes
+                }
+            }
         }
     }
     
@@ -151,12 +168,45 @@ struct ActiveSessionView: View {
             .padding(.horizontal, Theme.spacing2)
     }
     
+    // MARK: - Session Timeline
+    private var sessionTimelineSection: some View {
+        VStack(alignment: .leading, spacing: Theme.spacing2) {
+            Text("Session Timeline")
+                .font(AppTypography.title3)
+                .foregroundColor(AppColors.textPrimary)
+                .padding(.horizontal, Theme.spacing2)
+            
+            VStack(alignment: .leading, spacing: 0) {
+                SessionTimelineView(events: session.events)
+            }
+            .padding(Theme.spacing2)
+            .background(AppColors.secondaryBackground)
+            .cornerRadius(Theme.cornerRadiusMedium)
+            .overlay(
+                RoundedRectangle(cornerRadius: Theme.cornerRadiusMedium)
+                    .stroke(
+                        LinearGradient(
+                            colors: [
+                                AppColors.anchorLavender.opacity(0.3),
+                                AppColors.anchorAccent.opacity(0.2)
+                            ],
+                            startPoint: .topLeading,
+                            endPoint: .bottomTrailing
+                        ),
+                        lineWidth: 1
+                    )
+            )
+            .padding(.horizontal, Theme.spacing2)
+        }
+    }
+    
     // MARK: - Unlock Request Button
     private var unlockRequestButton: some View {
         Button(action: {
             // Navigate to unlock request flow
-            if let sessionId = viewModel.activeSession?.id {
-                // TODO: Navigate to unlock request view
+            if let session = viewModel.activeSession {
+                // Navigate to unlock request submission view via coordinator
+                coordinator.navigateToUnlockRequestSubmit(session: session)
             }
         }) {
             Text("Request Unlock")

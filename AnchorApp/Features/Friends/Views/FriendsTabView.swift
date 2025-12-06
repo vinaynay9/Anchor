@@ -10,12 +10,14 @@ struct FriendsTabView: View {
     
     enum FriendsSection: String, CaseIterable {
         case friends = "Friends"
+        case activity = "Activity"
         case requests = "Requests"
         
         var icon: String {
             switch self {
             case .friends: return "person.2"
-            case .requests: return "bell"
+            case .activity: return "bell.fill"
+            case .requests: return "lock.open"
             }
         }
     }
@@ -36,6 +38,8 @@ struct FriendsTabView: View {
                             viewModel: friendsViewModel,
                             coordinator: coordinator
                         )
+                    case .activity:
+                        ActivityFeedView()
                     case .requests:
                         RequestsSectionView(
                             viewModel: requestsViewModel,

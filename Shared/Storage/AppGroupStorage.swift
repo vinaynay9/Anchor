@@ -9,6 +9,30 @@ extension Notification.Name {
     public static let appGroupDidUpdate = Notification.Name("appGroupDidUpdate")
 }
 
+// MARK: - Deep Link Context
+/// Represents context passed from shield extension to main app via deep link.
+/// This struct ensures type-safe handling of deep link parameters.
+public struct DeepLinkContext: Codable {
+    /// The unlock request ID (if opening from an unlock request)
+    public let unlockRequestId: String?
+    /// The bundle ID of the blocked app (if opening from shield)
+    public let bundleId: String?
+    /// Timestamp when context was created
+    public let createdAt: Date
+    
+    public init(unlockRequestId: String? = nil, bundleId: String? = nil) {
+        self.unlockRequestId = unlockRequestId
+        self.bundleId = bundleId
+        self.createdAt = Date()
+    }
+    
+    /// Checks if context is expired (older than 5 minutes)
+    public var isExpired: Bool {
+        let expirationTime = createdAt.addingTimeInterval(5 * 60)
+        return Date() > expirationTime
+    }
+}
+
 // MARK: - Unified Shared Session State (for Shield Extension)
 /// Represents the current session state shared between AnchorApp and Shield Extension.
 /// This state is written by SessionService and read by ShieldViewModel to display session information.
@@ -79,11 +103,88 @@ public enum AppGroupStorageKey: String {
     /// **Lifecycle:** Set when session starts, cleared when session ends
     case currentSessionFriendIds = "currentSessionFriendIds"
     
+    /// **Key:** `"unlockApproved"`
+    /// **Type:** Boolean
+    /// **Purpose:** Indicates that an unlock request has been approved and the shield should auto-dismiss
+    /// **Written by:** UnlockRequestService (when unlock request is approved)
+    /// **Read by:** ShieldViewModel, ShieldDecision (to determine if shield should allow app)
+    /// **Lifecycle:** Set to true when unlock approved, cleared when shield is dismissed or app is reopened
+    case unlockApproved = "unlockApproved"
+    
+    /// **Key:** `"unlockAllowedBundleId"`
+    /// **Type:** String (bundle identifier)
+    /// **Purpose:** Stores the bundle ID of the app that has been approved for unlock
+    /// **Written by:** UnlockRequestService (when unlock request is approved)
+    /// **Read by:** ShieldViewModel, ShieldDecision (to determine which app to allow)
+    /// **Lifecycle:** Set when unlock approved, cleared when shield is dismissed or app is reopened
+    case unlockAllowedBundleId = "unlockAllowedBundleId"
+    
+    /// **Key:** `"unlockApprovedTimestamp"`
+    /// **Type:** Date (stored as TimeInterval)
+    /// **Purpose:** Stores the timestamp when the unlock was approved
+    /// **Written by:** UnlockRequestService (when unlock request is approved)
+    /// **Read by:** ShieldViewModel (to check if unlock is still valid)
+    /// **Lifecycle:** Set when unlock approved, cleared when shield is dismissed or app is reopened
+    case unlockApprovedTimestamp = "unlockApprovedTimestamp"
+    
+    /// **Key:** `"currentBlockedBundleId"`
+    /// **Type:** String (bundle identifier)
+    /// **Purpose:** Stores the bundle ID of the app currently showing the shield
+    /// **Written by:** ShieldExtension/ShieldView (when shield is displayed)
+    /// **Read by:** ShieldViewModel (to pass to unlock request flow)
+    /// **Lifecycle:** Set when shield is shown, cleared when shield is dismissed
+    case currentBlockedBundleId = "currentBlockedBundleId"
+    
+    /// **Key:** `"pendingDeepLinkContext"`
+    /// **Type:** Dictionary with contextual info (e.g., unlockRequestId, bundleId)
+    /// **Purpose:** Stores context passed from shield extension when opening app via URL scheme
+    /// **Written by:** ShieldViewModel (when opening app from shield), DeepLinkHandler (when processing deep links)
+    /// **Read by:** AppCoordinator (to navigate to correct screen with context)
+    /// **Lifecycle:** Set when deep link is triggered, cleared after navigation completes
+    case pendingDeepLinkContext = "pendingDeepLinkContext"
+    
+    /// **Key Prefix:** `"scheduledSessionConfig_"`  
+    /// **Type:** Prefix for dynamic session-specific schedule configuration keys
+    /// **Purpose:** Used to generate session-specific keys for scheduled session configurations
+    /// **Usage:** Combined with session UUID via `scheduledSessionConfigurationKey(for:)` method
+    case scheduledSessionConfigPrefix = "scheduledSessionConfig_"
+    
     /// Generate a session-specific key for FamilyActivitySelection
     /// - Parameter sessionId: The session UUID
     /// - Returns: The full key string for this session's selection
     public static func familyActivitySelectionKey(for sessionId: UUID) -> String {
         return "\(familyActivitySelectionPrefix.rawValue)\(sessionId.uuidString)"
+    }
+    
+    /// Generate a session-specific key for scheduled session configuration
+    /// - Parameter sessionId: The session UUID
+    /// - Returns: The full key string for this session's schedule configuration
+    public static func scheduledSessionConfigurationKey(for sessionId: UUID) -> String {
+        return "\(scheduledSessionConfigPrefix.rawValue)\(sessionId.uuidString)"
+    }
+    
+    /// **Key Prefix:** `"scheduledSessionMetadata_"`  
+    /// **Type:** Prefix for dynamic session-specific metadata keys
+    /// **Purpose:** Used to generate session-specific keys for scheduled session metadata (duration, friends, categories)
+    case scheduledSessionMetadataPrefix = "scheduledSessionMetadata_"
+    
+    /// Generate a session-specific key for scheduled session metadata
+    /// - Parameter sessionId: The session UUID
+    /// - Returns: The full key string for this session's metadata
+    public static func scheduledSessionMetadataKey(for sessionId: UUID) -> String {
+        return "\(scheduledSessionMetadataPrefix.rawValue)\(sessionId.uuidString)"
+    }
+    
+    /// **Key Prefix:** `"sessionEvents_"`
+    /// **Type:** Prefix for dynamic session-specific event keys
+    /// **Purpose:** Used to generate session-specific keys for storing session events
+    case sessionEventsPrefix = "sessionEvents_"
+    
+    /// Generate a session-specific key for session events
+    /// - Parameter sessionId: The session UUID
+    /// - Returns: The full key string for this session's events
+    public static func sessionEventsKey(for sessionId: UUID) -> String {
+        return "\(sessionEventsPrefix.rawValue)\(sessionId.uuidString)"
     }
 }
 
@@ -164,8 +265,10 @@ public final class AppGroupStorage {
         if let state = state {
             let data = try? JSONEncoder().encode(state)
             defaults.set(data, forKey: AppGroupStorageKey.sharedSessionState.rawValue)
+            LoggerService.shared.logInfo("Session state written to AppGroup: isActive=\(state.isActive)", category: "AppGroup")
         } else {
             defaults.removeObject(forKey: AppGroupStorageKey.sharedSessionState.rawValue)
+            LoggerService.shared.logInfo("Session state cleared from AppGroup", category: "AppGroup")
         }
         
         // Broadcast update notification
@@ -209,6 +312,7 @@ public final class AppGroupStorage {
     /// - Parameter isPending: Whether an unlock request is pending
     public func setPendingUnlockRequest(_ isPending: Bool) {
         defaults?.set(isPending, forKey: AppGroupStorageKey.pendingUnlockRequest.rawValue)
+        LoggerService.shared.logInfo("Pending unlock request flag set: \(isPending)", category: "AppGroup")
         // Broadcast update notification
         notifyUpdate(forKey: .pendingUnlockRequest)
     }
@@ -335,5 +439,275 @@ public final class AppGroupStorage {
     public func clearCurrentSessionFriendIds() {
         defaults?.removeObject(forKey: AppGroupStorageKey.currentSessionFriendIds.rawValue)
         notifyUpdate(forKey: .currentSessionFriendIds)
+    }
+    
+    // MARK: - Unlock Approval
+    
+    /// Checks if an unlock has been approved.
+    /// Used by ShieldViewModel and ShieldDecision to determine if shield should auto-dismiss.
+    /// - Returns: true if unlock has been approved, false otherwise
+    public func isUnlockApproved() -> Bool {
+        defaults?.bool(forKey: AppGroupStorageKey.unlockApproved.rawValue) ?? false
+    }
+    
+    /// Sets the unlock approved flag.
+    /// Called by UnlockRequestService when an unlock request is approved.
+    /// - Parameter isApproved: Whether the unlock has been approved
+    public func setUnlockApproved(_ isApproved: Bool) {
+        defaults?.set(isApproved, forKey: AppGroupStorageKey.unlockApproved.rawValue)
+        notifyUpdate(forKey: .unlockApproved)
+    }
+    
+    /// Clears the unlock approved flag.
+    /// Called when shield is dismissed or app is reopened after approval.
+    public func clearUnlockApproved() {
+        defaults?.removeObject(forKey: AppGroupStorageKey.unlockApproved.rawValue)
+        notifyUpdate(forKey: .unlockApproved)
+    }
+    
+    /// Sets the approved unlock bundle ID and timestamp.
+    /// Called by UnlockRequestService when an unlock request is approved.
+    /// - Parameters:
+    ///   - bundleId: The bundle identifier of the app to allow
+    ///   - timestamp: The timestamp when the unlock was approved
+    public func setUnlockAllowedBundleId(_ bundleId: String, timestamp: Date = Date()) {
+        defaults?.set(bundleId, forKey: AppGroupStorageKey.unlockAllowedBundleId.rawValue)
+        defaults?.set(timestamp.timeIntervalSince1970, forKey: AppGroupStorageKey.unlockApprovedTimestamp.rawValue)
+        notifyUpdate(forKey: .unlockAllowedBundleId)
+    }
+    
+    /// Gets the approved unlock bundle ID.
+    /// Used by ShieldViewModel to determine which app to allow.
+    /// - Returns: The bundle identifier of the approved app, or nil if none
+    public func getUnlockAllowedBundleId() -> String? {
+        return defaults?.string(forKey: AppGroupStorageKey.unlockAllowedBundleId.rawValue)
+    }
+    
+    /// Gets the timestamp when the unlock was approved.
+    /// Used to check if the unlock is still valid.
+    /// - Returns: The approval timestamp, or nil if none
+    public func getUnlockApprovedTimestamp() -> Date? {
+        guard let timestamp = defaults?.double(forKey: AppGroupStorageKey.unlockApprovedTimestamp.rawValue),
+              timestamp > 0 else {
+            return nil
+        }
+        return Date(timeIntervalSince1970: timestamp)
+    }
+    
+    /// Clears the approved unlock bundle ID and timestamp.
+    /// Called when shield is dismissed or app is reopened after approval.
+    public func clearUnlockAllowedBundleId() {
+        defaults?.removeObject(forKey: AppGroupStorageKey.unlockAllowedBundleId.rawValue)
+        defaults?.removeObject(forKey: AppGroupStorageKey.unlockApprovedTimestamp.rawValue)
+        notifyUpdate(forKey: .unlockAllowedBundleId)
+    }
+    
+    // MARK: - Deep Link Context
+    
+    /// Sets context for a pending deep link (e.g., unlock request ID, bundle ID).
+    /// Used when shield extension opens app via URL scheme to pass contextual information.
+    /// - Parameters:
+    ///   - requestId: Optional unlock request ID
+    ///   - bundleId: Optional bundle ID of the blocked app
+    public func setPendingDeepLinkContext(requestId: String? = nil, bundleId: String? = nil) {
+        var context: [String: String] = [:]
+        if let requestId = requestId {
+            context["unlockRequestId"] = requestId
+        }
+        if let bundleId = bundleId {
+            context["bundleId"] = bundleId
+        }
+        
+        if !context.isEmpty {
+            defaults?.set(context, forKey: AppGroupStorageKey.pendingDeepLinkContext.rawValue)
+        } else {
+            defaults?.removeObject(forKey: AppGroupStorageKey.pendingDeepLinkContext.rawValue)
+        }
+        notifyUpdate(forKey: .pendingDeepLinkContext)
+    }
+    
+    /// Gets the pending deep link context.
+    /// Used by AppCoordinator to navigate to the correct screen with context.
+    /// - Returns: Dictionary with context (e.g., ["unlockRequestId": "123"])
+    public func getPendingDeepLinkContext() -> [String: String] {
+        guard let defaults = defaults,
+              let context = defaults.dictionary(forKey: AppGroupStorageKey.pendingDeepLinkContext.rawValue) as? [String: String] else {
+            return [:]
+        }
+        return context
+    }
+    
+    /// Saves a type-safe DeepLinkContext.
+    /// Preferred over setPendingDeepLinkContext for type safety.
+    /// - Parameter context: The DeepLinkContext to save
+    public func saveDeepLinkContext(_ context: DeepLinkContext) {
+        guard let defaults = defaults else { return }
+        
+        do {
+            let encoded = try JSONEncoder().encode(context)
+            defaults.set(encoded, forKey: AppGroupStorageKey.pendingDeepLinkContext.rawValue)
+            notifyUpdate(forKey: .pendingDeepLinkContext)
+        } catch {
+            // Fall back to dictionary format
+            setPendingDeepLinkContext(requestId: context.unlockRequestId, bundleId: context.bundleId)
+        }
+    }
+    
+    /// Loads a type-safe DeepLinkContext.
+    /// Returns nil if no context exists or if expired.
+    /// - Returns: The stored DeepLinkContext, or nil
+    public func loadDeepLinkContext() -> DeepLinkContext? {
+        guard let defaults = defaults else { return nil }
+        
+        // Try to load as encoded struct first
+        if let data = defaults.data(forKey: AppGroupStorageKey.pendingDeepLinkContext.rawValue),
+           let context = try? JSONDecoder().decode(DeepLinkContext.self, from: data) {
+            // Check if expired
+            if context.isExpired {
+                clearPendingDeepLinkContext()
+                return nil
+            }
+            return context
+        }
+        
+        // Fall back to dictionary format (for backward compatibility)
+        let dict = getPendingDeepLinkContext()
+        if dict.isEmpty {
+            return nil
+        }
+        
+        return DeepLinkContext(
+            unlockRequestId: dict["unlockRequestId"],
+            bundleId: dict["bundleId"]
+        )
+    }
+    
+    /// Clears the pending deep link context.
+    /// Called after navigation completes.
+    public func clearPendingDeepLinkContext() {
+        defaults?.removeObject(forKey: AppGroupStorageKey.pendingDeepLinkContext.rawValue)
+        notifyUpdate(forKey: .pendingDeepLinkContext)
+    }
+    
+    // MARK: - Current Blocked Bundle ID
+    
+    /// Sets the bundle ID of the app currently showing the shield.
+    /// Called when shield is displayed to track which app is blocked.
+    /// - Parameter bundleId: The bundle identifier of the blocked app
+    public func setCurrentBlockedBundleId(_ bundleId: String) {
+        defaults?.set(bundleId, forKey: AppGroupStorageKey.currentBlockedBundleId.rawValue)
+        notifyUpdate(forKey: .currentBlockedBundleId)
+    }
+    
+    /// Gets the bundle ID of the app currently showing the shield.
+    /// Used to pass bundle ID to unlock request flow.
+    /// - Returns: The bundle identifier of the blocked app, or nil if not set
+    public func getCurrentBlockedBundleId() -> String? {
+        return defaults?.string(forKey: AppGroupStorageKey.currentBlockedBundleId.rawValue)
+    }
+    
+    /// Clears the current blocked bundle ID.
+    /// Called when shield is dismissed or app is unlocked.
+    public func clearCurrentBlockedBundleId() {
+        defaults?.removeObject(forKey: AppGroupStorageKey.currentBlockedBundleId.rawValue)
+        notifyUpdate(forKey: .currentBlockedBundleId)
+    }
+    
+    // MARK: - Unified Unlock Approval
+    
+    /// Sets all unlock approval flags atomically.
+    /// This is the preferred method for approving an unlock request.
+    /// - Parameters:
+    ///   - bundleId: The bundle ID of the app to allow
+    ///   - timestamp: The timestamp when the unlock was approved (defaults to now)
+    public func setUnlockAllowed(bundleId: String, at timestamp: Date = Date()) {
+        defaults?.set(true, forKey: AppGroupStorageKey.unlockApproved.rawValue)
+        defaults?.set(bundleId, forKey: AppGroupStorageKey.unlockAllowedBundleId.rawValue)
+        defaults?.set(timestamp.timeIntervalSince1970, forKey: AppGroupStorageKey.unlockApprovedTimestamp.rawValue)
+        
+        LoggerService.shared.logInfo("Unlock allowed for bundle: \(bundleId)", category: "AppGroup")
+        
+        notifyUpdate(forKey: .unlockApproved)
+        notifyUpdate(forKey: .unlockAllowedBundleId)
+    }
+    
+    /// Clears all unlock approval flags atomically.
+    public func clearUnlockApproval() {
+        defaults?.removeObject(forKey: AppGroupStorageKey.unlockApproved.rawValue)
+        defaults?.removeObject(forKey: AppGroupStorageKey.unlockAllowedBundleId.rawValue)
+        defaults?.removeObject(forKey: AppGroupStorageKey.unlockApprovedTimestamp.rawValue)
+        
+        LoggerService.shared.logInfo("Unlock approval cleared", category: "AppGroup")
+        
+        notifyUpdate(forKey: .unlockApproved)
+        notifyUpdate(forKey: .unlockAllowedBundleId)
+    }
+    
+    // MARK: - Unlock Flag Cleanup
+    
+    /// Checks if unlock approval has expired (5 minutes after approval).
+    /// - Returns: true if unlock has expired, false otherwise
+    public func isUnlockExpired() -> Bool {
+        guard let timestamp = getUnlockApprovedTimestamp() else {
+            return true // No timestamp means expired
+        }
+        let expirationTime = timestamp.addingTimeInterval(5 * 60) // 5 minutes
+        return Date() > expirationTime
+    }
+    
+    /// Cleans up expired unlock flags.
+    /// Should be called periodically or when checking unlock status.
+    public func cleanupExpiredUnlockFlags() {
+        if isUnlockExpired() {
+            clearUnlockApproval()
+        }
+    }
+    
+    // MARK: - Session Events
+    
+    /// Saves session events for a specific session.
+    /// Used by SessionService to persist event timeline.
+    /// - Parameters:
+    ///   - events: Array of session events
+    ///   - sessionId: The session UUID
+    public func saveSessionEvents(_ events: [SessionEvent], forSessionId sessionId: UUID) {
+        guard let defaults = defaults else { return }
+        
+        do {
+            let encoded = try JSONEncoder().encode(events)
+            let key = AppGroupStorageKey.sessionEventsKey(for: sessionId)
+            defaults.set(encoded, forKey: key)
+        } catch {
+            // Log error but don't throw - events are non-critical
+            print("Failed to save session events: \(error)")
+        }
+    }
+    
+    /// Loads session events for a specific session.
+    /// Used by SessionService to restore event timeline.
+    /// - Parameter sessionId: The session UUID
+    /// - Returns: Array of session events, or empty array if not found
+    public func loadSessionEvents(forSessionId sessionId: UUID) -> [SessionEvent] {
+        guard let defaults = defaults else { return [] }
+        
+        let key = AppGroupStorageKey.sessionEventsKey(for: sessionId)
+        guard let data = defaults.data(forKey: key) else {
+            return []
+        }
+        
+        do {
+            return try JSONDecoder().decode([SessionEvent].self, from: data)
+        } catch {
+            print("Failed to load session events: \(error)")
+            return []
+        }
+    }
+    
+    /// Clears session events for a specific session.
+    /// - Parameter sessionId: The session UUID
+    public func clearSessionEvents(forSessionId sessionId: UUID) {
+        guard let defaults = defaults else { return }
+        let key = AppGroupStorageKey.sessionEventsKey(for: sessionId)
+        defaults.removeObject(forKey: key)
     }
 }

@@ -37,6 +37,18 @@ class ToastManager: ObservableObject {
         show(message, type: .error, duration: duration)
     }
     
+    /// Show an info toast notification
+    /// - Parameter message: The message to display
+    func showInfo(_ message: String, duration: Double = 2.5) {
+        show(message, type: .info, duration: duration)
+    }
+    
+    /// Show a warning toast notification
+    /// - Parameter message: The message to display
+    func showWarning(_ message: String, duration: Double = 2.5) {
+        show(message, type: .warning, duration: duration)
+    }
+    
     /// Internal method to show a toast
     private func showToast(_ toast: ToastModel) {
         // Cancel any existing dismiss task
