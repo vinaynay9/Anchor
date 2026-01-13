@@ -1,7 +1,9 @@
 import SwiftUI
 import UIKit
 import UserNotifications
+#if canImport(GoogleSignIn)
 import GoogleSignIn
+#endif
 import Shared
 
 // MARK: - App Delegate for APNs

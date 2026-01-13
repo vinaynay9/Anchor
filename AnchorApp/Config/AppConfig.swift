@@ -9,12 +9,14 @@ struct AppConfig {
     static let appGroupIdentifier = AppGroupStorage.appGroupIdentifier
     
     // MARK: - Backend
-    static let apiBaseURL = "https://chkwsfgnvkmuvwtxfore.supabase.co"
+    static let apiBaseURL = Secrets.supabaseURL
     static let apiVersion = "v1"
     
     // MARK: - API Endpoints
     static var baseURL: URL {
-        URL(string: "\(apiBaseURL)/rest/\(apiVersion)")!
+        let trimmed = apiBaseURL.trimmingCharacters(in: .whitespacesAndNewlines)
+        let fallback = "http://localhost"
+        return URL(string: "\(trimmed.isEmpty ? fallback : trimmed)/rest/\(apiVersion)")!
     }
     
     // MARK: - UserDefaults Keys
@@ -28,4 +30,3 @@ struct AppConfig {
     // Note: AppGroupStorage now uses its own internal keys
     // Legacy keys removed - only SharedSessionState is used
 }
-
