@@ -50,7 +50,8 @@ final class MockUserService: UserServiceProtocol {
             email: user.email,
             username: username ?? user.username,
             displayName: displayName ?? user.displayName,
-            createdAt: user.createdAt
+            createdAt: user.createdAt,
+            role: user.role
         )
         currentUser = updatedUser
         return updatedUser
@@ -75,4 +76,3 @@ final class MockUserService: UserServiceProtocol {
         searchUsersCalled = false
     }
 }
-

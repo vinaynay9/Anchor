@@ -17,6 +17,7 @@ class SessionService: SessionServiceProtocol {
     private let deviceActivityService = DeviceActivityService.shared
     private let notificationService: NotificationServiceProtocol
     private let persistenceService = PersistenceService.shared
+    private let analyticsService: AnalyticsServiceProtocol
     private var activeSession: LockSession?
     private var timer: Timer?
     private let userId: UUID
@@ -26,10 +27,12 @@ class SessionService: SessionServiceProtocol {
     
     init(
         screenTimeService: ScreenTimeServiceProtocol = ScreenTimeService.shared,
-        notificationService: NotificationServiceProtocol = NotificationService.shared
+        notificationService: NotificationServiceProtocol = NotificationService.shared,
+        analyticsService: AnalyticsServiceProtocol = AnalyticsServiceProvider.shared
     ) {
         self.screenTimeService = screenTimeService
         self.notificationService = notificationService
+        self.analyticsService = analyticsService
         // Get or create user ID
         if let userIdString = UserDefaults.standard.string(forKey: AppConfig.UserDefaultsKeys.currentUserId),
            let uuid = UUID(uuidString: userIdString) {
@@ -184,6 +187,11 @@ class SessionService: SessionServiceProtocol {
         )
         appGroupStorage.setSessionState(sharedState)
         
+        analyticsService.log(
+            event: .anchorStateChanged,
+            payload: AnalyticsPayload(userState: .anchored)
+        )
+        
         // Integrate with ScreenTimeService to block apps
         await screenTimeService.startBlocking(for: sessionWithEvents)
         
@@ -275,6 +283,11 @@ class SessionService: SessionServiceProtocol {
         
         // Clear AppGroupStorage
         appGroupStorage.setSessionState(nil)
+        
+        analyticsService.log(
+            event: .anchorStateChanged,
+            payload: AnalyticsPayload(userState: .free)
+        )
         
         // Integrate with ScreenTimeService to unblock apps
         await screenTimeService.stopBlocking()
@@ -394,4 +407,3 @@ class SessionService: SessionServiceProtocol {
         }
     }
 }
-

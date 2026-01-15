@@ -79,6 +79,7 @@ class ProofService: ProofServiceProtocol {
     private let sessionService: SessionServiceProtocol
     private let persistenceService = PersistenceService.shared
     private let networkMonitor = NetworkMonitor.shared
+    private let analyticsService: AnalyticsServiceProtocol
     
     /// Maximum number of retry attempts (total attempts = maxRetries + 1)
     private let maxRetries = 2
@@ -86,8 +87,12 @@ class ProofService: ProofServiceProtocol {
     /// Initial retry delay in seconds
     private let initialRetryDelay: TimeInterval = 1.0
     
-    init(sessionService: SessionServiceProtocol = SessionService.shared) {
+    init(
+        sessionService: SessionServiceProtocol = SessionService.shared,
+        analyticsService: AnalyticsServiceProtocol = AnalyticsServiceProvider.shared
+    ) {
         self.sessionService = sessionService
+        self.analyticsService = analyticsService
         
         // Create background-compatible URLSession configuration
         let config = URLSessionConfiguration.default
@@ -157,6 +162,11 @@ class ProofService: ProofServiceProtocol {
                     let event = SessionEvent(type: .proofSubmitted, timestamp: Date(), metadata: metadata)
                     sessionService.addEventToActiveSession(event)
                 }
+                
+                let sharedState = AppGroupStorage.shared.getSessionState()
+                let userState: AnalyticsUserState = (sharedState?.isActive ?? false) ? .anchored : .free
+                let payload = AnalyticsPayload(userState: userState)
+                analyticsService.log(event: .proofSubmitted, payload: payload)
                 
                 return proof
                 

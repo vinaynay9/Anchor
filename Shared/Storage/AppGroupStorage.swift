@@ -142,6 +142,46 @@ public enum AppGroupStorageKey: String {
     /// **Read by:** AppCoordinator (to navigate to correct screen with context)
     /// **Lifecycle:** Set when deep link is triggered, cleared after navigation completes
     case pendingDeepLinkContext = "pendingDeepLinkContext"
+
+    /// **Key:** `"dailyAnchorTime"`
+    /// **Type:** JSON-encoded `DailyAnchorTime`
+    /// **Purpose:** Stores the user-defined daily anchor time for automatic anchoring.
+    case dailyAnchorTime = "dailyAnchorTime"
+
+    /// **Key:** `"anchoringEligibility"`
+    /// **Type:** Boolean
+    /// **Purpose:** Stores whether the user is currently eligible to be anchored.
+    case anchoringEligibility = "anchoringEligibility"
+
+    /// **Key:** `"emergencyUnanchorUntil"`
+    /// **Type:** Date (stored as TimeInterval)
+    /// **Purpose:** Stores the timestamp until which emergency unanchor is active.
+    case emergencyUnanchorUntil = "emergencyUnanchorUntil"
+
+    /// **Key:** `"lastShieldHitAt"`
+    /// **Type:** Date (stored as TimeInterval)
+    /// **Purpose:** Stores the timestamp of the most recent shield display.
+    case lastShieldHitAt = "lastShieldHitAt"
+
+    /// **Key:** `"analyticsSalt"`
+    /// **Type:** String
+    /// **Purpose:** Per-install salt used for hashing analytics tokens.
+    case analyticsSalt = "analyticsSalt"
+
+    /// **Key:** `"analyticsDayId"`
+    /// **Type:** String
+    /// **Purpose:** Daily identifier used for aggregate correlation.
+    case analyticsDayId = "analyticsDayId"
+
+    /// **Key:** `"analyticsDayIdDate"`
+    /// **Type:** String (yyyy-MM-dd)
+    /// **Purpose:** Date associated with the current analytics day ID.
+    case analyticsDayIdDate = "analyticsDayIdDate"
+
+    /// **Key:** `"lastAppOpenAt"`
+    /// **Type:** Date (stored as TimeInterval)
+    /// **Purpose:** Timestamp of the most recent app_opened event (dedup).
+    case lastAppOpenAt = "lastAppOpenAt"
     
     /// **Key Prefix:** `"scheduledSessionConfig_"`  
     /// **Type:** Prefix for dynamic session-specific schedule configuration keys
@@ -239,6 +279,10 @@ public final class AppGroupStorage {
                 notification.object as? String
             }
             .eraseToAnyPublisher()
+    }
+
+    public func appGroupContainerURL() -> URL? {
+        FileManager.default.containerURL(forSecurityApplicationGroupIdentifier: Self.appGroupIdentifier)
     }
     
     // MARK: - Internal Helper to Post Notifications
@@ -661,6 +705,110 @@ public final class AppGroupStorage {
         if isUnlockExpired() {
             clearUnlockApproval()
         }
+    }
+
+    // MARK: - Anchoring Schedule
+
+    public func setDailyAnchorTime(_ time: DailyAnchorTime) {
+        guard let defaults = defaults else { return }
+        if let data = try? JSONEncoder().encode(time) {
+            defaults.set(data, forKey: AppGroupStorageKey.dailyAnchorTime.rawValue)
+            notifyUpdate(forKey: .dailyAnchorTime)
+        }
+    }
+
+    public func getDailyAnchorTime() -> DailyAnchorTime? {
+        guard let defaults = defaults,
+              let data = defaults.data(forKey: AppGroupStorageKey.dailyAnchorTime.rawValue) else {
+            return nil
+        }
+        return try? JSONDecoder().decode(DailyAnchorTime.self, from: data)
+    }
+
+    public func setAnchoringEligibility(_ isEligible: Bool) {
+        defaults?.set(isEligible, forKey: AppGroupStorageKey.anchoringEligibility.rawValue)
+        notifyUpdate(forKey: .anchoringEligibility)
+    }
+
+    public func getAnchoringEligibility() -> Bool {
+        defaults?.bool(forKey: AppGroupStorageKey.anchoringEligibility.rawValue) ?? false
+    }
+
+    // MARK: - Emergency Unanchor
+
+    public func setEmergencyUnanchorUntil(_ date: Date?) {
+        if let date = date {
+            defaults?.set(date.timeIntervalSince1970, forKey: AppGroupStorageKey.emergencyUnanchorUntil.rawValue)
+        } else {
+            defaults?.removeObject(forKey: AppGroupStorageKey.emergencyUnanchorUntil.rawValue)
+        }
+        notifyUpdate(forKey: .emergencyUnanchorUntil)
+    }
+
+    public func getEmergencyUnanchorUntil() -> Date? {
+        let timestamp = defaults?.double(forKey: AppGroupStorageKey.emergencyUnanchorUntil.rawValue) ?? 0
+        guard timestamp > 0 else { return nil }
+        return Date(timeIntervalSince1970: timestamp)
+    }
+
+    public func isEmergencyUnanchorActive() -> Bool {
+        guard let until = getEmergencyUnanchorUntil() else { return false }
+        return Date() < until
+    }
+
+    // MARK: - Shield Analytics Helpers
+
+    public func setLastShieldHit(at date: Date) {
+        defaults?.set(date.timeIntervalSince1970, forKey: AppGroupStorageKey.lastShieldHitAt.rawValue)
+        notifyUpdate(forKey: .lastShieldHitAt)
+    }
+
+    public func getLastShieldHitAt() -> Date? {
+        let timestamp = defaults?.double(forKey: AppGroupStorageKey.lastShieldHitAt.rawValue) ?? 0
+        guard timestamp > 0 else { return nil }
+        return Date(timeIntervalSince1970: timestamp)
+    }
+
+    public func getOrCreateAnalyticsSalt() -> String {
+        if let salt = defaults?.string(forKey: AppGroupStorageKey.analyticsSalt.rawValue), !salt.isEmpty {
+            return salt
+        }
+        let salt = UUID().uuidString.replacingOccurrences(of: "-", with: "")
+        defaults?.set(salt, forKey: AppGroupStorageKey.analyticsSalt.rawValue)
+        notifyUpdate(forKey: .analyticsSalt)
+        return salt
+    }
+
+    public func getAnalyticsDayId(for date: Date = Date()) -> String {
+        let formatter = DateFormatter()
+        formatter.dateFormat = "yyyy-MM-dd"
+        let today = formatter.string(from: date)
+        let storedDate = defaults?.string(forKey: AppGroupStorageKey.analyticsDayIdDate.rawValue)
+        if storedDate == today,
+           let existingId = defaults?.string(forKey: AppGroupStorageKey.analyticsDayId.rawValue),
+           !existingId.isEmpty {
+            return existingId
+        }
+        let newId = UUID().uuidString
+        defaults?.set(newId, forKey: AppGroupStorageKey.analyticsDayId.rawValue)
+        defaults?.set(today, forKey: AppGroupStorageKey.analyticsDayIdDate.rawValue)
+        notifyUpdate(forKey: .analyticsDayId)
+        return newId
+    }
+
+    public func setLastAppOpenAt(_ date: Date?) {
+        if let date = date {
+            defaults?.set(date.timeIntervalSince1970, forKey: AppGroupStorageKey.lastAppOpenAt.rawValue)
+        } else {
+            defaults?.removeObject(forKey: AppGroupStorageKey.lastAppOpenAt.rawValue)
+        }
+        notifyUpdate(forKey: .lastAppOpenAt)
+    }
+
+    public func getLastAppOpenAt() -> Date? {
+        let timestamp = defaults?.double(forKey: AppGroupStorageKey.lastAppOpenAt.rawValue) ?? 0
+        guard timestamp > 0 else { return nil }
+        return Date(timeIntervalSince1970: timestamp)
     }
     
     // MARK: - Session Events

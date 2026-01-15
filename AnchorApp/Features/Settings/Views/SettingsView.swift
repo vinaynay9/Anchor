@@ -1,9 +1,13 @@
 import SwiftUI
+import Shared
 
 struct SettingsView: View {
     @StateObject private var viewModel = SettingsViewModel()
     @StateObject private var goalService = GoalService.shared
     @EnvironmentObject var coordinator: MainTabFlow
+    @EnvironmentObject var authViewModel: AuthViewModel
+    @AppStorage(InternalToolsKeys.isEnabled) private var internalToolsEnabled: Bool = false
+    @AppStorage("analyticsRemoteExportEnabled") private var analyticsRemoteExportEnabled: Bool = false
     
     var body: some View {
         ZStack {
@@ -85,6 +89,13 @@ struct SettingsView: View {
             .padding(Theme.spacing2)
             .background(AppColors.secondaryBackground)
             .cornerRadius(Theme.cornerRadiusMedium)
+        }
+        .onLongPressGesture(minimumDuration: 1.0) {
+            guard InternalTools.canToggle(user: authViewModel.currentUser) else { return }
+            internalToolsEnabled.toggle()
+            ToastManager.shared.show(
+                internalToolsEnabled ? "Internal tools enabled" : "Internal tools disabled"
+            )
         }
     }
     
@@ -199,6 +210,33 @@ struct SettingsView: View {
                         showChevron: true
                     )
                 }
+                
+                #if INTERNAL_TOOLS || DEBUG
+                if InternalTools.canAccessAdmin(user: authViewModel.currentUser) {
+                    Divider()
+                        .background(AppColors.textSecondary.opacity(0.2))
+                        .padding(.leading, 50)
+                    
+                    NavigationLink(destination: AdminRootView()) {
+                        SettingsRowView(
+                            icon: "shield.lefthalf.filled",
+                            title: "Admin Tools",
+                            subtitle: "Internal dashboards",
+                            showChevron: true
+                        )
+                    }
+                    
+                    Divider()
+                        .background(AppColors.textSecondary.opacity(0.2))
+                        .padding(.leading, 50)
+                    
+                    SettingsRowView(
+                        icon: "square.and.arrow.up",
+                        title: "Enable Remote Export (stub)",
+                        isOn: $analyticsRemoteExportEnabled
+                    )
+                }
+                #endif
             }
             .background(AppColors.secondaryBackground)
             .cornerRadius(Theme.cornerRadiusMedium)

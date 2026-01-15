@@ -284,6 +284,44 @@ class ScreenTimeService: ScreenTimeServiceProtocol {
             LoggerService.shared.logError("Failed to stop blocking", error: error, category: "ScreenTime")
         }
     }
+
+    // MARK: - Anchoring
+    func applyDailyAnchor() async {
+        LoggerService.shared.logInfo("Applying daily anchor blocking", category: "ScreenTime")
+        
+        let tokens = activitySelectionService.loadApplicationTokens()
+        let selection = activitySelectionService.loadSelection()
+        let categoryTokens = selection?.categoryTokens ?? Set<ActivityCategoryToken>()
+        
+        if tokens.isEmpty && categoryTokens.isEmpty {
+            LoggerService.shared.logWarning("No app selection found for anchoring.", category: "ScreenTime")
+            return
+        }
+        
+        activateShields(
+            for: tokens,
+            categories: nil,
+            categoryTokens: categoryTokens.isEmpty ? nil : categoryTokens
+        )
+    }
+
+    func applyChallengeOverrides() async {
+        LoggerService.shared.logInfo("Applying challenge overrides", category: "ScreenTime")
+        do {
+            let challenges = try await ChallengeService.shared.getActiveChallenges()
+            guard !challenges.isEmpty else { return }
+            LoggerService.shared.logInfo("Challenge overrides available: \(challenges.count)", category: "ScreenTime")
+        } catch {
+            LoggerService.shared.logError("Failed to load challenges for overrides", error: error, category: "ScreenTime")
+        }
+    }
+
+    func emergencyUnanchor(duration: TimeInterval) async {
+        LoggerService.shared.logWarning("Emergency unanchor triggered for \(duration) seconds", category: "ScreenTime")
+        let until = Date().addingTimeInterval(duration)
+        appGroupStorage.setEmergencyUnanchorUntil(until)
+        await stopBlocking()
+    }
     
     // MARK: - App Selection
     func selectApps() async throws -> FamilyActivitySelection {
@@ -427,4 +465,3 @@ class ScreenTimeService: ScreenTimeServiceProtocol {
         return nil
     }
 }
-

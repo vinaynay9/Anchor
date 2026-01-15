@@ -36,5 +36,13 @@ protocol ScreenTimeServiceProtocol {
     
     /// Starts blocking for a scheduled session (called by DeviceActivityMonitor).
     func startBlockingForScheduledSession(sessionId: UUID, categories: [AppCategory]?, schedule: LockSessionSchedule) async
-}
 
+    /// Applies the daily anchor blocking based on the user's schedule.
+    func applyDailyAnchor() async
+
+    /// Applies additional blocking based on active challenges.
+    func applyChallengeOverrides() async
+
+    /// Temporarily removes blocking for an emergency unanchor.
+    func emergencyUnanchor(duration: TimeInterval) async
+}

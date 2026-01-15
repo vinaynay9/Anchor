@@ -4,6 +4,8 @@ import Shared
 struct SessionHomeView: View {
     @EnvironmentObject var coordinator: MainTabFlow
     @StateObject private var viewModel = SessionViewModel()
+    @Namespace private var insightsNamespace
+    @State private var showInsightsDetail = false
     
     var body: some View {
         ZStack {
@@ -53,10 +55,16 @@ struct SessionHomeView: View {
                 
                 Spacer()
             }
+            
+            if showInsightsDetail {
+                insightsExpandedCard
+                    .transition(.opacity)
+            }
         }
         .navigationTitle("Sessions")
         .animation(.spring(response: 0.4, dampingFraction: 0.8), value: viewModel.activeSession != nil)
         .animation(.spring(response: 0.4, dampingFraction: 0.8), value: viewModel.isLoading)
+        .animation(.spring(response: 0.4, dampingFraction: 0.8), value: showInsightsDetail)
         .onAppear {
             viewModel.loadActiveSession()
         }
@@ -183,12 +191,8 @@ struct SessionHomeView: View {
     
     private var insightsCard: some View {
         Button(action: {
-            // Switch to Insights tab (tab index 1)
-            // Note: This requires access to the TabView selection
-            // For now, we'll use a navigation approach
-            withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
-                // Navigate to insights - we'll need to update coordinator
-                coordinator.navigateToInsights()
+            withAnimation(.spring(response: 0.4, dampingFraction: 0.8)) {
+                showInsightsDetail = true
             }
         }) {
             HStack(spacing: Theme.spacing) {
@@ -237,6 +241,61 @@ struct SessionHomeView: View {
                     lineWidth: 1
                 )
         )
+        .matchedGeometryEffect(id: "insightsCard", in: insightsNamespace)
+    }
+    
+    private var insightsExpandedCard: some View {
+        VStack(spacing: Theme.spacing2) {
+            HStack {
+                Text("Weekly Insights")
+                    .font(AppTypography.title2)
+                    .foregroundColor(AppColors.textPrimary)
+                Spacer()
+                Button(action: {
+                    withAnimation(.spring(response: 0.4, dampingFraction: 0.8)) {
+                        showInsightsDetail = false
+                    }
+                }) {
+                    Image(systemName: "xmark")
+                        .font(.system(size: 12, weight: .bold))
+                        .foregroundColor(AppColors.textSecondary)
+                        .padding(8)
+                        .background(AppColors.secondaryBackground)
+                        .clipShape(Circle())
+                }
+            }
+            
+            Text("Review focus patterns, streaks, and your most productive windows.")
+                .font(AppTypography.body)
+                .foregroundColor(AppColors.textSecondary)
+                .frame(maxWidth: .infinity, alignment: .leading)
+            
+            Button(action: {
+                withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
+                    coordinator.navigateToInsights()
+                    showInsightsDetail = false
+                }
+            }) {
+                Text("Open Insights")
+            }
+            .buttonStyle(PrimaryButtonStyle())
+            .padding(.top, Theme.spacing)
+        }
+        .padding(Theme.padding)
+        .background(
+            RoundedRectangle(cornerRadius: AppLayout.cardCornerRadius)
+                .fill(AppColors.secondaryBackground)
+        )
+        .overlay(
+            RoundedRectangle(cornerRadius: AppLayout.cardCornerRadius)
+                .stroke(AppColors.anchorAccent.opacity(0.25), lineWidth: 1)
+        )
+        .padding(.horizontal, Theme.padding)
+        .matchedGeometryEffect(id: "insightsCard", in: insightsNamespace)
+        .frame(maxWidth: .infinity)
+        .background(
+            AppColors.backgroundAnchored.opacity(0.2)
+                .ignoresSafeArea()
+        )
     }
 }
-

@@ -81,6 +81,7 @@ struct UnlockRequestView: View {
                                             ? AppColors.error
                                             : AppColors.textSecondary
                                     )
+                                    .animation(Theme.springAnimation, value: viewModel.characterCount)
                             }
                         }
                         .padding(.bottom, Theme.padding)
@@ -140,4 +141,3 @@ struct UnlockRequestView: View {
 #Preview {
     UnlockRequestView()
 }
-

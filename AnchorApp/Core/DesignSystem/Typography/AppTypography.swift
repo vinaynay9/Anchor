@@ -3,8 +3,8 @@ import SwiftUI
 // MARK: - Unified Typography System
 struct AppTypography {
     // MARK: - Display (Large Headings)
-    static let display = Font.system(size: 48, weight: .bold, design: .rounded)
-    static let display2 = Font.system(size: 40, weight: .bold, design: .rounded)
+    static let display = Font.system(size: 48, weight: .bold, design: .default)
+    static let display2 = Font.system(size: 40, weight: .bold, design: .default)
     
     // MARK: - Headings
     static let largeTitle = Font.system(size: 34, weight: .bold, design: .default)
@@ -31,4 +31,3 @@ struct AppTypography {
     static let label = Font.system(size: 11, weight: .medium, design: .default)
     static let labelBold = Font.system(size: 11, weight: .bold, design: .default)
 }
-

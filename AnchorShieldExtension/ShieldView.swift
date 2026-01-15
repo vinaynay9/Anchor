@@ -3,17 +3,17 @@ import ManagedSettingsUI
 import Shared
 
 // MARK: - Shield View
-// Full-screen glassmorphism shield with purple tint and glowing logo
+// Refined anchored experience with controlled blue-to-dark transition.
 
 struct ShieldView: View {
     @StateObject private var viewModel = ShieldViewModel()
-    @State private var logoScale: CGFloat = 1.0
-    @State private var logoOpacity: Double = 1.0
-    @State private var glassOffset: CGFloat = 0
-    @State private var logoYOffset: CGFloat = 0
-    @State private var shimmerOffset: CGFloat = -200
-    @State private var rippleScale: CGFloat = 1.0
-    @State private var rippleOpacity: Double = 0.0
+    @State private var isAnchoredVisual = false
+    @State private var anchorOffset: CGFloat = -48
+    @State private var anchorScale: CGFloat = 0.92
+    @State private var anchorOpacity: Double = 0.0
+    @State private var textOpacity: Double = 0.0
+    @State private var textOffset: CGFloat = 12
+    
     let context: ShieldConfigurationContext
     
     init(context: ShieldConfigurationContext) {
@@ -22,262 +22,177 @@ struct ShieldView: View {
     
     var body: some View {
         ZStack {
-            // Base background with purple tint
-            AppColors.anchorPrimaryDark
-                .ignoresSafeArea()
+            backgroundLayer
             
-            // Purple gradient overlay
-            LinearGradient(
-                colors: [
-                    AppColors.anchorPrimary.opacity(0.8),
-                    AppColors.anchorAccent.opacity(0.6)
-                ],
-                startPoint: .topLeading,
-                endPoint: .bottomTrailing
-            )
-            .ignoresSafeArea()
-            
-            // Glassmorphism panel
-            VStack(spacing: 0) {
-                Spacer()
+            VStack(spacing: ShieldTheme.largeSpacing) {
+                Spacer(minLength: 12)
                 
-                VStack(spacing: ShieldTheme.largeSpacing) {
-                    // Centered Anchor Logo with glow
-                    ZStack {
-                        // Glow effect
-                        Circle()
-                            .fill(
-                                RadialGradient(
-                                    colors: [
-                                        Color(red: 0.7, green: 0.5, blue: 1.0).opacity(0.4),
-                                        Color.clear
-                                    ],
-                                    center: .center,
-                                    startRadius: 20,
-                                    endRadius: 60
-                                )
-                            )
-                            .frame(width: 120, height: 120)
-                            .blur(radius: 20)
-                            .opacity(logoOpacity)
-                        
-                        // Logo
-                        Image(systemName: "anchor.fill")
-                            .font(.system(size: 64, weight: .light))
-                            .foregroundStyle(
-                                LinearGradient(
-                                    colors: [
-                                        AppColors.onPrimary,
-                                        AppColors.anchorLavender
-                                    ],
-                                    startPoint: .topLeading,
-                                    endPoint: .bottomTrailing
-                                )
-                            )
-                            .scaleEffect(logoScale)
-                            .offset(y: logoYOffset)
-                    }
-                    .padding(.bottom, ShieldTheme.spacing)
-                    
-                    // Main Message
-                    Text("Stay Locked In")
-                        .font(.system(size: 32, weight: .bold, design: .rounded))
+                Image(systemName: "anchor.fill")
+                    .font(.system(size: 64, weight: .semibold))
+                    .foregroundStyle(AppColors.onPrimary)
+                    .shadow(color: AppColors.accentFocus.opacity(0.35), radius: 18, x: 0, y: 10)
+                    .offset(y: anchorOffset)
+                    .scaleEffect(anchorScale)
+                    .opacity(anchorOpacity)
+                
+                VStack(spacing: ShieldTheme.smallSpacing) {
+                    Text(viewModel.title)
+                        .font(ShieldTypography.largeTitle)
                         .foregroundColor(AppColors.onPrimary)
-                        .multilineTextAlignment(.center)
                     
-                    // Secondary text
-                    Text("Complete your goals to unlock")
-                        .font(.system(size: 16, weight: .medium, design: .rounded))
+                    Text(viewModel.subtitle)
+                        .font(ShieldTypography.body)
                         .foregroundColor(AppColors.onPrimarySecondary)
                         .multilineTextAlignment(.center)
-                        .padding(.horizontal, ShieldTheme.padding)
-                    
-                    // Progress Indicator
-                    progressIndicator
-                        .padding(.top, ShieldTheme.spacing)
-                    
-                    Spacer(minLength: 40)
-                    
-                    // Unlock Options
-                    VStack(spacing: ShieldTheme.spacing) {
-                        Button(action: {
-                            viewModel.openUnlockRequest()
-                        }) {
-                            Text("Request Unlock")
-                                .font(.system(size: 16, weight: .semibold, design: .rounded))
-                                .foregroundColor(AppColors.onPrimary)
-                                .frame(maxWidth: .infinity)
-                                .padding(.vertical, 16)
-                                .background(
-                                    RoundedRectangle(cornerRadius: ShieldTheme.cornerRadius)
-                                        .fill(AppColors.onPrimary.opacity(0.2))
-                                        .overlay(
-                                            RoundedRectangle(cornerRadius: ShieldTheme.cornerRadius)
-                                                .stroke(AppColors.onPrimary.opacity(0.3), lineWidth: 1)
-                                        )
-                                )
-                        }
-                        .buttonStyle(ShieldButtonStyle())
-                        
-                        Button(action: {
-                            // Ripple effect
-                            withAnimation(.easeOut(duration: 0.4)) {
-                                rippleScale = 1.3
-                                rippleOpacity = 0.3
-                            }
-                            DispatchQueue.main.asyncAfter(deadline: .now() + 0.4) {
-                                rippleScale = 1.0
-                                rippleOpacity = 0.0
-                            }
-                            viewModel.openAnchorApp()
-                        }) {
-                            ZStack {
-                                // Ripple effect
-                                Circle()
-                                    .fill(AppColors.onPrimary.opacity(rippleOpacity))
-                                    .frame(width: 200, height: 200)
-                                    .scaleEffect(rippleScale)
-                                    .blur(radius: 20)
-                                
-                                Text("Return to Anchor")
-                                    .font(.system(size: 14, weight: .medium, design: .rounded))
-                                    .foregroundColor(AppColors.onPrimarySecondary)
-                            }
-                        }
-                        .buttonStyle(ShieldButtonStyle())
-                    }
-                    .padding(.horizontal, ShieldTheme.padding)
-                    .padding(.bottom, ShieldTheme.padding * 2)
                 }
-                .padding(.vertical, ShieldTheme.padding * 2)
-                .frame(maxWidth: .infinity)
-                .background(
-                    ZStack {
-                        RoundedRectangle(cornerRadius: 0)
-                            .fill(.ultraThinMaterial)
-                            .overlay(
-                                // Purple tint overlay
-                                LinearGradient(
-                                    colors: [
-                                        AppColors.anchorPrimary.opacity(0.3),
-                                        AppColors.anchorAccent.opacity(0.2)
-                                    ],
-                                    startPoint: .topLeading,
-                                    endPoint: .bottomTrailing
-                                )
-                            )
-                        
-                        // Shimmering gradient
-                        LinearGradient(
-                            colors: [
-                                Color.clear,
-                                AppColors.onPrimary.opacity(0.1),
-                                Color.clear
-                            ],
-                            startPoint: .leading,
-                            endPoint: .trailing
-                        )
-                        .offset(x: shimmerOffset)
-                        .blur(radius: 20)
-                    }
-                )
-                .offset(y: glassOffset)
+                .opacity(textOpacity)
+                .offset(y: textOffset)
+                .padding(.horizontal, ShieldTheme.padding)
+                
+                if let remaining = viewModel.remainingTimeText {
+                    Text("Time remaining \(remaining)")
+                        .font(ShieldTypography.caption)
+                        .foregroundColor(AppColors.onPrimarySecondary)
+                        .opacity(textOpacity)
+                }
+                
+                progressIndicator
+                    .opacity(textOpacity)
                 
                 Spacer()
+                
+                actionButtons
             }
+            .padding(.horizontal, ShieldTheme.padding)
+            .padding(.vertical, ShieldTheme.padding * 2)
         }
         .onAppear {
-            // Set context in viewModel to enable bundle ID extraction and matching
-            // This also stores the bundle ID (if extractable) in AppGroupStorage
             viewModel.setContext(context)
-            
-            // Refresh to show current state (pending unlock, approved, etc.)
             viewModel.refresh()
-            
-            // Refresh goal progress (business logic in ViewModel)
             viewModel.refreshGoalProgress()
-            
-            // Start visual animations
+            logShieldHit()
             startAnimations()
         }
     }
     
-    // MARK: - Progress Indicator
-    // Note: Goal state is managed by ShieldViewModel (MVVM pattern)
+    private var backgroundLayer: some View {
+        LinearGradient(
+            colors: isAnchoredVisual
+                ? [AppColors.primaryAnchored, AppColors.backgroundAnchored]
+                : [AppColors.primaryUnlocked, AppColors.accentFocus],
+            startPoint: .topLeading,
+            endPoint: .bottomTrailing
+        )
+        .overlay(
+            RadialGradient(
+                colors: [
+                    AppColors.accentFocus.opacity(isAnchoredVisual ? 0.12 : 0.2),
+                    Color.clear
+                ],
+                center: .top,
+                startRadius: 40,
+                endRadius: 280
+            )
+        )
+        .ignoresSafeArea()
+    }
+    
     private var progressIndicator: some View {
         VStack(spacing: ShieldTheme.smallSpacing) {
             if viewModel.goalTotalCount > 0 {
-                HStack(spacing: ShieldTheme.smallSpacing) {
-                    Text(viewModel.goalProgressText ?? "")
-                        .font(.system(size: 14, weight: .medium, design: .rounded))
-                        .foregroundColor(AppColors.onPrimarySecondary)
-                }
+                Text(viewModel.goalProgressText ?? "")
+                    .font(ShieldTypography.caption)
+                    .foregroundColor(AppColors.onPrimarySecondary)
                 
-                // Progress bar
                 GeometryReader { geometry in
                     ZStack(alignment: .leading) {
-                        RoundedRectangle(cornerRadius: 4)
-                            .fill(AppColors.onPrimary.opacity(0.2))
-                            .frame(height: 6)
+                        Capsule()
+                            .fill(AppColors.onPrimary.opacity(0.18))
+                            .frame(height: 5)
                         
-                        RoundedRectangle(cornerRadius: 4)
-                            .fill(
-                                LinearGradient(
-                                    colors: [
-                                        AppColors.onPrimary,
-                                        AppColors.anchorLavender
-                                    ],
-                                    startPoint: .leading,
-                                    endPoint: .trailing
-                                )
+                        Capsule()
+                            .fill(AppColors.accentFocus)
+                            .frame(
+                                width: geometry.size.width * CGFloat(viewModel.goalCompletedCount) / CGFloat(max(viewModel.goalTotalCount, 1)),
+                                height: 5
                             )
-                            .frame(width: geometry.size.width * CGFloat(viewModel.goalCompletedCount) / CGFloat(max(viewModel.goalTotalCount, 1)), height: 6)
                     }
                 }
-                .frame(height: 6)
+                .frame(height: 5)
                 .padding(.horizontal, ShieldTheme.padding)
-            } else {
-                Text("No goals set")
-                    .font(.system(size: 14, weight: .medium, design: .rounded))
-                    .foregroundColor(AppColors.onPrimarySecondary)
             }
         }
     }
     
-    // MARK: - Animations
+    private var actionButtons: some View {
+        VStack(spacing: ShieldTheme.spacing) {
+            Button(action: {
+                viewModel.openUnlockRequest()
+            }) {
+                Text(viewModel.primaryButtonTitle)
+                    .font(ShieldTypography.bodyBold)
+                    .foregroundColor(AppColors.onPrimary)
+                    .frame(maxWidth: .infinity)
+                    .padding(.vertical, 14)
+                    .background(
+                        RoundedRectangle(cornerRadius: ShieldTheme.cornerRadius)
+                            .fill(AppColors.accentFocus)
+                    )
+            }
+            .buttonStyle(ShieldButtonStyle())
+            
+            Button(action: {
+                viewModel.openAnchorApp()
+            }) {
+                Text(viewModel.secondaryButtonTitle)
+                    .font(ShieldTypography.caption)
+                    .foregroundColor(AppColors.onPrimarySecondary)
+                    .frame(maxWidth: .infinity)
+                    .padding(.vertical, 12)
+                    .background(
+                        RoundedRectangle(cornerRadius: ShieldTheme.cornerRadius)
+                            .stroke(AppColors.onPrimary.opacity(0.25), lineWidth: 1)
+                    )
+            }
+            .buttonStyle(ShieldButtonStyle())
+        }
+        .padding(.bottom, ShieldTheme.padding)
+    }
+    
     private func startAnimations() {
-        // Slow pulsing logo
-        withAnimation(
-            Animation.easeInOut(duration: 2.0)
-                .repeatForever(autoreverses: true)
-        ) {
-            logoScale = 1.05
-            logoOpacity = 0.8
+        withAnimation(.easeInOut(duration: 1.2)) {
+            isAnchoredVisual = true
         }
         
-        // Floating logo (up/down 2-3pt)
-        withAnimation(
-            Animation.easeInOut(duration: 2.5)
-                .repeatForever(autoreverses: true)
-        ) {
-            logoYOffset = -2.5
+        withAnimation(.easeOut(duration: 0.7)) {
+            anchorOpacity = 1.0
+            anchorOffset = 0
+            anchorScale = 1.0
         }
         
-        // Soft breathing glass panel
-        withAnimation(
-            Animation.easeInOut(duration: 3.0)
-                .repeatForever(autoreverses: true)
-        ) {
-            glassOffset = 2
+        withAnimation(.easeOut(duration: 0.6).delay(0.15)) {
+            textOpacity = 1.0
+            textOffset = 0
         }
-        
-        // Shimmering gradient
-        withAnimation(
-            Animation.linear(duration: 3.0)
-                .repeatForever(autoreverses: false)
-        ) {
-            shimmerOffset = 400
+    }
+
+    private func logShieldHit() {
+        let lastHit = AppGroupStorage.shared.getLastShieldHitAt()
+        let now = Date()
+        AppGroupStorage.shared.setLastShieldHit(at: now)
+        let userState: AnalyticsUserState = .anchored
+        var doubleValues: [String: Double] = [:]
+        if let lastHit {
+            doubleValues["impulseRecoverySeconds"] = max(now.timeIntervalSince(lastHit), 0)
         }
+        let salt = AppGroupStorage.shared.getOrCreateAnalyticsSalt()
+        let tokenHash = AnalyticsUtilities.hashToken(viewModel.blockedAppToken, salt: salt)
+        let metrics = AnalyticsMetrics(
+            doubleValues: doubleValues,
+            stringValues: tokenHash.map { ["appTokenHash": $0] } ?? [:]
+        )
+        let payload = AnalyticsPayload(userState: userState, metrics: metrics)
+        AnalyticsServiceProvider.shared.log(event: .shieldHit, payload: payload)
     }
 }
 
@@ -286,9 +201,8 @@ struct ShieldView: View {
 struct ShieldButtonStyle: ButtonStyle {
     func makeBody(configuration: Configuration) -> some View {
         configuration.label
-            .scaleEffect(configuration.isPressed ? 0.97 : 1.0)
+            .scaleEffect(configuration.isPressed ? 0.98 : 1.0)
             .opacity(configuration.isPressed ? 0.85 : 1.0)
             .animation(ShieldTheme.easeInOut, value: configuration.isPressed)
     }
 }
-

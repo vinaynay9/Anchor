@@ -71,6 +71,13 @@ struct FriendsTabView: View {
         .onAppear {
             friendsViewModel.loadFriends()
             requestsViewModel.loadPendingRequests()
+            let sharedState = AppGroupStorage.shared.getSessionState()
+            let userState: AnalyticsUserState = (sharedState?.isActive ?? false) ? .anchored : .free
+            let payload = AnalyticsPayload(
+                userState: userState,
+                metrics: AnalyticsMetrics(stringValues: ["section": "friends_tab"])
+            )
+            AnalyticsServiceProvider.shared.log(event: .profileViewed, payload: payload)
         }
     }
     
@@ -409,4 +416,3 @@ struct UnlockRequestRowView: View {
         .listRowInsets(EdgeInsets(top: Theme.spacing, leading: Theme.spacing2, bottom: Theme.spacing, trailing: Theme.spacing2))
     }
 }
-

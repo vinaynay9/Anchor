@@ -1,6 +1,7 @@
 import Foundation
 import UserNotifications
 import SwiftUI
+import Shared
 
 enum NotificationError: Error {
     case notAuthorized
@@ -18,6 +19,7 @@ protocol NotificationServiceProtocol {
     func notifyUnlockRequestRejected(requestId: String) async
     func notifySessionEnded() async
     func notifySessionExpired() async
+    func notifyAnchorsEmergencyUnanchor(anchors: [Friend], reason: String, duration: TimeInterval) async
 }
 
 class NotificationService: NotificationServiceProtocol {
@@ -191,6 +193,25 @@ class NotificationService: NotificationServiceProtocol {
             }
         }
     }
+
+    func notifyAnchorsEmergencyUnanchor(anchors: [Friend], reason: String, duration: TimeInterval) async {
+        let isAuthorized = await checkAuthorizationStatus()
+        let anchorNames = anchors.map { $0.displayName ?? "Anchor" }
+        let recipientSummary = anchorNames.isEmpty ? "your anchors" : anchorNames.joined(separator: ", ")
+        let minutes = Int(duration / 60)
+        
+        if isAuthorized {
+            scheduleLocalNotification(
+                title: "Emergency Unanchor Sent",
+                body: "Notified \(recipientSummary). Reason: \(reason). Duration: \(minutes) min.",
+                identifier: "emergency-unanchor-\(UUID().uuidString)"
+            )
+        } else {
+            await MainActor.run {
+                ToastManager.shared.showWarning("Emergency unanchor sent to anchors.")
+            }
+        }
+    }
     
     // MARK: - Notification Preferences
     func updateNotificationPreferences() async throws {
@@ -202,4 +223,3 @@ class NotificationService: NotificationServiceProtocol {
         // etc.
     }
 }
-

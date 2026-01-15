@@ -1,29 +1,35 @@
 import SwiftUI
 
 struct AppColors {
-    // MARK: - Primary Colors (Luxury Purple - Works in both light/dark)
-    static let anchorPrimary = Color(red: 0.227, green: 0.047, blue: 0.639) // #3A0CA3 - Deep royal purple
-    static let anchorPrimaryDark = Color(red: 0.102, green: 0.039, blue: 0.227) // #1A0A3A - Ultra-dark purple
+    // MARK: - Primary Colors (Luxury Blue System)
+    static let primaryUnlocked = Color(red: 0.220, green: 0.310, blue: 0.420) // #384F6B - Steel blue
+    static let primaryAnchored = Color(red: 0.051, green: 0.078, blue: 0.129) // #0D1421 - Near-black blue
     
     // MARK: - Accent Colors
-    static let anchorAccent = Color(red: 0.545, green: 0.361, blue: 0.965) // #8B5CF6 - Electric violet
-    static let anchorLavender = Color(red: 0.769, green: 0.710, blue: 0.992) // #C4B5FD - Soft lavender
+    static let accentFocus = Color(red: 0.341, green: 0.522, blue: 0.706) // #5785B4 - Muted cerulean
+    static let accentMist = Color(red: 0.686, green: 0.772, blue: 0.855) // #AFC5DA - Soft mist blue
     
     // MARK: - Light Mode Colors
-    static let backgroundLight = Color(red: 0.98, green: 0.98, blue: 0.99) // #FAFAFC - Soft white
-    static let secondaryBackgroundLight = Color(red: 0.95, green: 0.94, blue: 0.97) // #F2F0F7 - Light lavender tint
-    static let textPrimaryLight = Color(red: 0.1, green: 0.1, blue: 0.15) // #191926 - Deep charcoal
-    static let textSecondaryLight = Color(red: 0.4, green: 0.38, blue: 0.5) // #666680 - Muted purple-gray
+    static let backgroundUnlocked = Color(red: 0.961, green: 0.969, blue: 0.980) // #F5F7FA - Clean slate
+    static let secondaryBackgroundLight = Color(red: 0.910, green: 0.929, blue: 0.953) // #E8EDF3 - Cool fog
+    static let textPrimaryLight = Color(red: 0.055, green: 0.078, blue: 0.110) // #0E141C - Ink
+    static let textSecondaryLight = Color(red: 0.298, green: 0.369, blue: 0.463) // #4C5E76 - Slate
     
     // MARK: - Dark Mode Colors
-    static let backgroundDark = Color(red: 0.039, green: 0.039, blue: 0.059) // #0A0A0F - Onyx black
-    static let secondaryBackgroundDark = Color(red: 0.102, green: 0.102, blue: 0.141) // #1A1A24 - Ultra-dark purple
-    static let textPrimaryDark = Color(red: 0.961, green: 0.961, blue: 0.969) // #F5F5F7 - Off-white
-    static let textSecondaryDark = Color(red: 0.722, green: 0.702, blue: 0.820) // #B8B3D1 - Soft grey-lavender
+    static let backgroundAnchored = Color(red: 0.035, green: 0.051, blue: 0.075) // #090D13 - Anchored night
+    static let secondaryBackgroundDark = Color(red: 0.078, green: 0.106, blue: 0.149) // #141B26 - Deep slate
+    static let textPrimaryDark = Color(red: 0.906, green: 0.929, blue: 0.953) // #E7EDF3 - Porcelain
+    static let textSecondaryDark = Color(red: 0.639, green: 0.694, blue: 0.753) // #A3B1C0 - Clouded steel
+    
+    // MARK: - Legacy Anchor Aliases
+    static let anchorPrimary = primaryUnlocked
+    static let anchorPrimaryDark = primaryAnchored
+    static let anchorAccent = accentFocus
+    static let anchorLavender = accentMist
     
     // MARK: - Adaptive Colors (Respects system appearance)
     static var background: Color {
-        Color(light: backgroundLight, dark: backgroundDark)
+        Color(light: backgroundUnlocked, dark: backgroundAnchored)
     }
     
     static var secondaryBackground: Color {
@@ -48,8 +54,8 @@ struct AppColors {
     static let onPrimarySecondary = Color.white.opacity(0.9) // For secondary text on colored backgrounds
     
     // MARK: - Shield Screen Colors
-    static let shieldBackground = Color(red: 0.020, green: 0.020, blue: 0.035) // #050509 - Ultra-dark
-    static let shieldText = Color(red: 0.961, green: 0.961, blue: 0.969) // #F5F5F7 - High-contrast white
+    static let shieldBackground = backgroundAnchored
+    static let shieldText = textPrimaryDark
     
     // MARK: - Shadow Colors (Adaptive)
     static let shadowDefault = Color.black.opacity(0.15) // Light mode shadow
@@ -153,4 +159,3 @@ struct AppLayout {
     // Legacy support
     static let cornerRadius: CGFloat = Theme.cornerRadius
 }
-

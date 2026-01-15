@@ -146,6 +146,25 @@ class MockScreenTimeService: ScreenTimeServiceProtocol {
         // Simulate DeviceActivity event
         simulatedDeviceActivityEvents.append("intervalDidStart:\(sessionId.uuidString)")
     }
+
+    func applyDailyAnchor() async {
+        try? await Task.sleep(nanoseconds: simulatedLatencyNanoseconds)
+        isBlocking = true
+        simulateShieldActive = true
+        logSimulation("🧷 Applied daily anchor blocking")
+    }
+
+    func applyChallengeOverrides() async {
+        try? await Task.sleep(nanoseconds: simulatedLatencyNanoseconds)
+        logSimulation("🎯 Applied challenge overrides (simulated)")
+    }
+
+    func emergencyUnanchor(duration: TimeInterval) async {
+        try? await Task.sleep(nanoseconds: simulatedLatencyNanoseconds)
+        isBlocking = false
+        simulateShieldActive = false
+        logSimulation("🚨 Emergency unanchor for \(duration) seconds")
+    }
     
     // MARK: - Mock State Accessors (for testing)
     
@@ -255,4 +274,3 @@ class MockScreenTimeService: ScreenTimeServiceProtocol {
         )
     }
 }
-

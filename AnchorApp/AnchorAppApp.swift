@@ -74,8 +74,18 @@ class AppDelegate: NSObject, UIApplicationDelegate {
         
         // Cleanup old cached data on app launch
         PersistenceService.shared.cleanupOldData()
+
+        logAppOpened(source: "launch")
         
         return true
+    }
+
+    func applicationDidEnterBackground(_ application: UIApplication) {
+        AnalyticsServiceProvider.shared.flush()
+    }
+
+    func applicationWillTerminate(_ application: UIApplication) {
+        AnalyticsServiceProvider.shared.flush()
     }
     
     func application(_ application: UIApplication, didRegisterForRemoteNotificationsWithDeviceToken deviceToken: Data) {
@@ -119,9 +129,30 @@ class AppDelegate: NSObject, UIApplicationDelegate {
         Task { @MainActor in
             _ = DeepLinkHandler.shared.handleURL(url)
         }
+
+        logAppOpened(source: url.host)
         
         // Return true if it's an anchor:// URL, false otherwise
         return url.scheme == "anchor"
+    }
+
+    private func logAppOpened(source: String?) {
+        let sharedState = AppGroupStorage.shared.getSessionState()
+        let userState: AnalyticsUserState = (sharedState?.isActive ?? false) ? .anchored : .free
+        var doubleValues: [String: Double] = [:]
+        var stringValues: [String: String] = [:]
+        if let source {
+            stringValues["source"] = source
+        }
+        if let lastShieldHit = AppGroupStorage.shared.getLastShieldHitAt() {
+            let delta = Date().timeIntervalSince(lastShieldHit)
+            if delta >= 0 && delta <= 600 {
+                doubleValues["timeFromShieldHitSeconds"] = delta
+            }
+        }
+        let metrics = AnalyticsMetrics(doubleValues: doubleValues, stringValues: stringValues)
+        let payload = AnalyticsPayload(userState: userState, metrics: metrics)
+        AnalyticsServiceProvider.shared.log(event: .appOpened, payload: payload)
     }
 }
 
@@ -136,4 +167,3 @@ struct AnchorAppApp: App {
         }
     }
 }
-

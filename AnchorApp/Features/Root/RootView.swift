@@ -20,22 +20,46 @@ struct RootView: View {
     }
     
     var body: some View {
-        Group {
-            switch authState {
-            case .signedOut:
-                AuthRootView()
-                    .environmentObject(authViewModel)
-                    .withGlobalToasts()
-            case .loading:
-                ProgressView("Loading...")
-                    .frame(maxWidth: .infinity, maxHeight: .infinity)
-                    .withGlobalToasts()
-            case .signedIn:
-                MainTabView()
-                    .environmentObject(authViewModel)
-                    .withGlobalToasts()
+        ZStack(alignment: .topTrailing) {
+            Group {
+                switch authState {
+                case .signedOut:
+                    AuthRootView()
+                        .environmentObject(authViewModel)
+                        .withGlobalToasts()
+                case .loading:
+                    ProgressView("Loading...")
+                        .frame(maxWidth: .infinity, maxHeight: .infinity)
+                        .withGlobalToasts()
+                case .signedIn:
+                    MainTabView()
+                        .environmentObject(authViewModel)
+                        .withGlobalToasts()
+                }
             }
+
+            #if INTERNAL_TOOLS || DEBUG
+            if InternalTools.canAccessAdmin(user: authViewModel.currentUser) {
+                internalToolsBadge
+            }
+            #endif
         }
     }
-}
 
+    private var internalToolsBadge: some View {
+        Text("Internal Tools On")
+            .font(AppTypography.captionBold)
+            .foregroundColor(AppColors.textPrimary)
+            .padding(.horizontal, 10)
+            .padding(.vertical, 6)
+            .background(AppColors.secondaryBackground.opacity(0.95))
+            .cornerRadius(Theme.cornerRadius)
+            .overlay(
+                RoundedRectangle(cornerRadius: Theme.cornerRadius)
+                    .stroke(AppColors.textSecondary.opacity(0.4), lineWidth: 1)
+            )
+            .padding(.top, 10)
+            .padding(.trailing, 12)
+            .allowsHitTesting(false)
+    }
+}

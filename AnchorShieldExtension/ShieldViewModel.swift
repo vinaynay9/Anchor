@@ -11,8 +11,8 @@ private let shieldLog = OSLog(subsystem: "com.vinay.Anchor", category: "Shield")
 
 @MainActor
 class ShieldViewModel: ObservableObject {
-    @Published var title: String = "Stay Focused"
-    @Published var subtitle: String = "This app is blocked during your focus session."
+    @Published var title: String = "You're anchored."
+    @Published var subtitle: String = "This app is blocked during your anchor window."
     @Published var remainingTimeText: String?
     @Published var isWaitingForFriendApproval: Bool = false
     @Published var primaryButtonTitle: String = "Request Unlock"
@@ -43,6 +43,10 @@ class ShieldViewModel: ObservableObject {
         // Initial refresh
         refresh()
         refreshGoalProgress()
+    }
+
+    var blockedAppToken: String? {
+        shieldDecision?.blockedBundleId ?? appGroupStorage.getCurrentBlockedBundleId()
     }
     
     // MARK: - Goal Progress (Business Logic)
@@ -77,8 +81,8 @@ class ShieldViewModel: ObservableObject {
         // Check if unlock has been approved for this app - show approved state
         if isUnlockApproved {
             isWaitingForFriendApproval = false
-            title = "Unlock Approved"
-            subtitle = "Your accountability partner has approved your unlock request. You can now access this app."
+            title = "Unlock approved."
+            subtitle = "Your anchor approved this unlock. You can access the app now."
             primaryButtonTitle = "Open Anchor"
             secondaryButtonTitle = "Return to Anchor"
             explanationText = "Your unlock request has been approved. The app should be accessible now. If you still see this screen, try closing and reopening the app."
@@ -89,8 +93,8 @@ class ShieldViewModel: ObservableObject {
         // Check for pending unlock request
         if hasPendingUnlock {
             isWaitingForFriendApproval = true
-            title = "Unlock Request Pending"
-            subtitle = "Waiting for your accountability partner to review your unlock request."
+            title = "Unlock pending."
+            subtitle = "Waiting for your anchor to review your request."
             primaryButtonTitle = "Open Anchor"
             secondaryButtonTitle = "Message Your Accountability Partner"
             explanationText = "Your unlock request is being reviewed. You'll be notified once your partner responds."
@@ -98,8 +102,8 @@ class ShieldViewModel: ObservableObject {
         } else if let state = state, state.isActive {
             // Active session
             isWaitingForFriendApproval = false
-            title = "Stay Focused"
-            subtitle = "This app is blocked during your focus session."
+            title = "You're anchored."
+            subtitle = "This app is blocked during your anchor window."
             primaryButtonTitle = "Request Unlock"
             secondaryButtonTitle = "Message Your Accountability Partner"
             explanationText = "This app is blocked to help you stay focused. You can request temporary access or message your accountability partner."
@@ -116,8 +120,8 @@ class ShieldViewModel: ObservableObject {
         } else {
             // No active session - fallback state
             isWaitingForFriendApproval = false
-            title = "App Blocked"
-            subtitle = "You're currently blocked by Anchor."
+            title = "You're anchored."
+            subtitle = "This app is blocked by Anchor."
             primaryButtonTitle = "Open Anchor"
             secondaryButtonTitle = "Message Your Accountability Partner"
             explanationText = "This app is blocked. Open Anchor to manage your session."
@@ -193,4 +197,3 @@ class ShieldViewModel: ObservableObject {
         }
     }
 }
-

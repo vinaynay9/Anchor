@@ -1,4 +1,5 @@
 import Foundation
+import Shared
 
 // MARK: - Goal Model
 struct Goal: Identifiable, Codable, Equatable {
@@ -32,8 +33,10 @@ class GoalService: GoalServiceProtocol {
     
     private let goalsKey = "dailyGoals"
     private let lastResetDateKey = "lastGoalsResetDate"
+    private let analyticsService: AnalyticsServiceProtocol
     
-    private init() {
+    private init(analyticsService: AnalyticsServiceProtocol = AnalyticsServiceProvider.shared) {
+        self.analyticsService = analyticsService
         // Reset goals daily if needed
         resetGoalsDailyIfNeeded()
     }
@@ -67,6 +70,9 @@ class GoalService: GoalServiceProtocol {
         if let index = goals.firstIndex(where: { $0.id == goal.id }) {
             goals[index].isCompleted.toggle()
             saveGoals(goals)
+            if goals[index].isCompleted {
+                logPledgeCompleted(goalId: goal.id)
+            }
         }
     }
     
@@ -117,5 +123,23 @@ class GoalService: GoalServiceProtocol {
             UserDefaults.standard.set(Date(), forKey: lastResetDateKey)
         }
     }
-}
 
+    private func logPledgeCompleted(goalId: UUID) {
+        Task {
+            let sharedState = AppGroupStorage.shared.getSessionState()
+            let userState: AnalyticsUserState = (sharedState?.isActive ?? false) ? .anchored : .free
+            var doubleValues: [String: Double] = [:]
+            if let session = try? await SessionService.shared.getActiveSession(),
+               let startTime = session?.startTime {
+                let latency = Date().timeIntervalSince(startTime)
+                doubleValues["completionLatencySeconds"] = max(latency, 0)
+            }
+            let payload = AnalyticsPayload(
+                userState: userState,
+                context: AnalyticsContext(pledgeId: goalId),
+                metrics: AnalyticsMetrics(doubleValues: doubleValues)
+            )
+            analyticsService.log(event: .pledgeCompleted, payload: payload)
+        }
+    }
+}
