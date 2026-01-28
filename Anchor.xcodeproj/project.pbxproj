@@ -333,6 +333,7 @@
 		CC4B79084E5EAF14CFBB7C6B /* NotificationSettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NotificationSettingsView.swift; sourceTree = "<group>"; };
 		CD7FEC9810E2F9A60632EC5F /* AppButtonStyle.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppButtonStyle.swift; sourceTree = "<group>"; };
 		D084BDF92F16E1C70029EF8C /* AnchorAppApp.swift */ = {isa = PBXFileReference; explicitFileType = sourcecode.swift; path = AnchorAppApp.swift; sourceTree = "<group>"; };
+		D093EBED2F2A7091004A8476 /* AnchorApp.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = AnchorApp.entitlements; sourceTree = "<group>"; };
 		D3C7F942DB7FB236A3C98B37 /* DebugDiagnosticsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DebugDiagnosticsView.swift; sourceTree = "<group>"; };
 		D4A571DD978EA1995778DB86 /* ScreenTimeWhyView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScreenTimeWhyView.swift; sourceTree = "<group>"; };
 		D4AD955B192217EAC2FC1416 /* UnlockRequest.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UnlockRequest.swift; sourceTree = "<group>"; };
@@ -845,6 +846,7 @@
 				007F59B4FC68826931BE25C2 /* GoogleService-Info.plist */,
 				D084BDF92F16E1C70029EF8C /* AnchorAppApp.swift */,
 				11EEE94EB191D928465CBCC0 /* AnchorShieldExtension.entitlements */,
+				D093EBED2F2A7091004A8476 /* AnchorApp.entitlements */,
 			);
 			path = AnchorApp;
 			sourceTree = "<group>";
