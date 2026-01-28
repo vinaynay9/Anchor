@@ -64,6 +64,12 @@ struct ShieldDecision {
     /// 3. Approval timestamp is within validity window (5 minutes)
     /// - Returns: `.allow` if all conditions are met, `.deny` otherwise
     func shouldAllow() -> ShieldAction {
+        // If a blocking shield state is active, deny regardless of unlock flags.
+        if let state = appGroupStorage.getShieldState(), state.isBlocking {
+            os_log("Shield decision: deny (blocking state: %{public}@)", log: shieldLog, type: .info, state.reason.rawValue)
+            return .deny
+        }
+        
         // Cleanup expired unlock flags first
         appGroupStorage.cleanupExpiredUnlockFlags()
         
@@ -140,5 +146,10 @@ struct ShieldDecision {
         }
         
         return false
+    }
+    
+    /// Exposes the current shield state for UI decisions.
+    func currentShieldState() -> ShieldState? {
+        appGroupStorage.getShieldState()
     }
 }

@@ -415,6 +415,7 @@ class ScreenTimeService: ScreenTimeServiceProtocol {
         
         // Clear app group storage
         appGroupStorage.clearSessionState()
+        appGroupStorage.setShieldState(nil)
         
         // Clear session selections
         sessionSelections.removeAll()

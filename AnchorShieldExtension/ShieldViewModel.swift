@@ -74,9 +74,47 @@ class ShieldViewModel: ObservableObject {
     func refresh() {
         let state = appGroupStorage.getSessionState() // Now returns SharedSessionState?
         let hasPendingUnlock = appGroupStorage.hasPendingUnlockRequest()
+        let shieldState = appGroupStorage.getShieldState()
         
         // Use ShieldDecision to check if unlock is approved for this specific app
         let isUnlockApproved = shieldDecision?.isUnlockApproved() ?? false
+        
+        if let shieldState = shieldState {
+            switch shieldState.reason {
+            case .waitingForQuorum:
+                isWaitingForFriendApproval = true
+                title = "Unlock pending."
+                subtitle = "Waiting for group quorum to approve."
+                primaryButtonTitle = "Open Anchor"
+                secondaryButtonTitle = "Return to Anchor"
+                explanationText = "Group sessions unlock only when a quorum approves."
+                remainingTimeText = nil
+                return
+            case .goalNotApproved:
+                isWaitingForFriendApproval = false
+                title = "Goals incomplete."
+                subtitle = "Complete your goals before unlocking."
+                primaryButtonTitle = "Open Anchor"
+                secondaryButtonTitle = "Return to Anchor"
+                explanationText = "This lock requires goals to be completed before unlock."
+                remainingTimeText = nil
+                return
+            case .contractPenaltyActive:
+                isWaitingForFriendApproval = false
+                title = "Contract penalty active."
+                subtitle = "This lock is enforced by a social contract."
+                primaryButtonTitle = "Open Anchor"
+                secondaryButtonTitle = "Return to Anchor"
+                explanationText = "Unlocking is restricted by contract consequences."
+                remainingTimeText = nil
+                return
+            case .unlockApproved:
+                // fall through to approved state below
+                break
+            case .activeLock, .free:
+                break
+            }
+        }
         
         // Check if unlock has been approved for this app - show approved state
         if isUnlockApproved {

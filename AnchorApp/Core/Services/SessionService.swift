@@ -2,13 +2,20 @@ import Foundation
 import Shared
 
 protocol SessionServiceProtocol {
+    func startSession(from plan: LockPlan, durationMinutes: Int, friendIds: [String], categories: [AppCategory]?, schedule: LockSessionSchedule?) async throws -> LockSession
     func startSession(durationMinutes: Int, friendIds: [String], categories: [AppCategory]?, schedule: LockSessionSchedule?) async throws -> LockSession
     func endSession() async throws
     func getActiveSession() async throws -> LockSession?
     func scheduleSession(durationMinutes: Int, friendIds: [String], categories: [AppCategory]?, schedule: LockSessionSchedule) async throws -> LockSession
+    func scheduleSession(from plan: LockPlan, durationMinutes: Int, friendIds: [String], categories: [AppCategory]?, schedule: LockSessionSchedule) async throws -> LockSession
     func cancelScheduledSession(sessionId: UUID) async throws
+    func extendActiveSession(byMinutes minutes: Int) async
+    func handleQuorumReached(sessionId: UUID) async
 }
 
+// MARK: - Service Rewrite Decision
+// SessionService is REWRITTEN to be a thin executor of LockPlans (intent -> execution).
+// It keeps DeviceActivity/ScreenTime primitives intact and no longer treats sessions as the primary UX unit.
 class SessionService: SessionServiceProtocol {
     static let shared = SessionService()
     
@@ -18,6 +25,8 @@ class SessionService: SessionServiceProtocol {
     private let notificationService: NotificationServiceProtocol
     private let persistenceService = PersistenceService.shared
     private let analyticsService: AnalyticsServiceProtocol
+    private let goalService: GoalServiceProtocol
+    private let quorumService: QuorumServiceProtocol
     private var activeSession: LockSession?
     private var timer: Timer?
     private let userId: UUID
@@ -28,11 +37,15 @@ class SessionService: SessionServiceProtocol {
     init(
         screenTimeService: ScreenTimeServiceProtocol = ScreenTimeService.shared,
         notificationService: NotificationServiceProtocol = NotificationService.shared,
-        analyticsService: AnalyticsServiceProtocol = AnalyticsServiceProvider.shared
+        analyticsService: AnalyticsServiceProtocol = AnalyticsServiceProvider.shared,
+        goalService: GoalServiceProtocol = GoalService.shared,
+        quorumService: QuorumServiceProtocol = QuorumService.shared
     ) {
         self.screenTimeService = screenTimeService
         self.notificationService = notificationService
         self.analyticsService = analyticsService
+        self.goalService = goalService
+        self.quorumService = quorumService
         // Get or create user ID
         if let userIdString = UserDefaults.standard.string(forKey: AppConfig.UserDefaultsKeys.currentUserId),
            let uuid = UUID(uuidString: userIdString) {
@@ -86,7 +99,13 @@ class SessionService: SessionServiceProtocol {
             accountabilityPartnerId: accountabilityPartnerId,
             createdAt: startTime,
             selectedCategories: nil,
-            schedule: nil
+            schedule: nil,
+            lockPlanId: nil,
+            lockPlanType: .custom,
+            lockMode: .individual,
+            unlockPolicy: .selfUnlock,
+            goalRequirement: .none,
+            quorumState: nil
         )
         
         // Load existing events
@@ -104,11 +123,64 @@ class SessionService: SessionServiceProtocol {
         
         // Restart timer
         startTimer()
+        
+        updateShieldStateForActiveSession(session: restoredSession)
     }
     
     // MARK: - Protocol Implementation
     
+    func startSession(from plan: LockPlan, durationMinutes: Int, friendIds: [String], categories: [AppCategory]? = nil, schedule: LockSessionSchedule? = nil) async throws -> LockSession {
+        LoggerService.shared.logInfo("Starting session from plan: \(plan.name)", category: "Session")
+        let sessionId = UUID()
+        
+        // If plan is group + quorum, initialize quorum state
+        var quorumState: QuorumState?
+        if plan.mode == .group, plan.unlockPolicy == .quorum {
+            let participantIds = friendIds.compactMap { UUID(uuidString: $0) }
+            quorumState = quorumService.initializeQuorum(sessionId: sessionId, participantIds: participantIds)
+        }
+        
+        let session = try await startSession(
+            durationMinutes: durationMinutes,
+            friendIds: friendIds,
+            categories: categories,
+            schedule: schedule,
+            plan: plan,
+            quorumState: quorumState,
+            sessionId: sessionId
+        )
+        
+        return session
+    }
+    
     func startSession(durationMinutes: Int, friendIds: [String], categories: [AppCategory]? = nil, schedule: LockSessionSchedule? = nil) async throws -> LockSession {
+        let fallbackPlan = LockPlan(
+            name: "Custom Lock",
+            type: .custom,
+            mode: .individual,
+            unlockPolicy: .selfUnlock,
+            goalRequirement: .none
+        )
+        return try await startSession(
+            durationMinutes: durationMinutes,
+            friendIds: friendIds,
+            categories: categories,
+            schedule: schedule,
+            plan: fallbackPlan,
+            quorumState: nil,
+            sessionId: UUID()
+        )
+    }
+    
+    private func startSession(
+        durationMinutes: Int,
+        friendIds: [String],
+        categories: [AppCategory]?,
+        schedule: LockSessionSchedule?,
+        plan: LockPlan,
+        quorumState: QuorumState?,
+        sessionId: UUID
+    ) async throws -> LockSession {
         LoggerService.shared.logInfo("Starting session: duration=\(durationMinutes)min, friends=\(friendIds.count), categories=\(categories?.count ?? 0)", category: "Session")
         // End any existing active session
         if activeSession != nil {
@@ -129,7 +201,7 @@ class SessionService: SessionServiceProtocol {
         
         // Create session with categories and schedule
         let session = LockSession(
-            id: UUID(),
+            id: sessionId,
             userId: userId,
             status: .active,
             startTime: startTime,
@@ -138,13 +210,19 @@ class SessionService: SessionServiceProtocol {
             accountabilityPartnerId: accountabilityPartnerId,
             createdAt: Date(),
             selectedCategories: categories,
-            schedule: schedule
+            schedule: schedule,
+            lockPlanId: plan.id,
+            lockPlanType: plan.type,
+            lockMode: plan.mode,
+            unlockPolicy: plan.unlockPolicy,
+            goalRequirement: plan.goalRequirement,
+            quorumState: quorumState
         )
         
         // If schedule is provided, schedule the session instead of starting immediately
         if let schedule = schedule {
             LoggerService.shared.logInfo("Scheduling session instead of starting immediately", category: "Session")
-            return try await scheduleSession(durationMinutes: durationMinutes, friendIds: friendIds, categories: categories, schedule: schedule)
+            return try await scheduleSession(from: plan, durationMinutes: durationMinutes, friendIds: friendIds, categories: categories, schedule: schedule)
         }
         
         // POST /sessions/start
@@ -187,6 +265,9 @@ class SessionService: SessionServiceProtocol {
         )
         appGroupStorage.setSessionState(sharedState)
         
+        // Update shield state (reason derived from plan + requirements)
+        updateShieldStateForActiveSession(session: session)
+        
         analyticsService.log(
             event: .anchorStateChanged,
             payload: AnalyticsPayload(userState: .anchored)
@@ -223,7 +304,13 @@ class SessionService: SessionServiceProtocol {
             accountabilityPartnerId: accountabilityPartnerId,
             createdAt: Date(),
             selectedCategories: categories,
-            schedule: schedule
+            schedule: schedule,
+            lockPlanId: nil,
+            lockPlanType: .custom,
+            lockMode: .individual,
+            unlockPolicy: .selfUnlock,
+            goalRequirement: .none,
+            quorumState: nil
         )
         
         // Schedule the session using DeviceActivityService
@@ -245,6 +332,52 @@ class SessionService: SessionServiceProtocol {
         
         // Don't set as activeSession since it's scheduled, not active yet
         // activeSession will be set when the schedule fires
+        
+        return createdSession
+    }
+    
+    func scheduleSession(from plan: LockPlan, durationMinutes: Int, friendIds: [String], categories: [AppCategory]?, schedule: LockSessionSchedule) async throws -> LockSession {
+        LoggerService.shared.logInfo("Scheduling session from plan: \(plan.name)", category: "Session")
+        let sessionId = UUID()
+        let accountabilityPartnerId = friendIds.first.flatMap { UUID(uuidString: $0) }
+        
+        // Store friendIds in AppGroup storage for the scheduled session
+        appGroupStorage.saveCurrentSessionFriendIds(friendIds)
+        
+        let session = LockSession(
+            id: sessionId,
+            userId: userId,
+            status: .active,
+            startTime: Date(),
+            endTime: nil,
+            appsBlocked: [],
+            accountabilityPartnerId: accountabilityPartnerId,
+            createdAt: Date(),
+            selectedCategories: categories,
+            schedule: schedule,
+            lockPlanId: plan.id,
+            lockPlanType: plan.type,
+            lockMode: plan.mode,
+            unlockPolicy: plan.unlockPolicy,
+            goalRequirement: plan.goalRequirement,
+            quorumState: nil
+        )
+        
+        do {
+            try deviceActivityService.scheduleSession(session, schedule: schedule)
+            LoggerService.shared.logInfo("Session scheduled successfully: \(sessionId.uuidString)", category: "Session")
+        } catch {
+            LoggerService.shared.logError("Failed to schedule session", error: error, category: "Session")
+            throw error
+        }
+        
+        // POST /sessions/start (with schedule info)
+        let apiClient = APIClient.shared
+        let dto: LockSessionDTO = try await apiClient.request(.startSession(session: session), responseType: LockSessionDTO.self)
+        
+        guard let createdSession = dto.toLockSession() else {
+            throw AnchorAPIError.decodingError(NSError(domain: "SessionService", code: -1, userInfo: [NSLocalizedDescriptionKey: "Failed to decode session from API"]))
+        }
         
         return createdSession
     }
@@ -283,6 +416,7 @@ class SessionService: SessionServiceProtocol {
         
         // Clear AppGroupStorage
         appGroupStorage.setSessionState(nil)
+        appGroupStorage.setShieldState(nil)
         
         analyticsService.log(
             event: .anchorStateChanged,
@@ -360,6 +494,78 @@ class SessionService: SessionServiceProtocol {
             }
             
             return activeSession
+        }
+    }
+    
+    // MARK: - Plan Enforcement Helpers
+    
+    /// Enforcement point: locks remain low-friction; unlock policy + goals govern unlock eligibility.
+    private func updateShieldStateForActiveSession(session: LockSession) {
+        var reason: ShieldStateReason = .activeLock
+        
+        if session.unlockPolicy == .quorum {
+            reason = .waitingForQuorum
+        }
+        
+        if session.goalRequirement != .none, !goalService.areAllGoalsCompleted() {
+            reason = .goalNotApproved
+        }
+        
+        let state = ShieldState(
+            reason: reason,
+            sessionId: session.id,
+            planName: session.lockPlanType.rawValue.capitalized,
+            planType: session.lockPlanType,
+            unlockPolicy: session.unlockPolicy,
+            goalRequirement: session.goalRequirement,
+            quorumState: session.quorumState
+        )
+        appGroupStorage.setShieldState(state)
+    }
+    
+    func extendActiveSession(byMinutes minutes: Int) async {
+        guard var session = activeSession, minutes > 0 else { return }
+        guard let endTime = session.endTime else { return }
+        
+        let newEndTime = endTime.addingTimeInterval(TimeInterval(minutes * 60))
+        session = LockSession(
+            id: session.id,
+            userId: session.userId,
+            status: session.status,
+            startTime: session.startTime,
+            endTime: newEndTime,
+            appsBlocked: session.appsBlocked,
+            accountabilityPartnerId: session.accountabilityPartnerId,
+            createdAt: session.createdAt,
+            selectedCategories: session.selectedCategories,
+            schedule: session.schedule,
+            lockPlanId: session.lockPlanId,
+            lockPlanType: session.lockPlanType,
+            lockMode: session.lockMode,
+            unlockPolicy: session.unlockPolicy,
+            goalRequirement: session.goalRequirement,
+            quorumState: session.quorumState,
+            events: session.events
+        )
+        
+        activeSession = session
+        
+        let remainingSeconds = max(0, Int(newEndTime.timeIntervalSince(Date())))
+        let sharedState = SharedSessionState(
+            isActive: true,
+            endTime: newEndTime,
+            remainingSeconds: remainingSeconds
+        )
+        appGroupStorage.setSessionState(sharedState)
+    }
+    
+    func handleQuorumReached(sessionId: UUID) async {
+        guard let session = activeSession, session.id == sessionId else { return }
+        // Group unlock reached: end the session and clear shields.
+        do {
+            try await endSession()
+        } catch {
+            LoggerService.shared.logError("Failed to end session after quorum", error: error, category: "Session")
         }
     }
     

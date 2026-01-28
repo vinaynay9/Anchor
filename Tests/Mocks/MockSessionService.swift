@@ -24,20 +24,17 @@ final class MockSessionService: SessionServiceProtocol {
     var lastStartSessionCategories: [AppCategory]?
     var lastStartSessionSchedule: LockSessionSchedule?
     var lastCancelledSessionId: UUID?
+    var lastStartSessionPlan: LockPlan?
     
     // MARK: - SessionServiceProtocol Implementation
     
-    func startSession(
-        durationMinutes: Int,
-        friendIds: [String],
-        categories: [AppCategory]? = nil,
-        schedule: LockSessionSchedule? = nil
-    ) async throws -> LockSession {
+    func startSession(from plan: LockPlan, durationMinutes: Int, friendIds: [String], categories: [AppCategory]? = nil, schedule: LockSessionSchedule? = nil) async throws -> LockSession {
         if let error = shouldThrowError {
             throw error
         }
         
         startSessionCalled = true
+        lastStartSessionPlan = plan
         lastStartSessionDuration = durationMinutes
         lastStartSessionFriendIds = friendIds
         lastStartSessionCategories = categories
@@ -57,11 +54,33 @@ final class MockSessionService: SessionServiceProtocol {
             accountabilityPartnerId: accountabilityPartnerId,
             createdAt: startTime,
             selectedCategories: categories,
-            schedule: schedule
+            schedule: schedule,
+            lockPlanId: plan.id,
+            lockPlanType: plan.type,
+            lockMode: plan.mode,
+            unlockPolicy: plan.unlockPolicy,
+            goalRequirement: plan.goalRequirement,
+            quorumState: nil
         )
         
         activeSession = session
         return session
+    }
+    
+    func startSession(
+        durationMinutes: Int,
+        friendIds: [String],
+        categories: [AppCategory]? = nil,
+        schedule: LockSessionSchedule? = nil
+    ) async throws -> LockSession {
+        let fallbackPlan = LockPlan(name: "Custom Lock", type: .custom)
+        return try await startSession(
+            from: fallbackPlan,
+            durationMinutes: durationMinutes,
+            friendIds: friendIds,
+            categories: categories,
+            schedule: schedule
+        )
     }
     
     func endSession() async throws {
@@ -113,6 +132,34 @@ final class MockSessionService: SessionServiceProtocol {
         return session
     }
     
+    func scheduleSession(from plan: LockPlan, durationMinutes: Int, friendIds: [String], categories: [AppCategory]?, schedule: LockSessionSchedule) async throws -> LockSession {
+        let session = try await scheduleSession(
+            durationMinutes: durationMinutes,
+            friendIds: friendIds,
+            categories: categories,
+            schedule: schedule
+        )
+        return LockSession(
+            id: session.id,
+            userId: session.userId,
+            status: session.status,
+            startTime: session.startTime,
+            endTime: session.endTime,
+            appsBlocked: session.appsBlocked,
+            accountabilityPartnerId: session.accountabilityPartnerId,
+            createdAt: session.createdAt,
+            selectedCategories: session.selectedCategories,
+            schedule: session.schedule,
+            lockPlanId: plan.id,
+            lockPlanType: plan.type,
+            lockMode: plan.mode,
+            unlockPolicy: plan.unlockPolicy,
+            goalRequirement: plan.goalRequirement,
+            quorumState: nil,
+            events: session.events
+        )
+    }
+    
     func cancelScheduledSession(sessionId: UUID) async throws {
         if let error = shouldThrowError {
             throw error
@@ -121,6 +168,38 @@ final class MockSessionService: SessionServiceProtocol {
         cancelScheduledSessionCalled = true
         lastCancelledSessionId = sessionId
         scheduledSessions.removeValue(forKey: sessionId)
+    }
+    
+    func extendActiveSession(byMinutes minutes: Int) async {
+        guard var session = activeSession, minutes > 0 else { return }
+        if let endTime = session.endTime {
+            session = LockSession(
+                id: session.id,
+                userId: session.userId,
+                status: session.status,
+                startTime: session.startTime,
+                endTime: endTime.addingTimeInterval(TimeInterval(minutes * 60)),
+                appsBlocked: session.appsBlocked,
+                accountabilityPartnerId: session.accountabilityPartnerId,
+                createdAt: session.createdAt,
+                selectedCategories: session.selectedCategories,
+                schedule: session.schedule,
+                lockPlanId: session.lockPlanId,
+                lockPlanType: session.lockPlanType,
+                lockMode: session.lockMode,
+                unlockPolicy: session.unlockPolicy,
+                goalRequirement: session.goalRequirement,
+                quorumState: session.quorumState,
+                events: session.events
+            )
+            activeSession = session
+        }
+    }
+    
+    func handleQuorumReached(sessionId: UUID) async {
+        if activeSession?.id == sessionId {
+            activeSession = nil
+        }
     }
     
     // MARK: - Test Helpers
@@ -139,6 +218,7 @@ final class MockSessionService: SessionServiceProtocol {
         lastStartSessionCategories = nil
         lastStartSessionSchedule = nil
         lastCancelledSessionId = nil
+        lastStartSessionPlan = nil
     }
     
     /// Sets up a mock active session for testing
@@ -158,4 +238,3 @@ final class MockSessionService: SessionServiceProtocol {
         )
     }
 }
-

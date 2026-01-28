@@ -11,6 +11,12 @@ struct LockSession: Identifiable, Codable, Hashable {
     let createdAt: Date
     let selectedCategories: [AppCategory]? // Selected app categories to block
     let schedule: LockSessionSchedule? // Schedule configuration for recurring sessions
+    let lockPlanId: UUID?
+    let lockPlanType: LockPlanType
+    let lockMode: LockMode
+    let unlockPolicy: UnlockPolicy
+    let goalRequirement: GoalRequirement
+    let quorumState: QuorumState?
     var events: [SessionEvent] = [] // Timeline of events for this session
     
     enum CodingKeys: String, CodingKey {
@@ -24,6 +30,12 @@ struct LockSession: Identifiable, Codable, Hashable {
         case createdAt = "created_at"
         case selectedCategories = "selected_categories"
         case schedule
+        case lockPlanId = "lock_plan_id"
+        case lockPlanType = "lock_plan_type"
+        case lockMode = "lock_mode"
+        case unlockPolicy = "unlock_policy"
+        case goalRequirement = "goal_requirement"
+        case quorumState = "quorum_state"
         case events
     }
     
@@ -38,6 +50,12 @@ struct LockSession: Identifiable, Codable, Hashable {
         createdAt: Date,
         selectedCategories: [AppCategory]? = nil,
         schedule: LockSessionSchedule? = nil,
+        lockPlanId: UUID? = nil,
+        lockPlanType: LockPlanType = .custom,
+        lockMode: LockMode = .individual,
+        unlockPolicy: UnlockPolicy = .selfUnlock,
+        goalRequirement: GoalRequirement = .none,
+        quorumState: QuorumState? = nil,
         events: [SessionEvent] = []
     ) {
         self.id = id
@@ -50,11 +68,63 @@ struct LockSession: Identifiable, Codable, Hashable {
         self.createdAt = createdAt
         self.selectedCategories = selectedCategories
         self.schedule = schedule
+        self.lockPlanId = lockPlanId
+        self.lockPlanType = lockPlanType
+        self.lockMode = lockMode
+        self.unlockPolicy = unlockPolicy
+        self.goalRequirement = goalRequirement
+        self.quorumState = quorumState
         self.events = events
     }
     
     mutating func addEvent(_ event: SessionEvent) {
         events.append(event)
+    }
+}
+
+// MARK: - Custom Decoding for Backward Compatibility
+extension LockSession {
+    init(from decoder: Decoder) throws {
+        // Migration default: legacy sessions map to individual + self unlock + custom plan.
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        id = try container.decode(UUID.self, forKey: .id)
+        userId = try container.decode(UUID.self, forKey: .userId)
+        status = try container.decode(SessionStatus.self, forKey: .status)
+        startTime = try container.decode(Date.self, forKey: .startTime)
+        endTime = try container.decodeIfPresent(Date.self, forKey: .endTime)
+        appsBlocked = try container.decode([String].self, forKey: .appsBlocked)
+        accountabilityPartnerId = try container.decodeIfPresent(UUID.self, forKey: .accountabilityPartnerId)
+        createdAt = try container.decode(Date.self, forKey: .createdAt)
+        selectedCategories = try container.decodeIfPresent([AppCategory].self, forKey: .selectedCategories)
+        schedule = try container.decodeIfPresent(LockSessionSchedule.self, forKey: .schedule)
+        lockPlanId = try container.decodeIfPresent(UUID.self, forKey: .lockPlanId)
+        lockPlanType = (try container.decodeIfPresent(LockPlanType.self, forKey: .lockPlanType)) ?? .custom
+        lockMode = (try container.decodeIfPresent(LockMode.self, forKey: .lockMode)) ?? .individual
+        unlockPolicy = (try container.decodeIfPresent(UnlockPolicy.self, forKey: .unlockPolicy)) ?? .selfUnlock
+        goalRequirement = (try container.decodeIfPresent(GoalRequirement.self, forKey: .goalRequirement)) ?? .none
+        quorumState = try container.decodeIfPresent(QuorumState.self, forKey: .quorumState)
+        events = (try container.decodeIfPresent([SessionEvent].self, forKey: .events)) ?? []
+    }
+    
+    func encode(to encoder: Encoder) throws {
+        var container = encoder.container(keyedBy: CodingKeys.self)
+        try container.encode(id, forKey: .id)
+        try container.encode(userId, forKey: .userId)
+        try container.encode(status, forKey: .status)
+        try container.encode(startTime, forKey: .startTime)
+        try container.encodeIfPresent(endTime, forKey: .endTime)
+        try container.encode(appsBlocked, forKey: .appsBlocked)
+        try container.encodeIfPresent(accountabilityPartnerId, forKey: .accountabilityPartnerId)
+        try container.encode(createdAt, forKey: .createdAt)
+        try container.encodeIfPresent(selectedCategories, forKey: .selectedCategories)
+        try container.encodeIfPresent(schedule, forKey: .schedule)
+        try container.encodeIfPresent(lockPlanId, forKey: .lockPlanId)
+        try container.encode(lockPlanType, forKey: .lockPlanType)
+        try container.encode(lockMode, forKey: .lockMode)
+        try container.encode(unlockPolicy, forKey: .unlockPolicy)
+        try container.encode(goalRequirement, forKey: .goalRequirement)
+        try container.encodeIfPresent(quorumState, forKey: .quorumState)
+        try container.encode(events, forKey: .events)
     }
 }
 
@@ -121,6 +191,12 @@ struct LockSessionDTO: Codable {
     let createdAt: String
     let selectedCategories: [String]?
     let schedule: LockSessionScheduleDTO?
+    let lockPlanId: String?
+    let lockPlanType: String?
+    let lockMode: String?
+    let unlockPolicy: String?
+    let goalRequirement: String?
+    let quorumState: QuorumState?
     
     enum CodingKeys: String, CodingKey {
         case id
@@ -133,6 +209,12 @@ struct LockSessionDTO: Codable {
         case createdAt = "created_at"
         case selectedCategories = "selected_categories"
         case schedule
+        case lockPlanId = "lock_plan_id"
+        case lockPlanType = "lock_plan_type"
+        case lockMode = "lock_mode"
+        case unlockPolicy = "unlock_policy"
+        case goalRequirement = "goal_requirement"
+        case quorumState = "quorum_state"
     }
     
     func toLockSession() -> LockSession? {
@@ -147,12 +229,18 @@ struct LockSessionDTO: Codable {
         
         let endTimeDate = endTime.flatMap { formatter.date(from: $0) }
         let accountabilityPartnerUUID = accountabilityPartnerId.flatMap { UUID(uuidString: $0) }
+        let lockPlanUUID = lockPlanId.flatMap { UUID(uuidString: $0) }
         
         // Parse selected categories if present
         let categories = selectedCategories?.compactMap { AppCategory(rawValue: $0) }
         
         // Parse schedule if present
         let scheduleValue = schedule?.toLockSessionSchedule()
+        
+        let lockPlanTypeValue = lockPlanType.flatMap { LockPlanType(rawValue: $0) } ?? .custom
+        let lockModeValue = lockMode.flatMap { LockMode(rawValue: $0) } ?? .individual
+        let unlockPolicyValue = unlockPolicy.flatMap { UnlockPolicy(rawValue: $0) } ?? .selfUnlock
+        let goalRequirementValue = goalRequirement.flatMap { GoalRequirement(rawValue: $0) } ?? .none
         
         return LockSession(
             id: uuid,
@@ -165,6 +253,12 @@ struct LockSessionDTO: Codable {
             createdAt: createdAtDate,
             selectedCategories: categories,
             schedule: scheduleValue,
+            lockPlanId: lockPlanUUID,
+            lockPlanType: lockPlanTypeValue,
+            lockMode: lockModeValue,
+            unlockPolicy: unlockPolicyValue,
+            goalRequirement: goalRequirementValue,
+            quorumState: quorumState,
             events: [] // Events will be loaded separately or added during session lifecycle
         )
     }
@@ -194,4 +288,3 @@ struct TimeOfDayDTO: Codable {
         return TimeOfDay(hour: hour, minute: minute)
     }
 }
-

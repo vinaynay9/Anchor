@@ -23,6 +23,8 @@ protocol UnlockRequestServiceProtocol {
 }
 
 // MARK: - Unlock Request Service
+// MARK: - Service Rewrite Decision
+// UnlockRequestService is REWRITTEN to respect plan-centric unlock policies (self/friend/quorum).
 class UnlockRequestService: UnlockRequestServiceProtocol {
     static let shared = UnlockRequestService()
     
@@ -32,6 +34,10 @@ class UnlockRequestService: UnlockRequestServiceProtocol {
         case invalidSessionId
         /// Wraps underlying errors from backend API calls
         case backendFailure(underlying: Error)
+        /// Thrown when a goal-gated unlock is requested but goals are incomplete
+        case goalRequirementNotMet
+        /// Thrown when quorum is required (group unlock flow)
+        case quorumRequired
     }
     
     private let apiClient = APIClient.shared
@@ -41,15 +47,21 @@ class UnlockRequestService: UnlockRequestServiceProtocol {
     private let notificationService: NotificationServiceProtocol
     private let persistenceService = PersistenceService.shared
     private let networkMonitor = NetworkMonitor.shared
+    private let goalService: GoalServiceProtocol
+    private let quorumService: QuorumServiceProtocol
     
     init(
         sessionService: SessionServiceProtocol = SessionService.shared,
         screenTimeService: ScreenTimeServiceProtocol = ScreenTimeService.shared,
-        notificationService: NotificationServiceProtocol = NotificationService.shared
+        notificationService: NotificationServiceProtocol = NotificationService.shared,
+        goalService: GoalServiceProtocol = GoalService.shared,
+        quorumService: QuorumServiceProtocol = QuorumService.shared
     ) {
         self.sessionService = sessionService
         self.screenTimeService = screenTimeService
         self.notificationService = notificationService
+        self.goalService = goalService
+        self.quorumService = quorumService
     }
     
     /// Helper to add event to active session
@@ -70,6 +82,55 @@ class UnlockRequestService: UnlockRequestServiceProtocol {
     /// - Returns: The created unlock request
     func submitUnlockRequest(session: LockSession, appBundleId: String, reason: String?) async throws -> UnlockRequest {
         LoggerService.shared.logInfo("Submitting unlock request for app: \(appBundleId), session: \(session.id.uuidString)", category: "Network")
+        
+        // Enforcement: goal-gated unlocks must complete goals before any unlock flow.
+        if session.goalRequirement != .none, !goalService.areAllGoalsCompleted() {
+            appGroupStorage.setShieldState(
+                ShieldState(
+                    reason: .goalNotApproved,
+                    sessionId: session.id,
+                    planType: session.lockPlanType,
+                    unlockPolicy: session.unlockPolicy,
+                    goalRequirement: session.goalRequirement
+                )
+            )
+            throw UnlockRequestError.goalRequirementNotMet
+        }
+        
+        // Enforcement: quorum-based unlocks do not use individual unlock requests.
+        if session.unlockPolicy == .quorum {
+            if let quorum = session.quorumState {
+                appGroupStorage.setShieldState(
+                    ShieldState(
+                        reason: .waitingForQuorum,
+                        sessionId: session.id,
+                        planType: session.lockPlanType,
+                        unlockPolicy: session.unlockPolicy,
+                        quorumState: quorum
+                    )
+                )
+            }
+            throw UnlockRequestError.quorumRequired
+        }
+        
+        // Self-unlock: approve immediately without partner flow.
+        if session.unlockPolicy == .selfUnlock {
+            appGroupStorage.setPendingUnlockRequest(false)
+            appGroupStorage.setUnlockAllowed(bundleId: appBundleId)
+            let approved = UnlockRequest(
+                id: UUID(),
+                sessionId: session.id,
+                requesterId: session.userId,
+                partnerId: session.userId,
+                status: .approved,
+                message: reason,
+                appBundleId: appBundleId,
+                createdAt: Date(),
+                resolvedAt: Date()
+            )
+            return approved
+        }
+        
         // Write setPendingUnlockRequest(true)
         appGroupStorage.setPendingUnlockRequest(true)
         
@@ -175,6 +236,12 @@ class UnlockRequestService: UnlockRequestServiceProtocol {
                 appGroupStorage.setUnlockAllowed(bundleId: bundleId)
                 LoggerService.shared.logInfo("Unlock approved for bundle: \(bundleId)", category: "Network")
             }
+            appGroupStorage.setShieldState(
+                ShieldState(
+                    reason: .unlockApproved,
+                    sessionId: finalRequest.sessionId
+                )
+            )
             
             // Add unlock approved event
             var metadata: [String: String] = [:]
@@ -203,6 +270,12 @@ class UnlockRequestService: UnlockRequestServiceProtocol {
             if let bundleId = request.appBundleId {
                 appGroupStorage.setUnlockAllowed(bundleId: bundleId)
             }
+            appGroupStorage.setShieldState(
+                ShieldState(
+                    reason: .unlockApproved,
+                    sessionId: request.sessionId
+                )
+            )
             
             // Add unlock approved event
             var metadata: [String: String] = [:]
@@ -291,6 +364,13 @@ class UnlockRequestService: UnlockRequestServiceProtocol {
             let event = SessionEvent(type: .unlockDenied, timestamp: Date(), metadata: metadata.isEmpty ? nil : metadata)
             addEventToSession(event)
             
+            appGroupStorage.setShieldState(
+                ShieldState(
+                    reason: .activeLock,
+                    sessionId: request.sessionId
+                )
+            )
+            
             // Notify UI
             NotificationCenter.default.post(name: .unlockRequestStatusChanged, object: nil, userInfo: [
                 "requestId": request.id.uuidString,
@@ -310,6 +390,13 @@ class UnlockRequestService: UnlockRequestServiceProtocol {
             }
             let event = SessionEvent(type: .unlockDenied, timestamp: Date(), metadata: metadata.isEmpty ? nil : metadata)
             addEventToSession(event)
+            
+            appGroupStorage.setShieldState(
+                ShieldState(
+                    reason: .activeLock,
+                    sessionId: request.sessionId
+                )
+            )
             
             // Return the request with updated status locally
             let deniedRequest = UnlockRequest(
@@ -502,4 +589,3 @@ class UnlockRequestService: UnlockRequestServiceProtocol {
         _ = try await denyUnlockRequest(request)
     }
 }
-

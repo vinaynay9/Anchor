@@ -182,6 +182,26 @@ public enum AppGroupStorageKey: String {
     /// **Type:** Date (stored as TimeInterval)
     /// **Purpose:** Timestamp of the most recent app_opened event (dedup).
     case lastAppOpenAt = "lastAppOpenAt"
+
+    /// **Key:** `"lockPlans"`
+    /// **Type:** JSON-encoded `[LockPlan]`
+    /// **Purpose:** Stores user-defined lock plans (intent).
+    case lockPlans = "lockPlans"
+    
+    /// **Key:** `"socialContracts"`
+    /// **Type:** JSON-encoded `[SocialContract]`
+    /// **Purpose:** Stores enforceable social contracts.
+    case socialContracts = "socialContracts"
+    
+    /// **Key:** `"iouLedger"`
+    /// **Type:** JSON-encoded `[IOULedgerEntry]`
+    /// **Purpose:** Stores local IOU ledger entries from contracts.
+    case iouLedger = "iouLedger"
+    
+    /// **Key:** `"shieldState"`
+    /// **Type:** JSON-encoded `ShieldState`
+    /// **Purpose:** Source-of-truth shield UI state (reason + metadata).
+    case shieldState = "shieldState"
     
     /// **Key Prefix:** `"scheduledSessionConfig_"`  
     /// **Type:** Prefix for dynamic session-specific schedule configuration keys
@@ -219,12 +239,24 @@ public enum AppGroupStorageKey: String {
     /// **Type:** Prefix for dynamic session-specific event keys
     /// **Purpose:** Used to generate session-specific keys for storing session events
     case sessionEventsPrefix = "sessionEvents_"
+
+    /// **Key Prefix:** `"quorumState_"`
+    /// **Type:** Prefix for dynamic session-specific quorum state keys
+    /// **Purpose:** Stores quorum state per group session
+    case quorumStatePrefix = "quorumState_"
     
     /// Generate a session-specific key for session events
     /// - Parameter sessionId: The session UUID
     /// - Returns: The full key string for this session's events
     public static func sessionEventsKey(for sessionId: UUID) -> String {
         return "\(sessionEventsPrefix.rawValue)\(sessionId.uuidString)"
+    }
+    
+    /// Generate a session-specific key for quorum state
+    /// - Parameter sessionId: The session UUID
+    /// - Returns: The full key string for this session's quorum state
+    public static func quorumStateKey(for sessionId: UUID) -> String {
+        return "\(quorumStatePrefix.rawValue)\(sessionId.uuidString)"
     }
 }
 
@@ -809,6 +841,100 @@ public final class AppGroupStorage {
         let timestamp = defaults?.double(forKey: AppGroupStorageKey.lastAppOpenAt.rawValue) ?? 0
         guard timestamp > 0 else { return nil }
         return Date(timeIntervalSince1970: timestamp)
+    }
+
+    // MARK: - Lock Plans
+    
+    public func getLockPlans() -> [LockPlan] {
+        guard let defaults = defaults,
+              let data = defaults.data(forKey: AppGroupStorageKey.lockPlans.rawValue),
+              let plans = try? JSONDecoder().decode([LockPlan].self, from: data) else {
+            return []
+        }
+        return plans
+    }
+    
+    public func setLockPlans(_ plans: [LockPlan]) {
+        guard let defaults = defaults,
+              let data = try? JSONEncoder().encode(plans) else { return }
+        defaults.set(data, forKey: AppGroupStorageKey.lockPlans.rawValue)
+        notifyUpdate(forKey: .lockPlans)
+    }
+    
+    // MARK: - Social Contracts
+    
+    public func getSocialContracts() -> [SocialContract] {
+        guard let defaults = defaults,
+              let data = defaults.data(forKey: AppGroupStorageKey.socialContracts.rawValue),
+              let contracts = try? JSONDecoder().decode([SocialContract].self, from: data) else {
+            return []
+        }
+        return contracts
+    }
+    
+    public func setSocialContracts(_ contracts: [SocialContract]) {
+        guard let defaults = defaults,
+              let data = try? JSONEncoder().encode(contracts) else { return }
+        defaults.set(data, forKey: AppGroupStorageKey.socialContracts.rawValue)
+        notifyUpdate(forKey: .socialContracts)
+    }
+    
+    // MARK: - IOU Ledger
+    
+    public func getIOULedger() -> [IOULedgerEntry] {
+        guard let defaults = defaults,
+              let data = defaults.data(forKey: AppGroupStorageKey.iouLedger.rawValue),
+              let ledger = try? JSONDecoder().decode([IOULedgerEntry].self, from: data) else {
+            return []
+        }
+        return ledger
+    }
+    
+    public func setIOULedger(_ entries: [IOULedgerEntry]) {
+        guard let defaults = defaults,
+              let data = try? JSONEncoder().encode(entries) else { return }
+        defaults.set(data, forKey: AppGroupStorageKey.iouLedger.rawValue)
+        notifyUpdate(forKey: .iouLedger)
+    }
+    
+    // MARK: - Shield State
+    
+    public func getShieldState() -> ShieldState? {
+        guard let defaults = defaults,
+              let data = defaults.data(forKey: AppGroupStorageKey.shieldState.rawValue) else {
+            return nil
+        }
+        return try? JSONDecoder().decode(ShieldState.self, from: data)
+    }
+    
+    public func setShieldState(_ state: ShieldState?) {
+        guard let defaults = defaults else { return }
+        if let state = state, let data = try? JSONEncoder().encode(state) {
+            defaults.set(data, forKey: AppGroupStorageKey.shieldState.rawValue)
+        } else {
+            defaults.removeObject(forKey: AppGroupStorageKey.shieldState.rawValue)
+        }
+        notifyUpdate(forKey: .shieldState)
+    }
+    
+    // MARK: - Quorum State
+    
+    public func getQuorumState(sessionId: UUID) -> QuorumState? {
+        guard let defaults = defaults else { return nil }
+        let key = AppGroupStorageKey.quorumStateKey(for: sessionId)
+        guard let data = defaults.data(forKey: key) else { return nil }
+        return try? JSONDecoder().decode(QuorumState.self, from: data)
+    }
+    
+    public func setQuorumState(_ state: QuorumState?, sessionId: UUID) {
+        guard let defaults = defaults else { return }
+        let key = AppGroupStorageKey.quorumStateKey(for: sessionId)
+        if let state = state, let data = try? JSONEncoder().encode(state) {
+            defaults.set(data, forKey: key)
+        } else {
+            defaults.removeObject(forKey: key)
+        }
+        notifyUpdate(forKey: .shieldState)
     }
     
     // MARK: - Session Events

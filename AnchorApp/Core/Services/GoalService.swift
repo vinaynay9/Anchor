@@ -32,14 +32,10 @@ class GoalService: GoalServiceProtocol {
     static let shared = GoalService()
     
     private let goalsKey = "dailyGoals"
-    private let lastResetDateKey = "lastGoalsResetDate"
-    private let analyticsService: AnalyticsServiceProtocol
     
-    private init(analyticsService: AnalyticsServiceProtocol = AnalyticsServiceProvider.shared) {
-        self.analyticsService = analyticsService
-        // Reset goals daily if needed
-        resetGoalsDailyIfNeeded()
-    }
+    // MARK: - Service Rewrite Decision
+    // GoalService is REWRITTEN to be simple goal gating (no habit tracking, no analytics).
+    private init() {}
     
     // MARK: - Load Goals
     func loadGoals() -> [Goal] {
@@ -70,9 +66,6 @@ class GoalService: GoalServiceProtocol {
         if let index = goals.firstIndex(where: { $0.id == goal.id }) {
             goals[index].isCompleted.toggle()
             saveGoals(goals)
-            if goals[index].isCompleted {
-                logPledgeCompleted(goalId: goal.id)
-            }
         }
     }
     
@@ -83,15 +76,13 @@ class GoalService: GoalServiceProtocol {
         saveGoals(goals)
     }
     
-    // MARK: - Reset Goals Daily
+    // MARK: - Manual Reset (kept for compatibility)
     func resetGoalsDaily() {
         var goals = loadGoals()
-        // Reset completion status but keep goals
         for index in goals.indices {
             goals[index].isCompleted = false
         }
         saveGoals(goals)
-        UserDefaults.standard.set(Date(), forKey: lastResetDateKey)
     }
     
     // MARK: - Helper Methods
@@ -106,40 +97,5 @@ class GoalService: GoalServiceProtocol {
     func areAllGoalsCompleted() -> Bool {
         let goals = loadGoals()
         return !goals.isEmpty && goals.allSatisfy { $0.isCompleted }
-    }
-    
-    // MARK: - Private Helpers
-    private func resetGoalsDailyIfNeeded() {
-        let calendar = Calendar.current
-        let lastResetDate = UserDefaults.standard.object(forKey: lastResetDateKey) as? Date
-        
-        if let lastReset = lastResetDate {
-            // Check if it's a new day
-            if !calendar.isDateInToday(lastReset) {
-                resetGoalsDaily()
-            }
-        } else {
-            // First time - set reset date but don't reset
-            UserDefaults.standard.set(Date(), forKey: lastResetDateKey)
-        }
-    }
-
-    private func logPledgeCompleted(goalId: UUID) {
-        Task {
-            let sharedState = AppGroupStorage.shared.getSessionState()
-            let userState: AnalyticsUserState = (sharedState?.isActive ?? false) ? .anchored : .free
-            var doubleValues: [String: Double] = [:]
-            if let session = try? await SessionService.shared.getActiveSession(),
-               let startTime = session?.startTime {
-                let latency = Date().timeIntervalSince(startTime)
-                doubleValues["completionLatencySeconds"] = max(latency, 0)
-            }
-            let payload = AnalyticsPayload(
-                userState: userState,
-                context: AnalyticsContext(pledgeId: goalId),
-                metrics: AnalyticsMetrics(doubleValues: doubleValues)
-            )
-            analyticsService.log(event: .pledgeCompleted, payload: payload)
-        }
     }
 }
