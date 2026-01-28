@@ -1,14 +1,14 @@
 import Foundation
 
-struct User: Identifiable, Codable, Hashable {
-    let id: UUID
-    let email: String
-    let username: String
-    let displayName: String?
-    let createdAt: Date
-    let role: UserRole
+public struct User: Identifiable, Codable, Hashable {
+    public let id: UUID
+    public let email: String
+    public let username: String
+    public let displayName: String?
+    public let createdAt: Date
+    public let role: UserRole
     
-    enum CodingKeys: String, CodingKey {
+    public enum CodingKeys: String, CodingKey {
         case id
         case email
         case username
@@ -17,7 +17,7 @@ struct User: Identifiable, Codable, Hashable {
         case role
     }
     
-    init(id: UUID, email: String, username: String, displayName: String?, createdAt: Date, role: UserRole = .user) {
+    public init(id: UUID, email: String, username: String, displayName: String?, createdAt: Date, role: UserRole = .user) {
         self.id = id
         self.email = email
         self.username = username
@@ -26,7 +26,7 @@ struct User: Identifiable, Codable, Hashable {
         self.role = role
     }
     
-    init(from decoder: Decoder) throws {
+    public init(from decoder: Decoder) throws {
         let container = try decoder.container(keyedBy: CodingKeys.self)
         let id = try container.decode(UUID.self, forKey: .id)
         let email = try container.decode(String.self, forKey: .email)
@@ -39,6 +39,8 @@ struct User: Identifiable, Codable, Hashable {
 }
 
 // MARK: - API DTOs
+// TODO: UserDTO is deferred until API schema matches plan-centric user model.
+#if false
 struct UserDTO: Codable {
     let id: String
     let email: String
@@ -62,3 +64,4 @@ struct UserDTO: Codable {
         )
     }
 }
+#endif

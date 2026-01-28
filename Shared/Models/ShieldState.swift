@@ -1,6 +1,6 @@
 import Foundation
 
-enum ShieldStateReason: String, Codable, Hashable {
+public enum ShieldStateReason: String, Codable, Hashable {
     case activeLock
     case waitingForQuorum
     case goalNotApproved
@@ -9,47 +9,18 @@ enum ShieldStateReason: String, Codable, Hashable {
     case free
 }
 
-struct QuorumState: Codable, Hashable {
-    let participantIds: [UUID]
-    var approvedIds: Set<UUID>
-    var deniedIds: Set<UUID>
-    let requiredApprovalCount: Int
-    let updatedAt: Date
+public struct ShieldState: Codable, Hashable {
+    public let reason: ShieldStateReason
+    public let sessionId: UUID?
+    public let planName: String?
+    public let planType: LockPlanType?
+    public let unlockPolicy: UnlockPolicy?
+    public let goalRequirement: GoalRequirement?
+    public let quorumState: QuorumState?
+    public let message: String?
+    public let updatedAt: Date
     
-    init(
-        participantIds: [UUID],
-        approvedIds: Set<UUID> = [],
-        deniedIds: Set<UUID> = [],
-        requiredApprovalCount: Int,
-        updatedAt: Date = Date()
-    ) {
-        self.participantIds = participantIds
-        self.approvedIds = approvedIds
-        self.deniedIds = deniedIds
-        self.requiredApprovalCount = requiredApprovalCount
-        self.updatedAt = updatedAt
-    }
-    
-    var approvalCount: Int { approvedIds.count }
-    var denialCount: Int { deniedIds.count }
-    
-    var hasReachedQuorum: Bool {
-        approvalCount >= requiredApprovalCount
-    }
-}
-
-struct ShieldState: Codable, Hashable {
-    let reason: ShieldStateReason
-    let sessionId: UUID?
-    let planName: String?
-    let planType: LockPlanType?
-    let unlockPolicy: UnlockPolicy?
-    let goalRequirement: GoalRequirement?
-    let quorumState: QuorumState?
-    let message: String?
-    let updatedAt: Date
-    
-    init(
+    public init(
         reason: ShieldStateReason,
         sessionId: UUID? = nil,
         planName: String? = nil,
@@ -73,7 +44,7 @@ struct ShieldState: Codable, Hashable {
 }
 
 extension ShieldState {
-    var isBlocking: Bool {
+    public var isBlocking: Bool {
         switch reason {
         case .activeLock, .waitingForQuorum, .goalNotApproved, .contractPenaltyActive:
             return true
@@ -82,4 +53,3 @@ extension ShieldState {
         }
     }
 }
-

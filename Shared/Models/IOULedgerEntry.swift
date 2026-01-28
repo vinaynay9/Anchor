@@ -1,15 +1,15 @@
 import Foundation
 
-struct IOULedgerEntry: Identifiable, Codable, Hashable {
-    let id: UUID
-    let contractId: UUID
-    let loserId: UUID
-    let creditorIds: [UUID]
-    let consequenceApplied: ConsequencePolicy?
-    let createdAt: Date
-    var resolvedAt: Date?
+public struct IOULedgerEntry: Identifiable, Codable, Hashable {
+    public let id: UUID
+    public let contractId: UUID
+    public let loserId: UUID
+    public let creditorIds: [UUID]
+    public let consequenceApplied: ConsequencePolicy?
+    public let createdAt: Date
+    public var resolvedAt: Date?
     
-    init(
+    public init(
         id: UUID = UUID(),
         contractId: UUID,
         loserId: UUID,
@@ -27,4 +27,3 @@ struct IOULedgerEntry: Identifiable, Codable, Hashable {
         self.resolvedAt = resolvedAt
     }
 }
-

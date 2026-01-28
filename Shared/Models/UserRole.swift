@@ -1,6 +1,6 @@
 import Foundation
 
-enum UserRole: String, Codable, Equatable {
+public enum UserRole: String, Codable, Hashable {
     case user
     case admin
 }

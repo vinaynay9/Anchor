@@ -1,25 +1,25 @@
 import Foundation
 
-struct LockSession: Identifiable, Codable, Hashable {
-    let id: UUID
-    let userId: UUID
-    let status: SessionStatus
-    let startTime: Date
-    let endTime: Date?
-    let appsBlocked: [String] // Bundle identifiers
-    let accountabilityPartnerId: UUID?
-    let createdAt: Date
-    let selectedCategories: [AppCategory]? // Selected app categories to block
-    let schedule: LockSessionSchedule? // Schedule configuration for recurring sessions
-    let lockPlanId: UUID?
-    let lockPlanType: LockPlanType
-    let lockMode: LockMode
-    let unlockPolicy: UnlockPolicy
-    let goalRequirement: GoalRequirement
-    let quorumState: QuorumState?
-    var events: [SessionEvent] = [] // Timeline of events for this session
+public struct LockSession: Identifiable, Codable, Equatable, Hashable {
+    public let id: UUID
+    public let userId: UUID
+    public let status: SessionStatus
+    public let startTime: Date
+    public let endTime: Date?
+    public let appsBlocked: [String] // Bundle identifiers
+    public let accountabilityPartnerId: UUID?
+    public let createdAt: Date
+    public let selectedCategories: [AppCategory]? // Selected app categories to block
+    public let schedule: LockSessionSchedule? // Schedule configuration for recurring sessions
+    public let lockPlanId: UUID?
+    public let lockPlanType: LockPlanType
+    public let lockMode: LockMode
+    public let unlockPolicy: UnlockPolicy
+    public let goalRequirement: GoalRequirement
+    public let quorumState: QuorumState?
+    public var events: [SessionEvent] = [] // Timeline of events for this session
     
-    enum CodingKeys: String, CodingKey {
+    public enum CodingKeys: String, CodingKey {
         case id
         case userId = "user_id"
         case status
@@ -39,7 +39,7 @@ struct LockSession: Identifiable, Codable, Hashable {
         case events
     }
     
-    init(
+    public init(
         id: UUID,
         userId: UUID,
         status: SessionStatus,
@@ -77,14 +77,14 @@ struct LockSession: Identifiable, Codable, Hashable {
         self.events = events
     }
     
-    mutating func addEvent(_ event: SessionEvent) {
+    public mutating func addEvent(_ event: SessionEvent) {
         events.append(event)
     }
 }
 
 // MARK: - Custom Decoding for Backward Compatibility
 extension LockSession {
-    init(from decoder: Decoder) throws {
+    public init(from decoder: Decoder) throws {
         // Migration default: legacy sessions map to individual + self unlock + custom plan.
         let container = try decoder.container(keyedBy: CodingKeys.self)
         id = try container.decode(UUID.self, forKey: .id)
@@ -106,7 +106,7 @@ extension LockSession {
         events = (try container.decodeIfPresent([SessionEvent].self, forKey: .events)) ?? []
     }
     
-    func encode(to encoder: Encoder) throws {
+    public func encode(to encoder: Encoder) throws {
         var container = encoder.container(keyedBy: CodingKeys.self)
         try container.encode(id, forKey: .id)
         try container.encode(userId, forKey: .userId)
@@ -173,13 +173,15 @@ public struct TimeOfDay: Codable, Hashable {
     }
 }
 
-enum SessionStatus: String, Codable, Hashable {
+public enum SessionStatus: String, Codable, Hashable {
     case active
     case completed
     case cancelled
 }
 
 // MARK: - API DTOs
+// TODO: LockSessionDTO is deferred until API schema matches plan-centric sessions.
+#if false
 struct LockSessionDTO: Codable {
     let id: String
     let userId: String
@@ -288,3 +290,4 @@ struct TimeOfDayDTO: Codable {
         return TimeOfDay(hour: hour, minute: minute)
     }
 }
+#endif

@@ -1,23 +1,23 @@
 import Foundation
 
-enum SocialContractStatus: String, Codable, Hashable {
+public enum SocialContractStatus: String, Codable, Hashable {
     case active
     case resolved
     case breached
     case voided
 }
 
-struct SocialContract: Identifiable, Codable, Hashable {
-    let id: UUID
-    let sessionId: UUID?
-    let challengeId: UUID?
-    let participants: [UUID]
-    let terms: String
-    let consequences: ConsequencePolicy
-    var status: SocialContractStatus
-    let createdAt: Date
+public struct SocialContract: Identifiable, Codable, Hashable {
+    public let id: UUID
+    public let sessionId: UUID?
+    public let challengeId: UUID?
+    public let participants: [UUID]
+    public let terms: String
+    public let consequences: ConsequencePolicy
+    public var status: SocialContractStatus
+    public let createdAt: Date
     
-    init(
+    public init(
         id: UUID = UUID(),
         sessionId: UUID? = nil,
         challengeId: UUID? = nil,
@@ -37,4 +37,3 @@ struct SocialContract: Identifiable, Codable, Hashable {
         self.createdAt = createdAt
     }
 }
-

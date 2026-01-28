@@ -1,6 +1,6 @@
 import Foundation
 
-enum SessionEventType: String, Codable {
+public enum SessionEventType: String, Codable, Hashable {
     case sessionStarted
     case proofSubmitted
     case unlockRequested
@@ -9,13 +9,13 @@ enum SessionEventType: String, Codable {
     case sessionEnded
 }
 
-struct SessionEvent: Identifiable, Codable {
-    let id: UUID
-    let type: SessionEventType
-    let timestamp: Date
-    let metadata: [String: String]? // optional bundleId, reason, etc.
+public struct SessionEvent: Identifiable, Codable, Hashable {
+    public let id: UUID
+    public let type: SessionEventType
+    public let timestamp: Date
+    public let metadata: [String: String]? // optional bundleId, reason, etc.
     
-    init(
+    public init(
         id: UUID = UUID(),
         type: SessionEventType,
         timestamp: Date = Date(),
@@ -27,4 +27,3 @@ struct SessionEvent: Identifiable, Codable {
         self.metadata = metadata
     }
 }
-
