@@ -27,26 +27,38 @@ public final class NoOpAnalyticsExportService: AnalyticsExportServiceProtocol {
 }
 
 public final class StubAnalyticsExportService: AnalyticsExportServiceProtocol {
-    private var buffer: [AnalyticsRecord] = []
-    private let queue = DispatchQueue(label: "com.vinay.Anchor.analytics.export")
+    private let buffer = ExportBuffer()
     
     public init() {}
     
     public func enqueueForExport(records: [AnalyticsRecord]) {
-        queue.async {
-            self.buffer.append(contentsOf: records)
+        Task {
+            await buffer.append(records)
         }
     }
     
     public func flush() async {
-        queue.async {
-            self.buffer.removeAll(keepingCapacity: true)
-        }
+        await buffer.clear()
+    }
+}
+
+private actor ExportBuffer {
+    private var records: [AnalyticsRecord] = []
+    
+    func append(_ newRecords: [AnalyticsRecord]) {
+        records.append(contentsOf: newRecords)
+    }
+    
+    func clear() {
+        records.removeAll(keepingCapacity: true)
     }
 }
 
 public struct AnalyticsExportServiceProvider {
     public static let shared: AnalyticsExportServiceProtocol = {
-        AnalyticsEnvironment.isEnabled ? StubAnalyticsExportService() : NoOpAnalyticsExportService()
+        if AnalyticsEnvironment.isEnabled {
+            return StubAnalyticsExportService()
+        }
+        return NoOpAnalyticsExportService()
     }()
 }

@@ -1,5 +1,4 @@
 import SwiftUI
-import ManagedSettingsUI
 import Shared
 
 // MARK: - Shield View
@@ -13,12 +12,6 @@ struct ShieldView: View {
     @State private var anchorOpacity: Double = 0.0
     @State private var textOpacity: Double = 0.0
     @State private var textOffset: CGFloat = 12
-    
-    let context: ShieldConfigurationContext
-    
-    init(context: ShieldConfigurationContext) {
-        self.context = context
-    }
     
     var body: some View {
         ZStack {
@@ -67,7 +60,6 @@ struct ShieldView: View {
             .padding(.vertical, ShieldTheme.padding * 2)
         }
         .onAppear {
-            viewModel.setContext(context)
             viewModel.refresh()
             viewModel.refreshGoalProgress()
             logShieldHit()

@@ -2,7 +2,6 @@ import SwiftUI
 import Foundation
 import UIKit
 import Combine
-import ManagedSettingsUI
 import Shared
 import os.log
 
@@ -25,11 +24,7 @@ class ShieldViewModel: ObservableObject {
     @Published var goalTotalCount: Int = 0
     
     private let appGroupStorage = AppGroupStorage.shared
-    private let goalService = GoalService.shared
     private var cancellables = Set<AnyCancellable>()
-    
-    /// ShieldDecision helper for bundle ID matching and unlock logic
-    private var shieldDecision: ShieldDecision?
     
     init() {
         // Subscribe to AppGroupStorage updates for real-time sync
@@ -46,29 +41,16 @@ class ShieldViewModel: ObservableObject {
     }
 
     var blockedAppToken: String? {
-        shieldDecision?.blockedBundleId ?? appGroupStorage.getCurrentBlockedBundleId()
+        appGroupStorage.getCurrentBlockedBundleId()
     }
     
     // MARK: - Goal Progress (Business Logic)
     
     /// Updates goal progress state. Called from ViewModel to keep business logic out of View.
     func refreshGoalProgress() {
-        let goals = goalService.loadGoals()
-        goalTotalCount = goals.count
-        goalCompletedCount = goals.filter { $0.isCompleted }.count
-        
-        if goalTotalCount > 0 {
-            goalProgressText = "\(goalCompletedCount)/\(goalTotalCount) goals completed"
-        } else {
-            goalProgressText = nil
-        }
-    }
-    
-    /// Sets the shield context to enable bundle ID extraction and matching
-    /// - Parameter context: The shield configuration context
-    func setContext(_ context: ShieldConfigurationContext) {
-        shieldDecision = ShieldDecision(context: context)
-        refresh()
+        goalTotalCount = 0
+        goalCompletedCount = 0
+        goalProgressText = nil
     }
     
     func refresh() {

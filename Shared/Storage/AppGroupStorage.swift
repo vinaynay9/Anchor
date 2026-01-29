@@ -355,7 +355,7 @@ public final class AppGroupStorage {
     /// Called by SessionService timer to update countdown in real-time.
     /// - Parameter seconds: The new remaining seconds value
     public func updateRemainingSeconds(_ seconds: Int) {
-        guard var current = getSessionState() else { return }
+        guard let current = getSessionState() else { return }
         
         let updated = SharedSessionState(
             isActive: current.isActive,

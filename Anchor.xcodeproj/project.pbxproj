@@ -9,6 +9,13 @@
 /* Begin PBXBuildFile section */
 		00F8D749C1ED6359EA0F5F23 /* LoadingView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 262B2B4369734DFA75437A51 /* LoadingView.swift */; };
 		01E9A9E45E35F999ED3A427D /* Shared.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 5768BF82AFE6BC241C57DE50 /* Shared.framework */; };
+		18389DF677FCFCE7DA235B45 /* ManagedSettings.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 246BC9CE45519152AB45A493 /* ManagedSettings.framework */; };
+		F7C3A5FD79B4ABDD42F99F53 /* ManagedSettingsUI.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 3E417F5A476383F67DABBF5B /* ManagedSettingsUI.framework */; };
+		40CAF1C3A1171B751BCA1494 /* ShieldActionExtension.swift in Sources */ = {isa = PBXBuildFile; fileRef = 59519010F216ECFA2E602829 /* ShieldActionExtension.swift */; };
+		624C3E6751D24B4E49A6F8E4 /* Shared.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 5768BF82AFE6BC241C57DE50 /* Shared.framework */; };
+		86345CCD91855CBC83C0E002 /* ManagedSettings.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 246BC9CE45519152AB45A493 /* ManagedSettings.framework */; };
+		27012FFF6BD7860314E804D9 /* AnchorShieldActionExtension.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = A4A814C62D0AB0FC14F24CCB /* AnchorShieldActionExtension.appex */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
+		63F544BE0CDD05A60898D4D5 /* AppColors.swift in Sources */ = {isa = PBXBuildFile; fileRef = ED7688555AF489B4CA1E2454 /* AppColors.swift */; };
 		04B8F07B73E543C1896A64DB /* ActivityFeedView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7FAB6567CD013797A9B4EC24 /* ActivityFeedView.swift */; };
 		05720B948FB1F45799C43BDE /* FriendsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 60CB4559D9627B8F90A6257B /* FriendsView.swift */; };
 		070E1CD15C85BFB535ACA498 /* Endpoint.swift in Sources */ = {isa = PBXBuildFile; fileRef = F552107853AFCD394F91A728 /* Endpoint.swift */; };
@@ -20,6 +27,16 @@
 		0E7D8B7E1F4F3E205097684F /* ShieldViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0DA33420518623810E3E40DD /* ShieldViewModel.swift */; };
 		0FA38CC02C605797CA423100 /* ScreenTimeIntroView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 67197F48440205CF3D5055BE /* ScreenTimeIntroView.swift */; };
 		0FFA3E284AA55187D2BC7C1C /* ActiveSessionView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 36149013F29EC3F0216FED28 /* ActiveSessionView.swift */; };
+		1EF1ABA5224FF055B551FE5A /* AdminAccessPolicy.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3828144B6D4C239E505C6A25 /* AdminAccessPolicy.swift */; };
+		0E5BBAFB1F03673B5E651236 /* AnalyticsInsightsService.swift in Sources */ = {isa = PBXBuildFile; fileRef = B1039C695D8E38F6E6979DD3 /* AnalyticsInsightsService.swift */; };
+		5354E2B26D0E2939B153F221 /* ContractService.swift in Sources */ = {isa = PBXBuildFile; fileRef = F78EAF6E841479BA8BCAB137 /* ContractService.swift */; };
+		6A69EBAE6CC8C218250D0CF2 /* LockPlanService.swift in Sources */ = {isa = PBXBuildFile; fileRef = E1A9AE03858F31CFFC5A72BA /* LockPlanService.swift */; };
+		2C3059257423D514C3A4589A /* QuorumService.swift in Sources */ = {isa = PBXBuildFile; fileRef = A000B68AD8042217EDDDEAAE /* QuorumService.swift */; };
+		7DF2E79664E021840A6132E9 /* AnalyticsDashboardViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB7F3AAB26B775FC8B63B411 /* AnalyticsDashboardViewModel.swift */; };
+		C95FB4842D8C7A3A37EC877D /* AnalyticsDashboardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = DA28BF4C9A26EBE45883F0AA /* AnalyticsDashboardView.swift */; };
+		89D0A6AE4A9C898AD2953849 /* InternalTools.swift in Sources */ = {isa = PBXBuildFile; fileRef = CFAB403D84478DD00BAC9765 /* InternalTools.swift */; };
+		845AE038FCD06831D653A0B3 /* AdminRootView.swift in Sources */ = {isa = PBXBuildFile; fileRef = BEC51E7CA3D068C96B48B153 /* AdminRootView.swift */; };
+		6DE4A2CDE97D4653CE4687BA /* LoggerService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5CDDEE1D409CC6AABD673A8C /* LoggerService.swift */; };
 		14276A946131347A787B32D5 /* UnlockRequestService.swift in Sources */ = {isa = PBXBuildFile; fileRef = DE8E52A5B8BCEE24F88841CF /* UnlockRequestService.swift */; };
 		14C19FBEA20C0842529BDCDF /* DeepLinkHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1BF676E723D39567F2BCFA04 /* DeepLinkHandler.swift */; };
 		1545033ECAC7EC836E519EA5 /* SettingsRowView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5D2B440B6AC29A6E7A093E21 /* SettingsRowView.swift */; };
@@ -50,7 +67,6 @@
 		4A3B87C49C9DCE3A156CC4BA /* CaptureProofView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E282C209A5A91391378F4F6C /* CaptureProofView.swift */; };
 		4B48A3020C345BD87EBA9836 /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3E896E28BB87BC3C59F82C36 /* SettingsView.swift */; };
 		4CE4B46B0C12C3F3E2F47B6F /* GoogleService-Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = 007F59B4FC68826931BE25C2 /* GoogleService-Info.plist */; };
-		4D495E783BEB697BE99C92E0 /* ShieldDecision.swift in Sources */ = {isa = PBXBuildFile; fileRef = 06E3CCD1E1F542B7B9E3847B /* ShieldDecision.swift */; };
 		4D9AA4A1B079EC5F5CDD9B5C /* ActiveSessionMockViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = D795386C1B332BB902D20A0A /* ActiveSessionMockViewModel.swift */; };
 		4DA98327F60220439710BB83 /* SignInOptionsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 213B21F9B1E95EE1E7CA1692 /* SignInOptionsView.swift */; };
 		4DFEE44152E22C3B4B87689C /* IncomingRequestsListView.swift in Sources */ = {isa = PBXBuildFile; fileRef = FA00A3C47AD34ECB39AD8524 /* IncomingRequestsListView.swift */; };
@@ -118,6 +134,8 @@
 		CC82118DCDDD00D33CAA463A /* NotificationPreferencesViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7B4313DE700BDAC940E27A29 /* NotificationPreferencesViewModel.swift */; };
 		CDF5BB4C0A7854C1846DFB2F /* SelectAppsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 897DA810051FD2AC41F2ACEC /* SelectAppsView.swift */; };
 		CE580AF8CA5707D7753E7DAC /* TabBarPreview.swift in Sources */ = {isa = PBXBuildFile; fileRef = C8A8B5C03553C6051241A983 /* TabBarPreview.swift */; };
+		D04259532F2AA1090029893C /* QuorumState.swift in Sources */ = {isa = PBXBuildFile; fileRef = D04259522F2AA1090029893C /* QuorumState.swift */; };
+		D04259552F2AA1550029893C /* DailyAnchorTime.swift in Sources */ = {isa = PBXBuildFile; fileRef = D04259542F2AA1550029893C /* DailyAnchorTime.swift */; };
 		D084BDF72F16DAE10029EF8C /* GoogleSignIn in Frameworks */ = {isa = PBXBuildFile; productRef = CD92C0F63231D9608EE1FC22 /* GoogleSignIn */; };
 		D084BDFA2F16E1C70029EF8C /* AnchorAppApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = D084BDF92F16E1C70029EF8C /* AnchorAppApp.swift */; };
 		D093EC3A2F2A76FD004A8476 /* AppCategory.swift in Sources */ = {isa = PBXBuildFile; fileRef = D093EC282F2A76FD004A8476 /* AppCategory.swift */; };
@@ -141,7 +159,6 @@
 		D093EC4C2F2A76FD004A8476 /* AnalyticsEvent.swift in Sources */ = {isa = PBXBuildFile; fileRef = D093EC1F2F2A76FD004A8476 /* AnalyticsEvent.swift */; };
 		D093EC4D2F2A76FD004A8476 /* User.swift in Sources */ = {isa = PBXBuildFile; fileRef = D093EC332F2A76FD004A8476 /* User.swift */; };
 		D093EC4E2F2A76FD004A8476 /* ShieldState.swift in Sources */ = {isa = PBXBuildFile; fileRef = D093EC302F2A76FD004A8476 /* ShieldState.swift */; };
-		D093EC4F2F2A76FD004A8476 /* Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = D093EC382F2A76FD004A8476 /* Info.plist */; };
 		D50AA7E50369AA9A611597AA /* CreateSessionViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = C6D9AC5A38421789034C18F4 /* CreateSessionViewModel.swift */; };
 		DAAD36A931011C1ABD5A6BA4 /* FriendActivityService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 755034BA699DAA338678B82C /* FriendActivityService.swift */; };
 		DC16D2FBF24B124DCF9D1EB5 /* DebugDiagnosticsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3C7F942DB7FB236A3C98B37 /* DebugDiagnosticsView.swift */; };
@@ -192,6 +209,20 @@
 			remoteGlobalIDString = F2F43499AA285D51B080BD0D;
 			remoteInfo = AnchorShieldExtension;
 		};
+		E7B17E6F4894CF611E768CE9 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = A90129D19684C3A745678B92 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = FB04CAD76C3500CE2AF0E518;
+			remoteInfo = Shared;
+		};
+		A8CE5BC6DF2DA8F8AEE65DF9 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = A90129D19684C3A745678B92 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 6FD299F6FFA37B93D79845A9;
+			remoteInfo = AnchorShieldActionExtension;
+		};
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXCopyFilesBuildPhase section */
@@ -213,6 +244,7 @@
 			dstSubfolderSpec = 13;
 			files = (
 				AC21037165A03A6F71E2243A /* AnchorShieldExtension.appex in Embed Foundation Extensions */,
+				27012FFF6BD7860314E804D9 /* AnchorShieldActionExtension.appex in Embed Foundation Extensions */,
 			);
 			name = "Embed Foundation Extensions";
 			runOnlyForDeploymentPostprocessing = 0;
@@ -225,8 +257,10 @@
 		03857515EA958291D353C7C8 /* NetworkMonitor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NetworkMonitor.swift; sourceTree = "<group>"; };
 		04A3929B24EA9DFD9111ED68 /* DailyReflectionViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DailyReflectionViewModel.swift; sourceTree = "<group>"; };
 		06BBC08E1CCB943EA960C747 /* ToastManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ToastManager.swift; sourceTree = "<group>"; };
-		06E3CCD1E1F542B7B9E3847B /* ShieldDecision.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShieldDecision.swift; sourceTree = "<group>"; };
 		07FA432A4B790C37F4488457 /* AuthViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AuthViewModel.swift; sourceTree = "<group>"; };
+		246BC9CE45519152AB45A493 /* ManagedSettings.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = ManagedSettings.framework; path = System/Library/Frameworks/ManagedSettings.framework; sourceTree = SDKROOT; };
+		3E417F5A476383F67DABBF5B /* ManagedSettingsUI.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = ManagedSettingsUI.framework; path = System/Library/Frameworks/ManagedSettingsUI.framework; sourceTree = SDKROOT; };
+		ED7688555AF489B4CA1E2454 /* AppColors.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppColors.swift; sourceTree = "<group>"; };
 		0817214383B820C22BE4E4AA /* ShieldView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShieldView.swift; sourceTree = "<group>"; };
 		0995A075C67F06B0737B651F /* AuthService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AuthService.swift; sourceTree = "<group>"; };
 		0DA33420518623810E3E40DD /* ShieldViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShieldViewModel.swift; sourceTree = "<group>"; };
@@ -235,6 +269,16 @@
 		1190FF4427B3544AE293363E /* EmptyStateView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EmptyStateView.swift; sourceTree = "<group>"; };
 		11EEE94EB191D928465CBCC0 /* AnchorShieldExtension.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = AnchorShieldExtension.entitlements; sourceTree = "<group>"; };
 		13CACC9401D14AD9A3B9AD84 /* LoggerService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LoggerService.swift; sourceTree = "<group>"; };
+		3828144B6D4C239E505C6A25 /* AdminAccessPolicy.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AdminAccessPolicy.swift; sourceTree = "<group>"; };
+		B1039C695D8E38F6E6979DD3 /* AnalyticsInsightsService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AnalyticsInsightsService.swift; sourceTree = "<group>"; };
+		F78EAF6E841479BA8BCAB137 /* ContractService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContractService.swift; sourceTree = "<group>"; };
+		E1A9AE03858F31CFFC5A72BA /* LockPlanService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LockPlanService.swift; sourceTree = "<group>"; };
+		A000B68AD8042217EDDDEAAE /* QuorumService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QuorumService.swift; sourceTree = "<group>"; };
+		BB7F3AAB26B775FC8B63B411 /* AnalyticsDashboardViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AnalyticsDashboardViewModel.swift; sourceTree = "<group>"; };
+		DA28BF4C9A26EBE45883F0AA /* AnalyticsDashboardView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AnalyticsDashboardView.swift; sourceTree = "<group>"; };
+		CFAB403D84478DD00BAC9765 /* InternalTools.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InternalTools.swift; sourceTree = "<group>"; };
+		BEC51E7CA3D068C96B48B153 /* AdminRootView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AdminRootView.swift; sourceTree = "<group>"; };
+		5CDDEE1D409CC6AABD673A8C /* LoggerService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LoggerService.swift; sourceTree = "<group>"; };
 		14339469E13B43DAD82DBC56 /* InsightsViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InsightsViewModel.swift; sourceTree = "<group>"; };
 		15DF07F4D29C40005633EA68 /* AddFriendSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AddFriendSheet.swift; sourceTree = "<group>"; };
 		163D7766E8546BC30A598763 /* ActivityPickerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ActivityPickerView.swift; sourceTree = "<group>"; };
@@ -275,6 +319,9 @@
 		59581D601C978BB41908FAE9 /* ProofUploadView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProofUploadView.swift; sourceTree = "<group>"; };
 		5A50495BE2713CC4F5ABCF0D /* UnlockRequestView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UnlockRequestView.swift; sourceTree = "<group>"; };
 		5A94C02E4453CA1C9B15B463 /* AnchorShieldExtension.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; path = AnchorShieldExtension.appex; sourceTree = BUILT_PRODUCTS_DIR; };
+		A4A814C62D0AB0FC14F24CCB /* AnchorShieldActionExtension.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; path = AnchorShieldActionExtension.appex; sourceTree = BUILT_PRODUCTS_DIR; };
+		59519010F216ECFA2E602829 /* ShieldActionExtension.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShieldActionExtension.swift; sourceTree = "<group>"; };
+		B98850F31EF6ACE309FB0149 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		5BC7FBDEBE94B5037EDAA3D9 /* DeviceActivityService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DeviceActivityService.swift; sourceTree = "<group>"; };
 		5CDB3B5240D5BE238F52DEB3 /* CustomTabBarView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CustomTabBarView.swift; sourceTree = "<group>"; };
 		5CFB0AE17EAFC658BE0D07E2 /* AuthFlow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AuthFlow.swift; sourceTree = "<group>"; };
@@ -337,6 +384,8 @@
 		CA652C7CA5E559A37046EEBD /* Theme.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Theme.swift; sourceTree = "<group>"; };
 		CC4B79084E5EAF14CFBB7C6B /* NotificationSettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NotificationSettingsView.swift; sourceTree = "<group>"; };
 		CD7FEC9810E2F9A60632EC5F /* AppButtonStyle.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppButtonStyle.swift; sourceTree = "<group>"; };
+		D04259522F2AA1090029893C /* QuorumState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QuorumState.swift; sourceTree = "<group>"; };
+		D04259542F2AA1550029893C /* DailyAnchorTime.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DailyAnchorTime.swift; sourceTree = "<group>"; };
 		D084BDF92F16E1C70029EF8C /* AnchorAppApp.swift */ = {isa = PBXFileReference; explicitFileType = sourcecode.swift; path = AnchorAppApp.swift; sourceTree = "<group>"; };
 		D093EBED2F2A7091004A8476 /* AnchorApp.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = AnchorApp.entitlements; sourceTree = "<group>"; };
 		D093EC1F2F2A76FD004A8476 /* AnalyticsEvent.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AnalyticsEvent.swift; sourceTree = "<group>"; };
@@ -401,6 +450,17 @@
 			buildActionMask = 2147483647;
 			files = (
 				01E9A9E45E35F999ED3A427D /* Shared.framework in Frameworks */,
+				18389DF677FCFCE7DA235B45 /* ManagedSettings.framework in Frameworks */,
+				F7C3A5FD79B4ABDD42F99F53 /* ManagedSettingsUI.framework in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		3638605C309F79D218120E13 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				624C3E6751D24B4E49A6F8E4 /* Shared.framework in Frameworks */,
+				86345CCD91855CBC83C0E002 /* ManagedSettings.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -440,6 +500,31 @@
 				D4E4334FD1485608481FB986 /* Views */,
 			);
 			path = ActivityFeed;
+			sourceTree = "<group>";
+		};
+		AE2145C8C36D79CACCC12333 /* AnalyticsDashboard */ = {
+			isa = PBXGroup;
+			children = (
+				848F34C795703623A195B387 /* ViewModels */,
+				63E20C51927725C3BB01C7A6 /* Views */,
+			);
+			path = AnalyticsDashboard;
+			sourceTree = "<group>";
+		};
+		848F34C795703623A195B387 /* ViewModels */ = {
+			isa = PBXGroup;
+			children = (
+				BB7F3AAB26B775FC8B63B411 /* AnalyticsDashboardViewModel.swift */,
+			);
+			path = ViewModels;
+			sourceTree = "<group>";
+		};
+		63E20C51927725C3BB01C7A6 /* Views */ = {
+			isa = PBXGroup;
+			children = (
+				DA28BF4C9A26EBE45883F0AA /* AnalyticsDashboardView.swift */,
+			);
+			path = Views;
 			sourceTree = "<group>";
 		};
 		0AFFFA9915B2F3B6A4E346AF /* Friends */ = {
@@ -533,12 +618,16 @@
 			isa = PBXGroup;
 			children = (
 				A4D42EACA70B9459A6049CB3 /* ActivitySelectionService.swift */,
+				3828144B6D4C239E505C6A25 /* AdminAccessPolicy.swift */,
+				B1039C695D8E38F6E6979DD3 /* AnalyticsInsightsService.swift */,
 				0995A075C67F06B0737B651F /* AuthService.swift */,
+				F78EAF6E841479BA8BCAB137 /* ContractService.swift */,
 				1BF676E723D39567F2BCFA04 /* DeepLinkHandler.swift */,
 				5BC7FBDEBE94B5037EDAA3D9 /* DeviceActivityService.swift */,
 				755034BA699DAA338678B82C /* FriendActivityService.swift */,
 				5185A366E0600FD0BEAD3A8B /* FriendService.swift */,
 				110F16DE20DD540C59C814CD /* GoalService.swift */,
+				E1A9AE03858F31CFFC5A72BA /* LockPlanService.swift */,
 				13CACC9401D14AD9A3B9AD84 /* LoggerService.swift */,
 				A1C5B4557DA0E99742461C25 /* MockScreenTimeService.swift */,
 				03857515EA958291D353C7C8 /* NetworkMonitor.swift */,
@@ -547,6 +636,7 @@
 				66BD15B798903C5CE7BFB5F0 /* OfflineSyncService.swift */,
 				2BF4556F7297051095E9CEFD /* PersistenceService.swift */,
 				02DBBC51CECFFE9F5CCF56B2 /* ProofService.swift */,
+				A000B68AD8042217EDDDEAAE /* QuorumService.swift */,
 				2F37959C7559BBB6C753E47F /* ScreenTimeService.swift */,
 				BAFA153E7D3BA1DBAA6B99F9 /* ScreenTimeServiceProtocol.swift */,
 				FFEFF75ADCFD681F7F7A819A /* SessionService.swift */,
@@ -666,7 +756,6 @@
 		69161805138D3710A0B0D190 /* AnchorShieldExtension */ = {
 			isa = PBXGroup;
 			children = (
-				06E3CCD1E1F542B7B9E3847B /* ShieldDecision.swift */,
 				D6A64F7FFACFD0EBAD8840B8 /* ShieldDesignSystem.swift */,
 				68052AC71655051321EB6516 /* ShieldExtension.swift */,
 				0817214383B820C22BE4E4AA /* ShieldView.swift */,
@@ -674,6 +763,15 @@
 				E4BBEA2D4F689B57C79D61B7 /* Info.plist */,
 			);
 			path = AnchorShieldExtension;
+			sourceTree = "<group>";
+		};
+		F5D9CE7CEA41DFAC08C97AB7 /* AnchorShieldActionExtension */ = {
+			isa = PBXGroup;
+			children = (
+				59519010F216ECFA2E602829 /* ShieldActionExtension.swift */,
+				B98850F31EF6ACE309FB0149 /* Info.plist */,
+			);
+			path = AnchorShieldActionExtension;
 			sourceTree = "<group>";
 		};
 		6A58B2A83D73BF5CCC60F588 /* ViewModels */ = {
@@ -777,6 +875,7 @@
 			children = (
 				E2F361E0FD4EBFCED7CD9AFD /* Anchor.app */,
 				5A94C02E4453CA1C9B15B463 /* AnchorShieldExtension.appex */,
+				A4A814C62D0AB0FC14F24CCB /* AnchorShieldActionExtension.appex */,
 				5768BF82AFE6BC241C57DE50 /* Shared.framework */,
 			);
 			name = Products;
@@ -832,6 +931,7 @@
 				D2C1E41D20E80AE43A4D0200 /* Config */,
 				28C855316DCDFD1479234D97 /* Core */,
 				AF9E057DD85AD6B7881C2150 /* Features */,
+				0E07092985FEACBD2283AD09 /* Internal */,
 				CC386F943F1606A78BCEA5D3 /* Navigation */,
 				AC8866A4D6A8C5C1CB3A70EE /* SharedUI */,
 				864B1004BF0EE501E3B58FD7 /* Info.plist */,
@@ -841,6 +941,31 @@
 				D093EBED2F2A7091004A8476 /* AnchorApp.entitlements */,
 			);
 			path = AnchorApp;
+			sourceTree = "<group>";
+		};
+		0E07092985FEACBD2283AD09 /* Internal */ = {
+			isa = PBXGroup;
+			children = (
+				CFAB403D84478DD00BAC9765 /* InternalTools.swift */,
+				03A8FCB87744DD0BB07F9D95 /* Admin */,
+			);
+			path = Internal;
+			sourceTree = "<group>";
+		};
+		03A8FCB87744DD0BB07F9D95 /* Admin */ = {
+			isa = PBXGroup;
+			children = (
+				107F0105E48D66ABBEDF478D /* Views */,
+			);
+			path = Admin;
+			sourceTree = "<group>";
+		};
+		107F0105E48D66ABBEDF478D /* Views */ = {
+			isa = PBXGroup;
+			children = (
+				BEC51E7CA3D068C96B48B153 /* AdminRootView.swift */,
+			);
+			path = Views;
 			sourceTree = "<group>";
 		};
 		9B82B7E3D8943D7B8762C360 /* TabBar */ = {
@@ -922,6 +1047,7 @@
 			isa = PBXGroup;
 			children = (
 				07BD946B4BDB742415F4905F /* ActivityFeed */,
+				AE2145C8C36D79CACCC12333 /* AnalyticsDashboard */,
 				2C87AAF29932F92023C91E51 /* AppSelection */,
 				58DF44ACFBF4AAACA7296083 /* Auth */,
 				0AFFFA9915B2F3B6A4E346AF /* Friends */,
@@ -988,6 +1114,7 @@
 			children = (
 				9622EA304344C3DF724E933A /* AnchorApp */,
 				69161805138D3710A0B0D190 /* AnchorShieldExtension */,
+				F5D9CE7CEA41DFAC08C97AB7 /* AnchorShieldActionExtension */,
 				D093EC392F2A76FD004A8476 /* Shared */,
 				C2BB8834B04F438E7A3BE7D2 /* Frameworks */,
 				8B60E3824A4B5D0B534EFDAE /* Products */,
@@ -998,6 +1125,8 @@
 			isa = PBXGroup;
 			children = (
 				70CCFC978F42CB23E55A4839 /* GoogleSignIn.framework */,
+				246BC9CE45519152AB45A493 /* ManagedSettings.framework */,
+				3E417F5A476383F67DABBF5B /* ManagedSettingsUI.framework */,
 			);
 			name = Frameworks;
 			sourceTree = "<group>";
@@ -1087,9 +1216,11 @@
 				D093EC2C2F2A76FD004A8476 /* LockPlan.swift */,
 				D093EC2D2F2A76FD004A8476 /* LockSession.swift */,
 				D093EC2E2F2A76FD004A8476 /* Proof.swift */,
+				D04259542F2AA1550029893C /* DailyAnchorTime.swift */,
 				D093EC2F2F2A76FD004A8476 /* SessionEvent.swift */,
 				D093EC302F2A76FD004A8476 /* ShieldState.swift */,
 				D093EC312F2A76FD004A8476 /* SocialContract.swift */,
+				D04259522F2AA1090029893C /* QuorumState.swift */,
 				D093EC322F2A76FD004A8476 /* UnlockRequest.swift */,
 				D093EC332F2A76FD004A8476 /* User.swift */,
 				D093EC342F2A76FD004A8476 /* UserRole.swift */,
@@ -1105,13 +1236,39 @@
 			path = Storage;
 			sourceTree = "<group>";
 		};
+		78DDB962530F33E8C59B01D8 /* Logging */ = {
+			isa = PBXGroup;
+			children = (
+				5CDDEE1D409CC6AABD673A8C /* LoggerService.swift */,
+			);
+			path = Logging;
+			sourceTree = "<group>";
+		};
+		60ED46D5A27F1452D3A96F0C /* DesignSystem */ = {
+			isa = PBXGroup;
+			children = (
+				FCDBF5E53088C208C6C72391 /* Colors */,
+			);
+			path = DesignSystem;
+			sourceTree = "<group>";
+		};
+		FCDBF5E53088C208C6C72391 /* Colors */ = {
+			isa = PBXGroup;
+			children = (
+				ED7688555AF489B4CA1E2454 /* AppColors.swift */,
+			);
+			path = Colors;
+			sourceTree = "<group>";
+		};
 		D093EC392F2A76FD004A8476 /* Shared */ = {
 			isa = PBXGroup;
 			children = (
 				D093EC252F2A76FD004A8476 /* Analytics */,
+				60ED46D5A27F1452D3A96F0C /* DesignSystem */,
 				D093EC272F2A76FD004A8476 /* Messaging */,
 				D093EC352F2A76FD004A8476 /* Models */,
 				D093EC372F2A76FD004A8476 /* Storage */,
+				78DDB962530F33E8C59B01D8 /* Logging */,
 				D093EC382F2A76FD004A8476 /* Info.plist */,
 			);
 			path = Shared;
@@ -1225,6 +1382,7 @@
 			dependencies = (
 				970B1B4504C37A67C5903B7C /* PBXTargetDependency */,
 				71B13F3A9DFE718ED2BF6948 /* PBXTargetDependency */,
+				0DFA7A0127125F0F72ACC191 /* PBXTargetDependency */,
 			);
 			name = AnchorApp;
 			packageProductDependencies = (
@@ -1250,6 +1408,24 @@
 			name = AnchorShieldExtension;
 			productName = AnchorShieldExtension;
 			productReference = 5A94C02E4453CA1C9B15B463 /* AnchorShieldExtension.appex */;
+			productType = "com.apple.product-type.app-extension";
+		};
+		6FD299F6FFA37B93D79845A9 /* AnchorShieldActionExtension */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 206713E5DEBAE459D1901E12 /* Build configuration list for PBXNativeTarget "AnchorShieldActionExtension" */;
+			buildPhases = (
+				8DF4B7B5F37D0F08340A4733 /* Sources */,
+				3638605C309F79D218120E13 /* Frameworks */,
+				866B0F5653C4CB58219B95BB /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				C938F967EEA6F3EF1A10B198 /* PBXTargetDependency */,
+			);
+			name = AnchorShieldActionExtension;
+			productName = AnchorShieldActionExtension;
+			productReference = A4A814C62D0AB0FC14F24CCB /* AnchorShieldActionExtension.appex */;
 			productType = "com.apple.product-type.app-extension";
 		};
 		FB04CAD76C3500CE2AF0E518 /* Shared */ = {
@@ -1325,6 +1501,7 @@
 			targets = (
 				B2B48E60D36BE418BBFA7E12 /* AnchorApp */,
 				F2F43499AA285D51B080BD0D /* AnchorShieldExtension */,
+				6FD299F6FFA37B93D79845A9 /* AnchorShieldActionExtension */,
 				FB04CAD76C3500CE2AF0E518 /* Shared */,
 			);
 		};
@@ -1335,11 +1512,17 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				D093EC4F2F2A76FD004A8476 /* Info.plist in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 		1FDD7EBF2F8D0F34A2086560 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		866B0F5653C4CB58219B95BB /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -1361,11 +1544,18 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				4D495E783BEB697BE99C92E0 /* ShieldDecision.swift in Sources */,
 				98BAF0389856BF17E575AB5D /* ShieldDesignSystem.swift in Sources */,
 				EF0E69F93F368A46120B6058 /* ShieldExtension.swift in Sources */,
 				3663D69EC2D068CF3E2C2578 /* ShieldView.swift in Sources */,
 				0E7D8B7E1F4F3E205097684F /* ShieldViewModel.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		8DF4B7B5F37D0F08340A4733 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				40CAF1C3A1171B751BCA1494 /* ShieldActionExtension.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1388,12 +1578,16 @@
 				D093EC462F2A76FD004A8476 /* ShieldMessages.swift in Sources */,
 				D093EC472F2A76FD004A8476 /* SessionEvent.swift in Sources */,
 				D093EC482F2A76FD004A8476 /* IOULedgerEntry.swift in Sources */,
+				63F544BE0CDD05A60898D4D5 /* AppColors.swift in Sources */,
+				D04259552F2AA1550029893C /* DailyAnchorTime.swift in Sources */,
 				D093EC492F2A76FD004A8476 /* SocialContract.swift in Sources */,
 				D093EC4A2F2A76FD004A8476 /* AppGroupStorage.swift in Sources */,
 				D093EC4B2F2A76FD004A8476 /* LockPlan.swift in Sources */,
+				D04259532F2AA1090029893C /* QuorumState.swift in Sources */,
 				D093EC4C2F2A76FD004A8476 /* AnalyticsEvent.swift in Sources */,
 				D093EC4D2F2A76FD004A8476 /* User.swift in Sources */,
 				D093EC4E2F2A76FD004A8476 /* ShieldState.swift in Sources */,
+				6DE4A2CDE97D4653CE4687BA /* LoggerService.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1415,12 +1609,16 @@
 				26DB254BAF0F9C520B498A2D /* SupabaseClient.swift in Sources */,
 				A5A546F4327B7CF8B3F8DFA4 /* NotificationNames.swift in Sources */,
 				9DF233FF37F60EC18DCC2DCD /* ActivitySelectionService.swift in Sources */,
+				1EF1ABA5224FF055B551FE5A /* AdminAccessPolicy.swift in Sources */,
+				0E5BBAFB1F03673B5E651236 /* AnalyticsInsightsService.swift in Sources */,
 				C20F2C0F6A18F1584A453225 /* AuthService.swift in Sources */,
+				5354E2B26D0E2939B153F221 /* ContractService.swift in Sources */,
 				14C19FBEA20C0842529BDCDF /* DeepLinkHandler.swift in Sources */,
 				F691B88D70E2A26E77306C26 /* DeviceActivityService.swift in Sources */,
 				DAAD36A931011C1ABD5A6BA4 /* FriendActivityService.swift in Sources */,
 				4A133159B1B011B3CE9C9CAA /* FriendService.swift in Sources */,
 				22678C316B9F3AB6B4E81671 /* GoalService.swift in Sources */,
+				6A69EBAE6CC8C218250D0CF2 /* LockPlanService.swift in Sources */,
 				F62851FC0AD48DD43B58C8E2 /* LoggerService.swift in Sources */,
 				80DFDBE3BC1E22374F789467 /* MockScreenTimeService.swift in Sources */,
 				57E5E347E2C2CB3896F7172F /* NetworkMonitor.swift in Sources */,
@@ -1429,6 +1627,7 @@
 				CBE2F1FCDD3A9241299F1FFD /* OfflineSyncService.swift in Sources */,
 				26AF249C72B8A82A4A6997CE /* PersistenceService.swift in Sources */,
 				ED27A89D4921B8CEF163FBAD /* ProofService.swift in Sources */,
+				2C3059257423D514C3A4589A /* QuorumService.swift in Sources */,
 				BA11AA4D3523AA7F35475852 /* ScreenTimeService.swift in Sources */,
 				E05AA593D6D69AED02E59008 /* ScreenTimeServiceProtocol.swift in Sources */,
 				A87289A268BC19B7ADE31DCD /* SessionService.swift in Sources */,
@@ -1462,6 +1661,8 @@
 				90C9737C3EA8A5753BAE1357 /* GoalsExplanationView.swift in Sources */,
 				82CF9E55C5C531A474EEFA43 /* InsightsViewModel.swift in Sources */,
 				905ACB80C9B683EF0CADA755 /* InsightsView.swift in Sources */,
+				7DF2E79664E021840A6132E9 /* AnalyticsDashboardViewModel.swift in Sources */,
+				C95FB4842D8C7A3A37EC877D /* AnalyticsDashboardView.swift in Sources */,
 				E12DB3A84979D4F68CE9DF26 /* NotificationPreferencesView.swift in Sources */,
 				CC82118DCDDD00D33CAA463A /* NotificationPreferencesViewModel.swift in Sources */,
 				FB1D73077BBF0DCB072EEC93 /* OnboardingViewModel.swift in Sources */,
@@ -1497,6 +1698,8 @@
 				FDFB66E564C9CCEA607F9210 /* ScreenTimePermissionViewModel.swift in Sources */,
 				7E586A1758AF172E2062BD4B /* SettingsViewModel.swift in Sources */,
 				DC16D2FBF24B124DCF9D1EB5 /* DebugDiagnosticsView.swift in Sources */,
+				89D0A6AE4A9C898AD2953849 /* InternalTools.swift in Sources */,
+				845AE038FCD06831D653A0B3 /* AdminRootView.swift in Sources */,
 				F4B12108557C88F0C9D890F3 /* NotificationSettingsView.swift in Sources */,
 				995090C3268BF1C482AC2829 /* ScreenTimePermissionView.swift in Sources */,
 				1545033ECAC7EC836E519EA5 /* SettingsRowView.swift in Sources */,
@@ -1549,12 +1752,23 @@
 			target = FB04CAD76C3500CE2AF0E518 /* Shared */;
 			targetProxy = B1BAE914D4ADC99A6E6CFA84 /* PBXContainerItemProxy */;
 		};
+		C938F967EEA6F3EF1A10B198 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = FB04CAD76C3500CE2AF0E518 /* Shared */;
+			targetProxy = E7B17E6F4894CF611E768CE9 /* PBXContainerItemProxy */;
+		};
+		0DFA7A0127125F0F72ACC191 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 6FD299F6FFA37B93D79845A9 /* AnchorShieldActionExtension */;
+			targetProxy = A8CE5BC6DF2DA8F8AEE65DF9 /* PBXContainerItemProxy */;
+		};
 /* End PBXTargetDependency section */
 
 /* Begin XCBuildConfiguration section */
 		5124AA9F0DF59FA8A4226C33 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
 				CLANG_ENABLE_OBJC_WEAK = YES;
 				DEAD_CODE_STRIPPING = YES;
 				DEFINES_MODULE = YES;
@@ -1575,6 +1789,7 @@
 		5556E9F5E86B79E145A36DA9 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CLANG_ENABLE_OBJC_WEAK = YES;
 				CODE_SIGN_ENTITLEMENTS = AnchorApp/AnchorApp.entitlements;
@@ -1642,6 +1857,7 @@
 		6C2966A963E4EC3EBFA132FE /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
 				CLANG_ENABLE_OBJC_WEAK = YES;
 				DEAD_CODE_STRIPPING = YES;
 				DEFINES_MODULE = YES;
@@ -1662,6 +1878,7 @@
 		6FAF63C16E9D3A3614D833CB /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
 				APPLICATION_EXTENSION_API_ONLY = YES;
 				CLANG_ENABLE_OBJC_WEAK = YES;
 				CODE_SIGN_ENTITLEMENTS = AnchorApp/AnchorShieldExtension.entitlements;
@@ -1687,9 +1904,68 @@
 			};
 			name = Release;
 		};
+		692EAA147DB76BE85E0B8D17 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				APPLICATION_EXTENSION_API_ONLY = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CODE_SIGN_ENTITLEMENTS = AnchorApp/AnchorShieldExtension.entitlements;
+				CODE_SIGN_IDENTITY = "Apple Development";
+				CODE_SIGN_STYLE = Automatic;
+				DEAD_CODE_STRIPPING = YES;
+				DEVELOPMENT_TEAM = 9HCZX4G6Y7;
+				INFOPLIST_FILE = AnchorShieldActionExtension/Info.plist;
+				IPHONEOS_DEPLOYMENT_TARGET = 16.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = com.vinay.Anchor.ShieldAction;
+				PRODUCT_NAME = AnchorShieldActionExtension;
+				PROVISIONING_PROFILE_SPECIFIER = "";
+				REGISTER_APP_GROUPS = YES;
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+				SUPPORTS_MACCATALYST = NO;
+				SWIFT_VERSION = 5.9;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+		CF1873E4472EDAE2FDF1503B /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				APPLICATION_EXTENSION_API_ONLY = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CODE_SIGN_ENTITLEMENTS = AnchorApp/AnchorShieldExtension.entitlements;
+				CODE_SIGN_IDENTITY = "Apple Development";
+				CODE_SIGN_STYLE = Automatic;
+				DEAD_CODE_STRIPPING = YES;
+				DEVELOPMENT_TEAM = 9HCZX4G6Y7;
+				INFOPLIST_FILE = AnchorShieldActionExtension/Info.plist;
+				IPHONEOS_DEPLOYMENT_TARGET = 16.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = com.vinay.Anchor.ShieldAction;
+				PRODUCT_NAME = AnchorShieldActionExtension;
+				PROVISIONING_PROFILE_SPECIFIER = "";
+				REGISTER_APP_GROUPS = YES;
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+				SUPPORTS_MACCATALYST = NO;
+				SWIFT_VERSION = 5.9;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Release;
+		};
 		73A69669B77E8D278293341A /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
 				APPLICATION_EXTENSION_API_ONLY = YES;
 				CLANG_ENABLE_OBJC_WEAK = YES;
 				CODE_SIGN_ENTITLEMENTS = AnchorApp/AnchorShieldExtension.entitlements;
@@ -1757,6 +2033,7 @@
 		FEC5FB7C39FB288ACF057825 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CLANG_ENABLE_OBJC_WEAK = YES;
 				CODE_SIGN_ENTITLEMENTS = AnchorApp/AnchorApp.entitlements;
@@ -1798,6 +2075,15 @@
 			buildConfigurations = (
 				73A69669B77E8D278293341A /* Debug */,
 				6FAF63C16E9D3A3614D833CB /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		206713E5DEBAE459D1901E12 /* Build configuration list for PBXNativeTarget "AnchorShieldActionExtension" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				692EAA147DB76BE85E0B8D17 /* Debug */,
+				CF1873E4472EDAE2FDF1503B /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;

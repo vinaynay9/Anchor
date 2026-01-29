@@ -39,17 +39,25 @@ public struct User: Identifiable, Codable, Hashable {
 }
 
 // MARK: - API DTOs
-// TODO: UserDTO is deferred until API schema matches plan-centric user model.
-#if false
-struct UserDTO: Codable {
-    let id: String
-    let email: String
-    let username: String
-    let displayName: String?
-    let createdAt: String
-    let role: UserRole?
+// TODO: UserDTO is maintained for API compatibility and may evolve with backend schema.
+public struct UserDTO: Codable {
+    public let id: String
+    public let email: String
+    public let username: String
+    public let displayName: String?
+    public let createdAt: String
+    public let role: UserRole?
     
-    func toUser() -> User? {
+    public enum CodingKeys: String, CodingKey {
+        case id
+        case email
+        case username
+        case displayName = "display_name"
+        case createdAt = "created_at"
+        case role
+    }
+    
+    public func toUser() -> User? {
         guard let uuid = UUID(uuidString: id),
               let createdAtDate = ISO8601DateFormatter().date(from: createdAt) else {
             return nil
@@ -64,4 +72,3 @@ struct UserDTO: Codable {
         )
     }
 }
-#endif
