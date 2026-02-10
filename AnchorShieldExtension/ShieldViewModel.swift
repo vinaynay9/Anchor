@@ -1,7 +1,7 @@
 import SwiftUI
 import Foundation
-import UIKit
 import Combine
+import ManagedSettingsUI
 import Shared
 import os.log
 
@@ -24,9 +24,13 @@ class ShieldViewModel: ObservableObject {
     @Published var goalTotalCount: Int = 0
     
     private let appGroupStorage = AppGroupStorage.shared
+    private let shieldDecision: ShieldDecision
+    private let extensionContext: NSExtensionContext?
     private var cancellables = Set<AnyCancellable>()
     
-    init() {
+    init(shieldDecision: ShieldDecision, extensionContext: NSExtensionContext? = nil) {
+        self.shieldDecision = shieldDecision
+        self.extensionContext = extensionContext
         // Subscribe to AppGroupStorage updates for real-time sync
         appGroupStorage.updatesPublisher
             .receive(on: DispatchQueue.main)
@@ -59,7 +63,7 @@ class ShieldViewModel: ObservableObject {
         let shieldState = appGroupStorage.getShieldState()
         
         // Use ShieldDecision to check if unlock is approved for this specific app
-        let isUnlockApproved = shieldDecision?.isUnlockApproved() ?? false
+        let isUnlockApproved = shieldDecision.isUnlockApproved()
         
         if let shieldState = shieldState {
             switch shieldState.reason {
@@ -153,7 +157,7 @@ class ShieldViewModel: ObservableObject {
         os_log("Opening Anchor app from shield", log: shieldLog, type: .info)
         
         // Get bundle ID from ShieldDecision if available
-        let bundleId = shieldDecision?.blockedBundleId ?? appGroupStorage.getCurrentBlockedBundleId()
+        let bundleId = appGroupStorage.getCurrentBlockedBundleId()
         
         // Write context to AppGroupStorage before opening app
         // This allows the app to know it was opened from the shield
@@ -168,7 +172,7 @@ class ShieldViewModel: ObservableObject {
         os_log("Opening unlock request from shield", log: shieldLog, type: .info)
         
         // Get bundle ID from ShieldDecision if available, fall back to storage
-        let bundleId = shieldDecision?.blockedBundleId ?? appGroupStorage.getCurrentBlockedBundleId()
+        let bundleId = appGroupStorage.getCurrentBlockedBundleId()
         
         // Log for debugging
         os_log("Unlock request bundle ID: %{public}@", log: shieldLog, type: .info, bundleId ?? "nil")
@@ -195,14 +199,8 @@ class ShieldViewModel: ObservableObject {
     private func openURL(_ urlString: String) {
         guard let url = URL(string: urlString) else { return }
         
-        // In a shield extension, open the main app via URL scheme
-        // Note: UIApplication.shared is available in App Extensions including shield extensions
-        DispatchQueue.main.async {
-            let sharedApp = UIApplication.shared
-            if sharedApp.canOpenURL(url) {
-                sharedApp.open(url, options: [:], completionHandler: nil)
-            }
-        }
+        // Use extension-safe URL opening via NSExtensionContext
+        extensionContext?.open(url, completionHandler: nil)
     }
     
     private func formatTime(_ interval: TimeInterval) -> String {
