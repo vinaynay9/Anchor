@@ -187,7 +187,7 @@ enum APIEndpoint: Endpoint {
             return .get
         
         // POST
-        case .signInApple, .signOut, .addFriend, .startSession, .endSession,
+        case .signInApple, .signInGoogle, .signOut, .addFriend, .startSession, .endSession,
              .createUnlockRequest, .uploadProof, .registerDeviceToken,
              .acceptFriendRequest, .rejectFriendRequest,
              .approveUnlockRequest, .rejectUnlockRequest, .cancelUnlockRequest:
@@ -251,6 +251,4 @@ enum APIEndpoint: Endpoint {
         }
     }
 }
-
-
 

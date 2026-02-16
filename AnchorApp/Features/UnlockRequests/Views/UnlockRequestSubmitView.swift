@@ -5,7 +5,7 @@ import Shared
 struct UnlockRequestSubmitView: View {
     let sessionId: UUID?
     @StateObject private var viewModel = UnlockRequestsViewModel()
-    @StateObject private var goalService = GoalService.shared
+    @StateObject private var goalsViewModel = GoalViewModel()
     @Environment(\.dismiss) var dismiss
     private let appGroupStorage = AppGroupStorage.shared
     
@@ -77,6 +77,9 @@ struct UnlockRequestSubmitView: View {
                 ProofCaptureView(sessionId: sessionId)
             }
         }
+        .onAppear {
+            goalsViewModel.reload()
+        }
     }
     
     // MARK: - Habit Summary Card
@@ -86,7 +89,7 @@ struct UnlockRequestSubmitView: View {
                 .font(AppTypography.title3)
                 .foregroundColor(AppColors.textPrimary)
             
-            let goals = goalService.loadGoals()
+            let goals = goalsViewModel.goals
             if goals.isEmpty {
                 Text("No goals set")
                     .font(AppTypography.caption)
@@ -373,4 +376,3 @@ struct EvidenceOptionButton: View {
         .buttonStyle(.plain)
     }
 }
-

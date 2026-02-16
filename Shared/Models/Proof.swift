@@ -1,15 +1,33 @@
 import Foundation
 
-struct Proof: Identifiable, Codable {
-    let id: UUID
-    let sessionId: UUID
-    let uploaderId: UUID
-    let unlockRequestId: UUID?
-    let fileUrl: URL
-    let thumbnailUrl: URL?
-    let createdAt: Date
+public struct Proof: Identifiable, Codable {
+    public let id: UUID
+    public let sessionId: UUID
+    public let uploaderId: UUID
+    public let unlockRequestId: UUID?
+    public let fileUrl: URL
+    public let thumbnailUrl: URL?
+    public let createdAt: Date
+
+    public init(
+        id: UUID,
+        sessionId: UUID,
+        uploaderId: UUID,
+        unlockRequestId: UUID?,
+        fileUrl: URL,
+        thumbnailUrl: URL?,
+        createdAt: Date
+    ) {
+        self.id = id
+        self.sessionId = sessionId
+        self.uploaderId = uploaderId
+        self.unlockRequestId = unlockRequestId
+        self.fileUrl = fileUrl
+        self.thumbnailUrl = thumbnailUrl
+        self.createdAt = createdAt
+    }
     
-    enum CodingKeys: String, CodingKey {
+    public enum CodingKeys: String, CodingKey {
         case id
         case sessionId = "session_id"
         case uploaderId = "uploader_id"
@@ -21,16 +39,16 @@ struct Proof: Identifiable, Codable {
 }
 
 // MARK: - API DTOs
-struct ProofDTO: Codable {
-    let id: String
-    let sessionId: String
-    let uploaderId: String?
-    let unlockRequestId: String?
-    let fileUrl: String
-    let thumbnailUrl: String?
-    let createdAt: String
+public struct ProofDTO: Codable {
+    public let id: String
+    public let sessionId: String
+    public let uploaderId: String?
+    public let unlockRequestId: String?
+    public let fileUrl: String
+    public let thumbnailUrl: String?
+    public let createdAt: String
     
-    func toProof() -> Proof? {
+    public func toProof() -> Proof? {
         let formatter = ISO8601DateFormatter()
         guard let uuid = UUID(uuidString: id),
               let sessionIdUUID = UUID(uuidString: sessionId),
@@ -59,4 +77,3 @@ struct ProofDTO: Codable {
         )
     }
 }
-

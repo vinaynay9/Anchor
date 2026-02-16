@@ -1,6 +1,7 @@
 import Foundation
 import Shared
 import FamilyControls
+import ManagedSettings
 
 protocol ActivitySelectionServiceProtocol {
     func saveSelection(_ selection: FamilyActivitySelection) throws

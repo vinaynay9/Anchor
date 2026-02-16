@@ -2,7 +2,7 @@ import SwiftUI
 
 struct GoalCreationView: View {
     @Environment(\.dismiss) var dismiss
-    @StateObject private var goalService = GoalService.shared
+    @StateObject private var goalsViewModel = GoalViewModel()
     @State private var goalName: String = ""
     @State private var isSaving = false
     @FocusState private var isTextFieldFocused: Bool
@@ -97,7 +97,7 @@ struct GoalCreationView: View {
         guard !goalName.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else { return }
         
         isSaving = true
-        goalService.addGoal(goalName)
+        goalsViewModel.addGoal(goalName)
         
         // Post notification for updates
         NotificationCenter.default.post(name: .goalsUpdated, object: nil)
@@ -108,4 +108,3 @@ struct GoalCreationView: View {
         }
     }
 }
-

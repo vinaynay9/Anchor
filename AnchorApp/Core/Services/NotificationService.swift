@@ -23,7 +23,7 @@ protocol NotificationServiceProtocol {
 }
 
 class NotificationService: NotificationServiceProtocol {
-    static let shared = NotificationService()
+    nonisolated(unsafe) static let shared = NotificationService()
     
     private let apiClient = APIClient.shared
     private let lastTokenSentKey = "lastDeviceTokenSent"
@@ -40,8 +40,9 @@ class NotificationService: NotificationServiceProtocol {
     
     // MARK: - Push Notification Registration
     func registerForPushNotifications() async throws -> String {
-        // Get AppDelegate instance
-        guard let appDelegate = AppDelegate.shared else {
+        // Get AppDelegate instance on MainActor
+        let appDelegate = await MainActor.run { AppDelegate.shared }
+        guard let appDelegate = appDelegate else {
             throw NotificationError.registrationFailed
         }
         
@@ -196,7 +197,7 @@ class NotificationService: NotificationServiceProtocol {
 
     func notifyAnchorsEmergencyUnanchor(anchors: [Friend], reason: String, duration: TimeInterval) async {
         let isAuthorized = await checkAuthorizationStatus()
-        let anchorNames = anchors.map { $0.displayName ?? "Anchor" }
+        let anchorNames = anchors.map { $0.friend?.displayName ?? $0.friend?.username ?? "Anchor" }
         let recipientSummary = anchorNames.isEmpty ? "your anchors" : anchorNames.joined(separator: ", ")
         let minutes = Int(duration / 60)
         

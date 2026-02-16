@@ -35,6 +35,11 @@ public enum AppColors {
     public static var surface: Color {
         Color(light: secondaryBackgroundLight, dark: secondaryBackgroundDark)
     }
+
+    // Legacy alias for design system drift
+    public static var secondaryBackground: Color {
+        surface
+    }
     
     public static var textPrimary: Color {
         Color(light: textPrimaryLight, dark: textPrimaryDark)
@@ -48,6 +53,7 @@ public enum AppColors {
     public static let success = Color(red: 0.063, green: 0.725, blue: 0.506)
     public static let warning = Color(red: 0.925, green: 0.694, blue: 0.125)
     public static let danger = Color(red: 0.863, green: 0.196, blue: 0.325)
+    public static let error = danger
     
     // MARK: - Compatibility Aliases
     public static let primary = anchorAccent

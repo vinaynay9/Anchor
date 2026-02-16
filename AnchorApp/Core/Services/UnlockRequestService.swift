@@ -1,11 +1,6 @@
 import Foundation
 import Shared
 
-// MARK: - Notification Names
-extension Notification.Name {
-    static let unlockRequestStatusChanged = Notification.Name("unlockRequestStatusChanged")
-}
-
 // MARK: - Unlock Request Service Protocol
 protocol UnlockRequestServiceProtocol {
     // New methods matching requirements
@@ -166,9 +161,7 @@ class UnlockRequestService: UnlockRequestServiceProtocol {
             
             // Add unlock requested event
             var metadata: [String: String] = [:]
-            if let bundleId = appBundleId {
-                metadata["bundleId"] = bundleId
-            }
+            metadata["bundleId"] = appBundleId
             if let reason = reason {
                 metadata["reason"] = reason
             }
@@ -203,7 +196,7 @@ class UnlockRequestService: UnlockRequestServiceProtocol {
                 // If decoding error (likely 204 No Content), fall back to local state
                 if case .decodingError(let underlyingError) = error,
                    let nsError = underlyingError as NSError?,
-                   nsError.code == 204 || nsError.userInfo[NSLocalizedDescriptionKey] as? String?.contains("204") == true {
+                   nsError.code == 204 || (nsError.userInfo[NSLocalizedDescriptionKey] as? String)?.contains("204") == true {
                     // Server returned 204 No Content - use local state
                     approvedRequest = nil
                 } else {
@@ -329,7 +322,7 @@ class UnlockRequestService: UnlockRequestServiceProtocol {
                 // If decoding error (likely 204 No Content), fall back to local state
                 if case .decodingError(let underlyingError) = error,
                    let nsError = underlyingError as NSError?,
-                   nsError.code == 204 || nsError.userInfo[NSLocalizedDescriptionKey] as? String?.contains("204") == true {
+                   nsError.code == 204 || (nsError.userInfo[NSLocalizedDescriptionKey] as? String)?.contains("204") == true {
                     // Server returned 204 No Content - use local state
                     deniedRequest = nil
                 } else {
@@ -538,7 +531,7 @@ class UnlockRequestService: UnlockRequestServiceProtocol {
         } catch {
             // Wrap backend error but continue with local operations
             // This ensures UI state is updated even if network fails
-            let wrappedError = UnlockRequestError.backendFailure(underlying: error)
+            _ = UnlockRequestError.backendFailure(underlying: error)
             // Error is logged/wrapped but not thrown to maintain current behavior
         }
         
@@ -589,3 +582,4 @@ class UnlockRequestService: UnlockRequestServiceProtocol {
         _ = try await denyUnlockRequest(request)
     }
 }
+

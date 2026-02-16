@@ -3,7 +3,7 @@ import SwiftUI
 struct OnboardingView: View {
     @StateObject private var viewModel = OnboardingViewModel()
     @StateObject private var authViewModel = AuthViewModel()
-    @StateObject private var goalService = GoalService.shared
+    @StateObject private var goalsViewModel = GoalViewModel()
     @State private var currentStep: OnboardingStep = .welcome
     @State private var showGoalCreation = false
     @State private var showFriendSelection = false
@@ -70,7 +70,7 @@ struct OnboardingView: View {
                     
                 case .goalCreation:
                     GoalCreationOnboardingPage(
-                        goalService: goalService,
+                        goalViewModel: goalsViewModel,
                         onContinue: {
                             withAnimation(Theme.springAnimation) {
                                 currentStep = .friendSelection
@@ -214,4 +214,3 @@ struct FriendsAccountabilityPage: View {
         .padding(Theme.padding * 2)
     }
 }
-

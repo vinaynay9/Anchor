@@ -9,9 +9,9 @@ struct SkeletonView: View {
             .fill(
                 LinearGradient(
                     colors: [
-                        AppColors.secondaryBackground,
-                        AppColors.secondaryBackground.opacity(0.6),
-                        AppColors.secondaryBackground
+                        AppColors.surface,
+                        AppColors.surface.opacity(0.6),
+                        AppColors.surface
                     ],
                     startPoint: .leading,
                     endPoint: .trailing
@@ -100,4 +100,3 @@ struct SkeletonGrid: View {
         .padding(Theme.padding)
     }
 }
-

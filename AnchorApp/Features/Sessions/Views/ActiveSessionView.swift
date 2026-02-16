@@ -4,8 +4,7 @@ import Shared
 struct ActiveSessionView: View {
     let session: LockSession
     @ObservedObject var viewModel: SessionViewModel
-    @StateObject private var goalService = GoalService.shared
-    @State private var goals: [Goal] = []
+    @StateObject private var goalsViewModel = GoalViewModel()
     @EnvironmentObject var coordinator: MainTabFlow
     
     var body: some View {
@@ -39,18 +38,16 @@ struct ActiveSessionView: View {
         }
         .navigationBarTitleDisplayMode(.inline)
         .onAppear {
-            loadGoals()
+            goalsViewModel.reload()
         }
         .onReceive(NotificationCenter.default.publisher(for: .goalsUpdated)) { _ in
-            loadGoals()
+            goalsViewModel.reload()
         }
         .onReceive(NotificationCenter.default.publisher(for: .appGroupDidUpdate)) { notification in
             // Reload session to get updated events when storage updates
             if let key = notification.object as? String, key.contains("sessionEvents") {
                 viewModel.loadActiveSession()
             }
-        }
-            // Reload session to get updated events
             Task {
                 if let updatedSession = try? await SessionService.shared.getActiveSession() {
                     // Update view model's active session if needed
@@ -106,7 +103,7 @@ struct ActiveSessionView: View {
                 .foregroundColor(AppColors.textPrimary)
                 .padding(.horizontal, Theme.spacing2)
             
-            if goals.isEmpty {
+            if goalsViewModel.goals.isEmpty {
                 emptyGoalsView
             } else {
                 goalsList
@@ -132,10 +129,9 @@ struct ActiveSessionView: View {
     
     private var goalsList: some View {
         VStack(spacing: Theme.spacing) {
-            ForEach(goals) { goal in
+            ForEach(goalsViewModel.goals) { goal in
                 GoalRowView(goal: goal) {
-                    goalService.toggleGoal(goal)
-                    loadGoals()
+                    goalsViewModel.toggleGoal(goal)
                 }
             }
         }
@@ -218,10 +214,6 @@ struct ActiveSessionView: View {
     }
     
     // MARK: - Helper Methods
-    private func loadGoals() {
-        goals = goalService.loadGoals()
-    }
-    
     private func formatElapsedTime(from startDate: Date, to currentDate: Date) -> String {
         let elapsed = currentDate.timeIntervalSince(startDate)
         let hours = Int(elapsed) / 3600
@@ -286,4 +278,3 @@ struct GoalRowView: View {
         .contentShape(Rectangle())
     }
 }
-

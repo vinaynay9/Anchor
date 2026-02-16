@@ -4,13 +4,7 @@ import FamilyControls
 struct SessionSetupView: View {
     @ObservedObject var viewModel: SessionViewModel
     @Environment(\.dismiss) var dismiss
-    @StateObject private var goalService = GoalService.shared
-    @State private var goals: [Goal] = []
-    @State private var mockFriends: [MockFriend] = [
-        MockFriend(id: UUID().uuidString, name: "Alice"),
-        MockFriend(id: UUID().uuidString, name: "Bob"),
-        MockFriend(id: UUID().uuidString, name: "Charlie")
-    ]
+    @StateObject private var goalsViewModel = GoalViewModel()
     @State private var showActivityPicker = false
     @State private var activitySelection = FamilyActivitySelection()
     @State private var hasSelectedApps = false
@@ -66,7 +60,7 @@ struct SessionSetupView: View {
                 }
         }
         .onAppear {
-            loadGoals()
+            goalsViewModel.reload()
             if let existingSelection = activitySelectionService.loadSelection() {
                 activitySelection = existingSelection
                 hasSelectedApps = !existingSelection.applicationTokens.isEmpty
@@ -103,15 +97,15 @@ struct SessionSetupView: View {
                 
                 Spacer()
                 
-                if !goals.isEmpty {
-                    Text("\(goalService.getCompletedCount())/\(goalService.getTotalCount())")
+                if !goalsViewModel.goals.isEmpty {
+                    Text("\(goalsViewModel.getCompletedCount())/\(goalsViewModel.getTotalCount())")
                         .font(AppTypography.captionBold)
                         .foregroundColor(AppColors.anchorAccent)
                 }
             }
             .padding(.horizontal, Theme.spacing2)
             
-            if goals.isEmpty {
+            if goalsViewModel.goals.isEmpty {
                 emptyGoalsCard
             } else {
                 goalsOverviewCard
@@ -144,15 +138,14 @@ struct SessionSetupView: View {
     
     private var goalsOverviewCard: some View {
         VStack(spacing: Theme.spacing) {
-            ForEach(goals.prefix(3)) { goal in
+            ForEach(goalsViewModel.goals.prefix(3)) { goal in
                 GoalRowView(goal: goal) {
-                    goalService.toggleGoal(goal)
-                    loadGoals()
+                    goalsViewModel.toggleGoal(goal)
                 }
             }
             
-            if goals.count > 3 {
-                Text("+ \(goals.count - 3) more")
+            if goalsViewModel.goals.count > 3 {
+                Text("+ \(goalsViewModel.goals.count - 3) more")
                     .font(AppTypography.caption)
                     .foregroundColor(AppColors.textSecondary)
             }
@@ -308,16 +301,4 @@ struct SessionSetupView: View {
         .cornerRadius(Theme.cornerRadius)
         .padding(.horizontal, Theme.spacing2)
     }
-    
-    // MARK: - Helper Methods
-    private func loadGoals() {
-        goals = goalService.loadGoals()
-    }
 }
-
-// Mock friend struct for placeholder implementation
-struct MockFriend: Identifiable {
-    let id: String
-    let name: String
-}
-

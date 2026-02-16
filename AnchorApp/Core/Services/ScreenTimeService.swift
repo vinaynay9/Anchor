@@ -121,36 +121,29 @@ class ScreenTimeService: ScreenTimeServiceProtocol {
     func getAuthorizationStatus() -> ScreenTimeAuthorizationStatus {
         let status = authorizationCenter.authorizationStatus
         let statusString: String
+        let mapped: ScreenTimeAuthorizationStatus
         switch status {
         case .notDetermined:
             statusString = "notDetermined"
+            mapped = .notDetermined
         case .denied:
             statusString = "denied"
-        case .restricted:
-            // Important: Do NOT treat .restricted as .notDetermined
-            // .restricted means Screen Time is controlled by parental controls/MDM
-            statusString = "restricted"
+            mapped = .denied
         case .approved:
             statusString = "approved"
+            mapped = .approved
         @unknown default:
             statusString = "unknown"
+            mapped = .denied
         }
         LoggerService.shared.logInfo("Authorization status: \(statusString)", category: "ScreenTime")
-        return status
+        return mapped
     }
     
     /// Synchronous check for authorization status.
     /// - Returns: true only if status is .approved
     func isAuthorized() -> Bool {
         authorizationCenter.authorizationStatus == .approved
-    }
-    
-    /// Async property to check authorization status.
-    /// - Returns: true only if status is .approved
-    var isAuthorized: Bool {
-        get async {
-            authorizationCenter.authorizationStatus == .approved
-        }
     }
     
     // MARK: - Protocol Implementation
@@ -355,7 +348,7 @@ class ScreenTimeService: ScreenTimeServiceProtocol {
         
         // Apply restrictions using ManagedSettings
         store.shield.applications = Set(tokensToUse)
-        store.shield.webDomains = selection.webDomainTokens
+        store.shield.webDomains = selection.webDomainTokens.isEmpty ? nil : .specific(selection.webDomainTokens)
         
         // Note: Session state is managed by SessionService, not here
         // SessionService writes SharedSessionState to App Group storage
@@ -366,7 +359,7 @@ class ScreenTimeService: ScreenTimeServiceProtocol {
         LoggerService.shared.logInfo("Activating shields for \(tokens.count) apps", category: "ScreenTime")
         store.shield.applications = .init(tokens)
         store.shield.applicationCategories = .all()
-        store.shield.webDomains = .all()
+        store.shield.webDomains = nil
     }
     
     /// Activates shields with selective category blocking
@@ -388,7 +381,7 @@ class ScreenTimeService: ScreenTimeServiceProtocol {
         // Priority: categoryTokens > categories
         if let categoryTokens = categoryTokens, !categoryTokens.isEmpty {
             // Use category tokens directly from FamilyActivitySelection
-            store.shield.applicationCategories = categoryTokens
+            store.shield.applicationCategories = .specific(categoryTokens)
         } else if let categories = categories, !categories.isEmpty {
             // Note: We cannot directly map AppCategory to ActivityCategoryToken
             // ActivityCategoryToken only comes from FamilyActivitySelection via FamilyActivityPicker
@@ -403,7 +396,7 @@ class ScreenTimeService: ScreenTimeServiceProtocol {
         }
         
         // Set web domains (use all for now, can be enhanced later)
-        store.shield.webDomains = .all()
+        store.shield.webDomains = nil
     }
     
     func deactivateShields() throws {
@@ -466,3 +459,21 @@ class ScreenTimeService: ScreenTimeServiceProtocol {
         return nil
     }
 }
+
+// MARK: - Challenge stubs (compile-time fallback)
+
+struct Challenge {
+    let id: UUID
+    let blockedBundleIds: [String]
+}
+
+final class ChallengeService {
+    static let shared = ChallengeService()
+
+    private init() {}
+
+    func getActiveChallenges() async throws -> [Challenge] {
+        return []
+    }
+}
+

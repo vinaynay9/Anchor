@@ -52,11 +52,10 @@ struct LoadingOverlay: View {
             .padding(Theme.padding * 2)
             .background(
                 RoundedRectangle(cornerRadius: AppLayout.cardCornerRadius)
-                    .fill(AppColors.secondaryBackground)
+                    .fill(AppColors.surface)
                     .shadow(color: AppColors.anchorAccent.opacity(0.2), radius: 20, x: 0, y: 10)
             )
             .padding(Theme.padding * 2)
         }
     }
 }
-

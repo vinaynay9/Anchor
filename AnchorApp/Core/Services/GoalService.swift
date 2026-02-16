@@ -1,5 +1,6 @@
 import Foundation
 import Shared
+import Combine
 
 // MARK: - Goal Model
 struct Goal: Identifiable, Codable, Equatable {
@@ -28,7 +29,7 @@ protocol GoalServiceProtocol {
 }
 
 // MARK: - Goal Service
-class GoalService: GoalServiceProtocol {
+class GoalService: GoalServiceProtocol, ObservableObject {
     static let shared = GoalService()
     
     private let goalsKey = "dailyGoals"
@@ -99,3 +100,4 @@ class GoalService: GoalServiceProtocol {
         return !goals.isEmpty && goals.allSatisfy { $0.isCompleted }
     }
 }
+

@@ -156,7 +156,7 @@ struct UnlockRequestRowView: View {
             
             Spacer()
             
-            if request.status == .pending {
+                    if request.status == .pending || request.status == .queued {
                 HStack(spacing: 4) {
                     Circle()
                         .fill(AppColors.warning)
@@ -191,4 +191,3 @@ struct UnlockRequestRowView: View {
         .listRowInsets(EdgeInsets(top: Theme.spacing, leading: Theme.padding, bottom: Theme.spacing, trailing: Theme.padding))
     }
 }
-

@@ -37,7 +37,9 @@ class OfflineSyncService {
             .sink { [weak self] isConnected in
                 if isConnected {
                     print("🌐 [OfflineSyncService] Network restored, starting sync...")
-                    self?.syncAll()
+                    Task { @MainActor in
+                        await self?.syncAll()
+                    }
                 }
             }
             .store(in: &cancellables)
@@ -97,19 +99,6 @@ class OfflineSyncService {
                 if let activeSession = try? await sessionService.getActiveSession(),
                    activeSession.id == request.sessionId {
                     
-                    // Create a new request with the same data
-                    let newRequest = UnlockRequest(
-                        id: UUID(), // New ID for retry
-                        sessionId: request.sessionId,
-                        requesterId: request.requesterId,
-                        partnerId: request.partnerId,
-                        status: .pending,
-                        message: request.message,
-                        appBundleId: request.appBundleId,
-                        createdAt: Date(),
-                        resolvedAt: nil
-                    )
-                    
                     // Submit using the service (which will handle API call)
                     _ = try await unlockRequestService.submitUnlockRequest(
                         session: activeSession,
@@ -165,4 +154,3 @@ class OfflineSyncService {
         }
     }
 }
-

@@ -16,6 +16,7 @@ protocol AppleSignInCoordinatorProtocol {
 final class AppleSignInCoordinator: NSObject, AppleSignInCoordinatorProtocol {
     private var continuation: CheckedContinuation<String, Error>?
     
+    @MainActor
     func performSignIn() async throws -> String {
         return try await withCheckedThrowingContinuation { continuation in
             self.continuation = continuation
@@ -67,6 +68,7 @@ extension AppleSignInCoordinator: ASAuthorizationControllerDelegate {
 // MARK: - ASAuthorizationControllerPresentationContextProviding
 
 extension AppleSignInCoordinator: ASAuthorizationControllerPresentationContextProviding {
+    @MainActor
     func presentationAnchor(for controller: ASAuthorizationController) -> ASPresentationAnchor {
         // Get the key window from connected scenes (iOS 13+)
         if let windowScene = UIApplication.shared.connectedScenes
@@ -88,4 +90,3 @@ extension AppleSignInCoordinator: ASAuthorizationControllerPresentationContextPr
         return UIWindow(frame: UIScreen.main.bounds)
     }
 }
-

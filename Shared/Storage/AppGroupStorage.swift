@@ -341,10 +341,8 @@ public final class AppGroupStorage {
         if let state = state {
             let data = try? JSONEncoder().encode(state)
             defaults.set(data, forKey: AppGroupStorageKey.sharedSessionState.rawValue)
-            LoggerService.shared.logInfo("Session state written to AppGroup: isActive=\(state.isActive)", category: "AppGroup")
         } else {
             defaults.removeObject(forKey: AppGroupStorageKey.sharedSessionState.rawValue)
-            LoggerService.shared.logInfo("Session state cleared from AppGroup", category: "AppGroup")
         }
         
         // Broadcast update notification
@@ -388,7 +386,6 @@ public final class AppGroupStorage {
     /// - Parameter isPending: Whether an unlock request is pending
     public func setPendingUnlockRequest(_ isPending: Bool) {
         defaults?.set(isPending, forKey: AppGroupStorageKey.pendingUnlockRequest.rawValue)
-        LoggerService.shared.logInfo("Pending unlock request flag set: \(isPending)", category: "AppGroup")
         // Broadcast update notification
         notifyUpdate(forKey: .pendingUnlockRequest)
     }
@@ -700,9 +697,6 @@ public final class AppGroupStorage {
         defaults?.set(true, forKey: AppGroupStorageKey.unlockApproved.rawValue)
         defaults?.set(bundleId, forKey: AppGroupStorageKey.unlockAllowedBundleId.rawValue)
         defaults?.set(timestamp.timeIntervalSince1970, forKey: AppGroupStorageKey.unlockApprovedTimestamp.rawValue)
-        
-        LoggerService.shared.logInfo("Unlock allowed for bundle: \(bundleId)", category: "AppGroup")
-        
         notifyUpdate(forKey: .unlockApproved)
         notifyUpdate(forKey: .unlockAllowedBundleId)
     }
@@ -712,9 +706,6 @@ public final class AppGroupStorage {
         defaults?.removeObject(forKey: AppGroupStorageKey.unlockApproved.rawValue)
         defaults?.removeObject(forKey: AppGroupStorageKey.unlockAllowedBundleId.rawValue)
         defaults?.removeObject(forKey: AppGroupStorageKey.unlockApprovedTimestamp.rawValue)
-        
-        LoggerService.shared.logInfo("Unlock approval cleared", category: "AppGroup")
-        
         notifyUpdate(forKey: .unlockApproved)
         notifyUpdate(forKey: .unlockAllowedBundleId)
     }
@@ -985,3 +976,4 @@ public final class AppGroupStorage {
         defaults.removeObject(forKey: key)
     }
 }
+

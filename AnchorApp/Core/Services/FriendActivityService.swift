@@ -73,4 +73,3 @@ final class FriendActivityService: FriendActivityServiceProtocol {
         UserDefaults.standard.removeObject(forKey: cacheExpirationKey)
     }
 }
-

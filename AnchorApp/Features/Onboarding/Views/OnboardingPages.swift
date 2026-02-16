@@ -350,7 +350,7 @@ struct PermissionExplanationItem: View {
 
 // MARK: - Goal Creation Onboarding Page
 struct GoalCreationOnboardingPage: View {
-    @ObservedObject var goalService: GoalService
+    @ObservedObject var goalViewModel: GoalViewModel
     @State private var showGoalCreation = false
     let onContinue: () -> Void
     
@@ -368,7 +368,7 @@ struct GoalCreationOnboardingPage: View {
             
             Spacer()
             
-            if goalService.getTotalCount() == 0 {
+            if goalViewModel.getTotalCount() == 0 {
                 Button(action: {
                     showGoalCreation = true
                 }) {
@@ -379,7 +379,7 @@ struct GoalCreationOnboardingPage: View {
                 .padding(.horizontal, Theme.spacing3)
             } else {
                 VStack(spacing: Theme.spacing2) {
-                    Text("Great! You've set \(goalService.getTotalCount()) goal(s)")
+                    Text("Great! You've set \(goalViewModel.getTotalCount()) goal(s)")
                         .font(AppTypography.body)
                         .foregroundColor(AppColors.textPrimary)
                     
@@ -430,4 +430,3 @@ struct FriendSelectionOnboardingPage: View {
         }
     }
 }
-

@@ -1,12 +1,12 @@
 import SwiftUI
-import ManagedSettingsUI
 import Shared
 
 // MARK: - Shield View
 // Refined anchored experience with controlled blue-to-dark transition.
 
 struct ShieldView: View {
-    @StateObject private var viewModel: ShieldViewModel
+    @StateObject private var viewModel = ShieldViewModel()
+    @Environment(\.openURL) private var openURLAction
     @State private var isAnchoredVisual = false
     @State private var anchorOffset: CGFloat = -48
     @State private var anchorScale: CGFloat = 0.92
@@ -14,10 +14,6 @@ struct ShieldView: View {
     @State private var textOpacity: Double = 0.0
     @State private var textOffset: CGFloat = 12
     
-    init(shieldDecision: ShieldDecision, extensionContext: NSExtensionContext? = nil) {
-        _viewModel = StateObject(wrappedValue: ShieldViewModel(shieldDecision: shieldDecision, extensionContext: extensionContext))
-    }
-
     var body: some View {
         ZStack {
             backgroundLayer
@@ -65,6 +61,9 @@ struct ShieldView: View {
             .padding(.vertical, ShieldTheme.padding * 2)
         }
         .onAppear {
+            viewModel.setOpenURLHandler { url in
+                openURLAction(url)
+            }
             viewModel.refresh()
             viewModel.refreshGoalProgress()
             logShieldHit()

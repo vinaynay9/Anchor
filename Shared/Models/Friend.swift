@@ -16,6 +16,13 @@ public struct Friend: Identifiable, Codable, Hashable {
         case status
         case createdAt = "created_at"
     }
+
+    public var displayName: String {
+        if let displayName = friend?.displayName, !displayName.isEmpty {
+            return displayName
+        }
+        return friend?.username ?? ""
+    }
 }
 
 public enum FriendshipStatus: String, Codable, Hashable {

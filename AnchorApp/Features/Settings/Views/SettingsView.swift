@@ -3,7 +3,7 @@ import Shared
 
 struct SettingsView: View {
     @StateObject private var viewModel = SettingsViewModel()
-    @StateObject private var goalService = GoalService.shared
+    @StateObject private var goalsViewModel = GoalViewModel()
     @EnvironmentObject var coordinator: MainTabFlow
     @EnvironmentObject var authViewModel: AuthViewModel
     @AppStorage(InternalToolsKeys.isEnabled) private var internalToolsEnabled: Bool = false
@@ -182,7 +182,7 @@ struct SettingsView: View {
                     icon: "arrow.clockwise",
                     title: "Reset Daily Habits",
                     action: {
-                        goalService.resetGoalsDaily()
+                        goalsViewModel.resetGoalsDaily()
                     }
                 )
                 

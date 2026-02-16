@@ -1,7 +1,6 @@
 import SwiftUI
 import Foundation
 import Combine
-import ManagedSettingsUI
 import Shared
 import os.log
 
@@ -24,13 +23,10 @@ class ShieldViewModel: ObservableObject {
     @Published var goalTotalCount: Int = 0
     
     private let appGroupStorage = AppGroupStorage.shared
-    private let shieldDecision: ShieldDecision
-    private let extensionContext: NSExtensionContext?
+    private var openURLHandler: ((URL) -> Void)?
     private var cancellables = Set<AnyCancellable>()
     
-    init(shieldDecision: ShieldDecision, extensionContext: NSExtensionContext? = nil) {
-        self.shieldDecision = shieldDecision
-        self.extensionContext = extensionContext
+    init() {
         // Subscribe to AppGroupStorage updates for real-time sync
         appGroupStorage.updatesPublisher
             .receive(on: DispatchQueue.main)
@@ -63,7 +59,7 @@ class ShieldViewModel: ObservableObject {
         let shieldState = appGroupStorage.getShieldState()
         
         // Use ShieldDecision to check if unlock is approved for this specific app
-        let isUnlockApproved = shieldDecision.isUnlockApproved()
+        let isUnlockApproved = appGroupStorage.isUnlockApproved()
         
         if let shieldState = shieldState {
             switch shieldState.reason {
@@ -156,7 +152,6 @@ class ShieldViewModel: ObservableObject {
     func openAnchorApp() {
         os_log("Opening Anchor app from shield", log: shieldLog, type: .info)
         
-        // Get bundle ID from ShieldDecision if available
         let bundleId = appGroupStorage.getCurrentBlockedBundleId()
         
         // Write context to AppGroupStorage before opening app
@@ -171,7 +166,6 @@ class ShieldViewModel: ObservableObject {
     func openUnlockRequest() {
         os_log("Opening unlock request from shield", log: shieldLog, type: .info)
         
-        // Get bundle ID from ShieldDecision if available, fall back to storage
         let bundleId = appGroupStorage.getCurrentBlockedBundleId()
         
         // Log for debugging
@@ -199,8 +193,12 @@ class ShieldViewModel: ObservableObject {
     private func openURL(_ urlString: String) {
         guard let url = URL(string: urlString) else { return }
         
-        // Use extension-safe URL opening via NSExtensionContext
-        extensionContext?.open(url, completionHandler: nil)
+        // Use extension-safe URL opening via injected handler
+        openURLHandler?(url)
+    }
+
+    func setOpenURLHandler(_ handler: @escaping (URL) -> Void) {
+        openURLHandler = handler
     }
     
     private func formatTime(_ interval: TimeInterval) -> String {

@@ -1,5 +1,6 @@
 import SwiftUI
 import Foundation
+import Shared
 
 @MainActor
 class CreateSessionViewModel: ObservableObject {
@@ -90,4 +91,3 @@ struct MockFriend: Identifiable {
     let id: String
     let name: String
 }
-

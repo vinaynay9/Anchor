@@ -2,6 +2,8 @@ import Foundation
 import UIKit
 import GoogleSignIn
 
+private let kPreferredGooglePlistName = "GoogleService-Info"
+
 enum GoogleSignInError: Error {
     case cancelled
     case noIDToken
@@ -9,7 +11,6 @@ enum GoogleSignInError: Error {
     case noPresentingViewController
 }
 
-@MainActor
 final class GoogleSignInCoordinator {
     static let shared = GoogleSignInCoordinator()
     
@@ -19,6 +20,7 @@ final class GoogleSignInCoordinator {
     /// - Parameter presentingViewController: Optional view controller to present the sign-in flow from. If nil, will attempt to get root view controller.
     /// - Returns: The ID token string
     /// - Throws: GoogleSignInError if sign-in fails or is cancelled
+    @MainActor
     func signIn(withPresenting presentingViewController: UIViewController? = nil) async throws -> String {
         let viewController = presentingViewController ?? getRootViewController()
         
@@ -58,6 +60,7 @@ final class GoogleSignInCoordinator {
         }
     }
     
+    @MainActor
     private func getRootViewController() -> UIViewController? {
         guard let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene,
               let window = windowScene.windows.first,
@@ -75,6 +78,10 @@ final class GoogleSignInCoordinator {
     }
     
     private func getGoogleClientID() -> String? {
+        // Prefer Secrets.googleClientID if available
+        if !Secrets.googleClientID.isEmpty {
+            return Secrets.googleClientID
+        }
         // Try to get from Secrets.swift if it exists
         // Note: User must create Secrets.swift from Secrets.example.swift
         // and add their Google Client ID
@@ -87,19 +94,21 @@ final class GoogleSignInCoordinator {
             }
         }
         
-        // Fallback: Try to get from Info.plist (REVERSED_CLIENT_ID)
-        // Google Sign-In SDK also looks for this automatically
-        if let path = Bundle.main.path(forResource: "GoogleService-Info", ofType: "plist"),
-           let plist = NSDictionary(contentsOfFile: path),
-           let clientID = plist["REVERSED_CLIENT_ID"] as? String,
-           !clientID.isEmpty {
-            // Note: REVERSED_CLIENT_ID is the reversed client ID, not the actual client ID
-            // For iOS, we need the actual client ID from the plist
-            if let actualClientID = plist["CLIENT_ID"] as? String, !actualClientID.isEmpty {
-                return actualClientID
+        // Fallback: Try to get from Info.plist (preferred name first)
+        let candidatePlistNames = [kPreferredGooglePlistName]
+        for plistName in candidatePlistNames {
+            if let path = Bundle.main.path(forResource: plistName, ofType: "plist"),
+               let plist = NSDictionary(contentsOfFile: path) {
+                if let actualClientID = plist["CLIENT_ID"] as? String, !actualClientID.isEmpty {
+                    return actualClientID
+                }
+                // Some templates expose REVERSED_CLIENT_ID; ensure we map to CLIENT_ID above
+                if let reversed = plist["REVERSED_CLIENT_ID"] as? String, !reversed.isEmpty,
+                   let actualClientID = plist["CLIENT_ID"] as? String, !actualClientID.isEmpty {
+                    return actualClientID
+                }
             }
         }
-        
         return nil
     }
 }

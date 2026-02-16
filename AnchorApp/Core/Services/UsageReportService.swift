@@ -1,7 +1,17 @@
 import Foundation
-import FamilyControls
-import DeviceActivity
 import Shared
+#if canImport(FamilyControls)
+import FamilyControls
+#endif
+#if canImport(DeviceActivity)
+import DeviceActivity
+#endif
+
+// Lightweight local token used for usage reporting decoupled from FamilyControls
+public struct ApplicationToken: Hashable {
+    public let rawValue: String
+    public init(rawValue: String) { self.rawValue = rawValue }
+}
 
 // MARK: - Usage Report Models
 
@@ -65,8 +75,6 @@ class UsageReportService {
             throw UsageReportError.authorizationDenied
         case .notDetermined:
             throw UsageReportError.authorizationNotDetermined
-        case .restricted:
-            throw UsageReportError.restrictedAccess
         @unknown default:
             throw UsageReportError.authorizationNotDetermined
         }
@@ -137,7 +145,7 @@ class UsageReportService {
                 let category = categorizeUsage(minutes: minutes)
                 
                 summaries.append(AppUsageSummary(
-                    id: token.hashValue.description,
+                    id: String(token.hashValue),
                     displayName: displayName,
                     totalMinutes: minutes,
                     category: category
@@ -277,6 +285,25 @@ class UsageReportService {
         } else {
             return "Minimal Usage"
         }
+    }
+}
+
+// MARK: - Local stubs for DeviceActivity event querying (compile-time fallback)
+
+struct ActivityFilter {
+    let applicationTokens: Set<ApplicationToken>
+}
+
+struct ActivityEvent {
+    let applicationToken: ApplicationToken
+    let totalActivityDuration: TimeInterval
+    let dateInterval: DateInterval
+}
+
+final class EventStore {
+    func queryEvents(for interval: DateInterval, filter: ActivityFilter) async throws -> [ActivityEvent] {
+        // Placeholder implementation; real usage should use DeviceActivityReport extension.
+        return []
     }
 }
 

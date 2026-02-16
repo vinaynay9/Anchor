@@ -1,17 +1,39 @@
 import Foundation
 
-struct UnlockRequest: Identifiable, Codable, Hashable {
-    let id: UUID
-    let sessionId: UUID
-    let requesterId: UUID
-    let partnerId: UUID
-    let status: UnlockRequestStatus
-    let message: String?
-    let appBundleId: String?
-    let createdAt: Date
-    let resolvedAt: Date?
+public struct UnlockRequest: Identifiable, Codable, Hashable {
+    public let id: UUID
+    public let sessionId: UUID
+    public let requesterId: UUID
+    public let partnerId: UUID
+    public let status: UnlockRequestStatus
+    public let message: String?
+    public let appBundleId: String?
+    public let createdAt: Date
+    public let resolvedAt: Date?
+
+    public init(
+        id: UUID,
+        sessionId: UUID,
+        requesterId: UUID,
+        partnerId: UUID,
+        status: UnlockRequestStatus,
+        message: String?,
+        appBundleId: String?,
+        createdAt: Date,
+        resolvedAt: Date?
+    ) {
+        self.id = id
+        self.sessionId = sessionId
+        self.requesterId = requesterId
+        self.partnerId = partnerId
+        self.status = status
+        self.message = message
+        self.appBundleId = appBundleId
+        self.createdAt = createdAt
+        self.resolvedAt = resolvedAt
+    }
     
-    enum CodingKeys: String, CodingKey {
+    public enum CodingKeys: String, CodingKey {
         case id
         case sessionId = "session_id"
         case requesterId = "requester_id"
@@ -24,7 +46,7 @@ struct UnlockRequest: Identifiable, Codable, Hashable {
     }
 }
 
-enum UnlockRequestStatus: String, Codable, Hashable {
+public enum UnlockRequestStatus: String, Codable, Hashable {
     case pending
     case approved
     case denied
@@ -32,18 +54,18 @@ enum UnlockRequestStatus: String, Codable, Hashable {
 }
 
 // MARK: - API DTOs
-struct UnlockRequestDTO: Codable {
-    let id: String
-    let sessionId: String
-    let requesterId: String
-    let partnerId: String
-    let status: String
-    let message: String?
-    let appBundleId: String?
-    let createdAt: String
-    let resolvedAt: String?
+public struct UnlockRequestDTO: Codable {
+    public let id: String
+    public let sessionId: String
+    public let requesterId: String
+    public let partnerId: String
+    public let status: String
+    public let message: String?
+    public let appBundleId: String?
+    public let createdAt: String
+    public let resolvedAt: String?
     
-    func toUnlockRequest() -> UnlockRequest? {
+    public func toUnlockRequest() -> UnlockRequest? {
         let formatter = ISO8601DateFormatter()
         guard let uuid = UUID(uuidString: id),
               let sessionIdUUID = UUID(uuidString: sessionId),
@@ -69,4 +91,3 @@ struct UnlockRequestDTO: Codable {
         )
     }
 }
-

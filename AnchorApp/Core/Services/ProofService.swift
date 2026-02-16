@@ -275,7 +275,7 @@ class ProofService: ProofServiceProtocol {
         switch error {
         case .networkError, .serverError:
             return true
-        case .unauthorized, .notFound, .decodingError, .unknown:
+        case .unauthorized, .notFound, .decodingError, .unknown, .configurationMissing:
             return false
         }
     }
@@ -303,6 +303,9 @@ class ProofService: ProofServiceProtocol {
         case .notFound:
             // Don't retry 404 - resource doesn't exist
             return false
+        case .configurationMissing:
+            // Don't retry when backend config is missing
+            return false
         case .unknown:
             // Retry unknown errors - may be transient network issues
             return true
@@ -314,7 +317,7 @@ class ProofService: ProofServiceProtocol {
         switch error {
         case .networkError(let underlyingError):
             return .networkError(underlyingError)
-        case .unauthorized, .notFound, .decodingError, .serverError, .unknown:
+        case .unauthorized, .notFound, .decodingError, .serverError, .unknown, .configurationMissing:
             return .networkError(error)
         }
     }

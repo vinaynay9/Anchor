@@ -3,6 +3,7 @@ import Combine
 
 /// Base protocol for all coordinators in the app
 /// Coordinators manage navigation flow and view presentation
+@MainActor
 protocol Coordinator: ObservableObject {
     /// The navigation path managed by this coordinator
     var path: NavigationPath { get set }
@@ -12,11 +13,13 @@ protocol Coordinator: ObservableObject {
 }
 
 /// Protocol for coordinators that can present sheets
+@MainActor
 protocol SheetPresenting {
     var presentedSheet: SheetDestination? { get set }
 }
 
 /// Protocol for coordinators that can present full screen covers
+@MainActor
 protocol FullScreenCoverPresenting {
     var presentedFullScreenCover: FullScreenCoverDestination? { get set }
 }
@@ -48,4 +51,3 @@ enum FullScreenCoverDestination: Identifiable, Hashable {
         }
     }
 }
-

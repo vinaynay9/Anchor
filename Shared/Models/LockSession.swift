@@ -180,9 +180,7 @@ public enum SessionStatus: String, Codable, Hashable {
 }
 
 // MARK: - API DTOs
-// TODO: LockSessionDTO is deferred until API schema matches plan-centric sessions.
-#if false
-struct LockSessionDTO: Codable {
+public struct LockSessionDTO: Codable {
     let id: String
     let userId: String
     let status: String
@@ -200,7 +198,7 @@ struct LockSessionDTO: Codable {
     let goalRequirement: String?
     let quorumState: QuorumState?
     
-    enum CodingKeys: String, CodingKey {
+    public enum CodingKeys: String, CodingKey {
         case id
         case userId = "user_id"
         case status
@@ -219,7 +217,7 @@ struct LockSessionDTO: Codable {
         case quorumState = "quorum_state"
     }
     
-    func toLockSession() -> LockSession? {
+    public func toLockSession() -> LockSession? {
         let formatter = ISO8601DateFormatter()
         guard let uuid = UUID(uuidString: id),
               let userIdUUID = UUID(uuidString: userId),
@@ -266,13 +264,13 @@ struct LockSessionDTO: Codable {
     }
 }
 
-struct LockSessionScheduleDTO: Codable {
+public struct LockSessionScheduleDTO: Codable {
     let weekdays: [Int]
     let startTime: TimeOfDayDTO
     let endTime: TimeOfDayDTO
     let durationMinutes: Int
     
-    func toLockSessionSchedule() -> LockSessionSchedule {
+    public func toLockSessionSchedule() -> LockSessionSchedule {
         return LockSessionSchedule(
             weekdays: Set(weekdays),
             startTime: startTime.toTimeOfDay(),
@@ -282,12 +280,11 @@ struct LockSessionScheduleDTO: Codable {
     }
 }
 
-struct TimeOfDayDTO: Codable {
+public struct TimeOfDayDTO: Codable {
     let hour: Int
     let minute: Int
     
-    func toTimeOfDay() -> TimeOfDay {
+    public func toTimeOfDay() -> TimeOfDay {
         return TimeOfDay(hour: hour, minute: minute)
     }
 }
-#endif

@@ -15,16 +15,15 @@ public struct FriendActivityEvent: Identifiable, Codable {
     public let timestamp: Date
     public let metadata: [String: String]?
     
-    public enum CodingKeys: String, CodingKey {
-        case id
-        case friendId = "friend_id"
-        case type
-        case timestamp
-        case metadata
+    public init(id: UUID, friendId: String, type: FriendActivityType, timestamp: Date, metadata: [String: String]? = nil) {
+        self.id = id
+        self.friendId = friendId
+        self.type = type
+        self.timestamp = timestamp
+        self.metadata = metadata
     }
 }
 
-// MARK: - API DTOs
 public struct FriendActivityEventDTO: Codable {
     public let id: String
     public let friendId: String
@@ -32,28 +31,21 @@ public struct FriendActivityEventDTO: Codable {
     public let timestamp: String
     public let metadata: [String: String]?
     
-    public enum CodingKeys: String, CodingKey {
-        case id
-        case friendId = "friend_id"
-        case type
-        case timestamp
-        case metadata
+    public init(id: String, friendId: String, type: String, timestamp: String, metadata: [String: String]? = nil) {
+        self.id = id
+        self.friendId = friendId
+        self.type = type
+        self.timestamp = timestamp
+        self.metadata = metadata
     }
     
     public func toFriendActivityEvent() -> FriendActivityEvent? {
         let formatter = ISO8601DateFormatter()
         guard let uuid = UUID(uuidString: id),
               let activityType = FriendActivityType(rawValue: type),
-              let timestampDate = formatter.date(from: timestamp) else {
+              let date = formatter.date(from: timestamp) else {
             return nil
         }
-        
-        return FriendActivityEvent(
-            id: uuid,
-            friendId: friendId,
-            type: activityType,
-            timestamp: timestampDate,
-            metadata: metadata
-        )
+        return FriendActivityEvent(id: uuid, friendId: friendId, type: activityType, timestamp: date, metadata: metadata)
     }
 }
