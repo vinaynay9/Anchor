@@ -2,12 +2,6 @@ import ManagedSettings
 import ManagedSettingsUI
 import Shared
 import UIKit
-import os.log
-
-// MARK: - Shield Configuration Extension
-// Loaded by the system via NSExtensionPrincipalClass.
-
-private let shieldLog = OSLog(subsystem: "com.vinay.Anchor", category: "ShieldExtension")
 
 final class ShieldConfigurationExtension: ShieldConfigurationDataSource {
     override func configuration(shielding application: Application) -> ShieldConfiguration {
@@ -28,59 +22,23 @@ final class ShieldConfigurationExtension: ShieldConfigurationDataSource {
 
     private func makeConfiguration() -> ShieldConfiguration {
         let storage = AppGroupStorage.shared
-        let shieldState = storage.getShieldState()
+        let goals = storage.getV0Goals()
+        let completed = storage.getV0DailyState().completedGoalIDsToday.count
 
-        let title: String
-        let subtitle: String
-        let primaryLabel: ShieldConfiguration.Label?
-        let secondaryLabel: ShieldConfiguration.Label?
-        let titleColor = UIColor(AppColors.onPrimary)
-        let subtitleColor = UIColor(AppColors.onPrimarySecondary)
+        let title = V0ShieldMessages.lockedTitle
+        let subtitle = V0ShieldMessages.lockedSubtitle
+        let progress = goals.isEmpty ? nil : "Completed \(completed)/\(goals.count) today"
 
-        if let shieldState = shieldState {
-            switch shieldState.reason {
-            case .waitingForQuorum:
-                title = "Unlock pending."
-                subtitle = "Waiting for group quorum to approve."
-                primaryLabel = .init(text: "Open Anchor", color: titleColor)
-                secondaryLabel = .init(text: "Return to Anchor", color: subtitleColor)
-            case .goalNotApproved:
-                title = "Goals incomplete."
-                subtitle = "Complete your goals before unlocking."
-                primaryLabel = .init(text: "Open Anchor", color: titleColor)
-                secondaryLabel = .init(text: "Return to Anchor", color: subtitleColor)
-            case .contractPenaltyActive:
-                title = "Contract penalty active."
-                subtitle = "This lock is enforced by a social contract."
-                primaryLabel = .init(text: "Open Anchor", color: titleColor)
-                secondaryLabel = .init(text: "Return to Anchor", color: subtitleColor)
-            case .unlockApproved:
-                title = "Unlock approved."
-                subtitle = "Your unlock request has been approved."
-                primaryLabel = .init(text: "Open Anchor", color: titleColor)
-                secondaryLabel = .init(text: "Return to Anchor", color: subtitleColor)
-            case .activeLock, .free:
-                title = "You're anchored."
-                subtitle = "This app is blocked during your anchor window."
-                primaryLabel = .init(text: "Request Unlock", color: titleColor)
-                secondaryLabel = .init(text: "Open Anchor", color: subtitleColor)
-            }
-        } else {
-            title = "You're anchored."
-            subtitle = "This app is blocked during your anchor window."
-            primaryLabel = .init(text: "Request Unlock", color: titleColor)
-            secondaryLabel = .init(text: "Open Anchor", color: subtitleColor)
-        }
-
-        os_log("Shield configuration built - %{public}@", log: shieldLog, type: .info, title)
+        let titleColor = UIColor(AppColors.textPrimary)
+        let subtitleColor = UIColor(AppColors.textSecondary)
 
         return ShieldConfiguration(
-            backgroundColor: UIColor(AppColors.shieldBackground),
+            backgroundColor: UIColor(AppColors.background),
             icon: nil,
             title: ShieldConfiguration.Label(text: title, color: titleColor),
             subtitle: ShieldConfiguration.Label(text: subtitle, color: subtitleColor),
-            primaryButtonLabel: primaryLabel,
-            secondaryButtonLabel: secondaryLabel
+            primaryButtonLabel: ShieldConfiguration.Label(text: "Open Anchor", color: titleColor),
+            secondaryButtonLabel: progress.map { ShieldConfiguration.Label(text: $0, color: subtitleColor) }
         )
     }
 }

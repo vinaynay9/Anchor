@@ -71,17 +71,6 @@ struct Durations {
     /// 1.5s - Short toast duration (for quick feedback)
     static let toastShort: Double = 1.5
     
-    // MARK: - Session Durations
-    /// 5 minutes - Minimum session duration (in minutes)
-    static let sessionMinimumMinutes: Int = 5
-    /// 25 minutes - Default session duration (Pomodoro)
-    static let sessionDefaultMinutes: Int = 25
-    /// 480 minutes - Maximum session duration (8 hours)
-    static let sessionMaximumMinutes: Int = 480
-    
-    // MARK: - Unlock Approval Durations
-    /// 5 minutes - Unlock approval expiration time
-    static let unlockApprovalExpirationMinutes: Int = 5
 }
 
 /// Unified layout constants
@@ -151,11 +140,6 @@ struct APIConstants {
 
 /// Storage constants
 struct StorageConstants {
-    /// Maximum cached sessions to keep
-    static let maxCachedSessions: Int = 50
-    /// Maximum pending proofs to queue
-    static let maxPendingProofs: Int = 10
     /// Cache expiration time (in hours)
     static let cacheExpirationHours: Int = 24
 }
-

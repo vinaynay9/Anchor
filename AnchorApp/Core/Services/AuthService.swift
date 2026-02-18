@@ -7,6 +7,7 @@ enum AuthError: Error {
     case invalidToken
     case networkError
     case notAuthenticated
+    case unsupported
 }
 
 protocol AuthServiceProtocol {
@@ -21,7 +22,6 @@ class AuthService: AuthServiceProtocol {
     
     private let apiClient = APIClient.shared
     private let keychainService = KeychainService.shared
-    private let googleSignInCoordinator = GoogleSignInCoordinator.shared
     private let appleSignInCoordinator = AppleSignInCoordinator()
     
     // MARK: - Apple Sign In
@@ -72,76 +72,7 @@ class AuthService: AuthServiceProtocol {
     
     // MARK: - Google Sign In
     func signInWithGoogle() async throws -> User {
-        // 1. Get ID token from Google Sign-In
-        let idToken: String
-        do {
-            idToken = try await googleSignInCoordinator.signIn()
-        } catch let error as GoogleSignInError {
-            switch error {
-            case .cancelled:
-                throw AuthError.cancelled
-            case .noIDToken, .noPresentingViewController:
-                throw AuthError.invalidToken
-            case .signInFailed(let underlyingError):
-                throw AuthError.failed(underlyingError)
-            }
-        } catch {
-            throw AuthError.failed(error)
-        }
-        
-        // 2. Send ID token to backend
-        struct AuthResponse: Codable {
-            let accessToken: String
-            let refreshToken: String?
-            let user: UserDTO
-        }
-        
-        let response: AuthResponse
-        do {
-            response = try await apiClient.request(
-                .signInGoogle(token: idToken),
-                responseType: AuthResponse.self
-            )
-        } catch let error as AnchorAPIError {
-            // Convert AnchorAPIError to AuthError for consistency with existing error handling
-            switch error {
-            case .unauthorized:
-                throw AuthError.invalidToken
-            case .networkError:
-                throw AuthError.networkError
-            default:
-                throw AuthError.failed(error)
-            }
-        } catch {
-            throw AuthError.failed(error)
-        }
-        
-        // 3. Store access token in Keychain
-        do {
-            try keychainService.save(response.accessToken, forKey: AppConfig.UserDefaultsKeys.accessToken)
-        } catch {
-            throw AuthError.failed(error)
-        }
-        
-        // 4. Store refresh token in Keychain if available
-        if let refreshToken = response.refreshToken {
-            do {
-                try keychainService.save(refreshToken, forKey: AppConfig.UserDefaultsKeys.refreshToken)
-            } catch {
-                // Log error but don't fail - refresh token is optional
-                print("Warning: Failed to save refresh token to Keychain: \(error)")
-            }
-        }
-        
-        // 5. Convert DTO to User
-        guard let user = response.user.toUser() else {
-            throw AuthError.invalidToken
-        }
-        
-        // 6. Store user ID in UserDefaults
-        UserDefaults.standard.set(user.id.uuidString, forKey: AppConfig.UserDefaultsKeys.currentUserId)
-        
-        return user
+        throw AuthError.unsupported
     }
     
     // MARK: - Sign Out

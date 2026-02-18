@@ -1,64 +1,39 @@
 import SwiftUI
 
-// MARK: - Primary Button (Luxury Purple Gradient)
+// MARK: - Primary Button
 struct PrimaryButtonStyle: ButtonStyle {
     func makeBody(configuration: Configuration) -> some View {
         configuration.label
             .font(AppTypography.bodyBold)
-            .foregroundColor(AppColors.onPrimary)
+            .foregroundColor(AppColors.ctaText)
             .frame(maxWidth: .infinity)
             .padding(.vertical, Theme.spacing2)
             .padding(.horizontal, Theme.spacing2)
-            .background(
-                LinearGradient(
-                    colors: [
-                        AppColors.anchorAccent,
-                        AppColors.anchorPrimary
-                    ],
-                    startPoint: .leading,
-                    endPoint: .trailing
-                )
-            )
+            .background(configuration.isPressed ? AppColors.primaryPressed : AppColors.primary)
             .cornerRadius(Theme.cornerRadiusMedium)
-            .shadow(
-                color: AppColors.anchorAccent.opacity(configuration.isPressed ? 0.2 : 0.3),
-                radius: configuration.isPressed ? Theme.shadowRadius * 0.7 : Theme.shadowRadius,
-                x: 0,
-                y: configuration.isPressed ? 2 : 4
-            )
             .scaleEffect(configuration.isPressed ? 0.97 : 1.0)
             .opacity(configuration.isPressed ? 0.9 : 1.0)
             .animation(Theme.springAnimationFast, value: configuration.isPressed)
     }
 }
 
-// MARK: - Secondary Button (Outlined)
+// MARK: - Secondary Button
 struct SecondaryButtonStyle: ButtonStyle {
     func makeBody(configuration: Configuration) -> some View {
         configuration.label
             .font(AppTypography.bodyBold)
-            .foregroundColor(AppColors.anchorAccent)
+            .foregroundColor(AppColors.secondaryButtonText)
             .frame(maxWidth: .infinity)
             .padding(.vertical, Theme.spacing2)
             .padding(.horizontal, Theme.spacing2)
-            .background(Color.clear)
+            .background(AppColors.secondaryButtonBackground)
             .cornerRadius(Theme.cornerRadiusMedium)
             .overlay(
                 RoundedRectangle(cornerRadius: Theme.cornerRadiusMedium)
-                    .stroke(
-                        LinearGradient(
-                            colors: [
-                                AppColors.anchorAccent.opacity(0.6),
-                                AppColors.anchorLavender.opacity(0.4)
-                            ],
-                            startPoint: .leading,
-                            endPoint: .trailing
-                        ),
-                        lineWidth: 1.5
-                    )
+                    .stroke(AppColors.border, lineWidth: 1)
             )
             .scaleEffect(configuration.isPressed ? 0.97 : 1.0)
-            .opacity(configuration.isPressed ? 0.8 : 1.0)
+            .opacity(configuration.isPressed ? 0.85 : 1.0)
             .animation(Theme.springAnimationFast, value: configuration.isPressed)
     }
 }
@@ -68,7 +43,7 @@ struct TertiaryButtonStyle: ButtonStyle {
     func makeBody(configuration: Configuration) -> some View {
         configuration.label
             .font(AppTypography.bodyMedium)
-            .foregroundColor(AppColors.anchorAccent)
+            .foregroundColor(AppColors.textSecondary)
             .frame(maxWidth: .infinity)
             .padding(.vertical, Theme.spacing)
             .padding(.horizontal, Theme.spacing2)
@@ -83,11 +58,11 @@ struct DangerButtonStyle: ButtonStyle {
     func makeBody(configuration: Configuration) -> some View {
         configuration.label
             .font(AppTypography.bodyBold)
-            .foregroundColor(AppColors.onPrimary)
+            .foregroundColor(AppColors.textPrimary)
             .frame(maxWidth: .infinity)
             .padding(.vertical, Theme.spacing2)
             .padding(.horizontal, Theme.spacing2)
-            .background(AppColors.error)
+            .background(AppColors.primaryPressed)
             .cornerRadius(Theme.cornerRadiusMedium)
             .scaleEffect(configuration.isPressed ? 0.97 : 1.0)
             .opacity(configuration.isPressed ? 0.85 : 1.0)
@@ -108,4 +83,3 @@ struct GhostButtonStyle: ButtonStyle {
             .animation(Theme.springAnimationFast, value: configuration.isPressed)
     }
 }
-

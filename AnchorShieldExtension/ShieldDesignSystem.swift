@@ -1,36 +1,25 @@
 import SwiftUI
 import Shared
 
-// MARK: - Shield Extension Design System
-// Uses AppColors anchor variants for brand consistency
-
 struct ShieldTheme {
     static let cornerRadius: CGFloat = 16
     static let padding: CGFloat = 20
     static let spacing: CGFloat = 12
     static let smallSpacing: CGFloat = 8
     static let largeSpacing: CGFloat = 24
-    
-    // Animation constants (lightweight for extension)
+
     static let animationDuration: Double = 0.25
     static let springAnimation = Animation.spring(response: 0.3, dampingFraction: 0.7, blendDuration: 0)
     static let easeInOut = Animation.easeInOut(duration: 0.25)
 }
 
 struct ShieldColors {
-    // Use AppColors anchor variants for brand consistency
-    static let shieldBackground = AppColors.shieldBackground
-    static let shieldText = AppColors.shieldText
-    static let primary = AppColors.anchorAccent
-    static let primaryDark = AppColors.anchorPrimary
-    static let accentLight = AppColors.anchorLavender
+    static let shieldBackground = AppColors.background
+    static let textPrimary = AppColors.textPrimary
     static let textSecondary = AppColors.textSecondary
-    static let textTertiary = AppColors.textSecondary.opacity(0.7)
-    
-    // Button colors
-    static let primaryButtonBackground = AppColors.anchorAccent
-    static let secondaryButtonBackground = AppColors.anchorPrimaryDark.opacity(0.3)
-    static let secondaryButtonBorder = AppColors.anchorLavender.opacity(0.4)
+    static let primary = AppColors.primary
+    static let accent = AppColors.accent
+    static let border = AppColors.border
 }
 
 struct ShieldTypography {
