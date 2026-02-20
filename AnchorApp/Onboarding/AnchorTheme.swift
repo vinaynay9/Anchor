@@ -1,5 +1,11 @@
 import SwiftUI
 
+extension AppColors {
+    static var accent: Color { primary }
+    static var textTertiary: Color { textSecondary.opacity(0.75) }
+    static var border: Color { textSecondary.opacity(0.25) }
+}
+
 struct AnchorTheme {
     static let background = AppColors.background
     static let cardBackground = AppColors.surface

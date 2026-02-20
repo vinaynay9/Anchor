@@ -13,12 +13,12 @@ public enum Validation {
     }
 
     public static func isValidDayString(_ value: String) -> Bool {
-        let regex = /^\d{4}-\d{2}-\d{2}$/
-        return value.range(of: regex) != nil
-    }
+            let regex = /^\d{4}-\d{2}-\d{2}$/
+            return value.wholeMatch(of: regex) != nil
+        }
 
     public static func isValidTimeOfDay(_ value: String) -> Bool {
-        let regex = /^(?:[01]\d|2[0-3]):[0-5]\d:[0-5]\d$/
-        return value.range(of: regex) != nil
-    }
+            let regex = /^(?:[01]\d|2[0-3]):[0-5]\d:[0-5]\d$/
+            return value.wholeMatch(of: regex) != nil
+        }
 }

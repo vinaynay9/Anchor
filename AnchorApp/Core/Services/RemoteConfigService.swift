@@ -3,42 +3,45 @@ import Shared
 
 final class RemoteConfigService {
     static let shared = RemoteConfigService()
-    
+
     private let storage = AppGroupStorage.shared
     private let session: URLSession
+
     private static let networkSession: URLSession = {
         let config = URLSessionConfiguration.default
         config.timeoutIntervalForRequest = 20
         config.timeoutIntervalForResource = 40
         return URLSession(configuration: config)
     }()
-    
+
     private init(session: URLSession = RemoteConfigService.networkSession) {
         self.session = session
     }
-    
+
     var currentConfig: RemoteAppConfig? {
         storage.getRemoteAppConfig()
     }
-    
+
     func refresh() async {
         guard let url = URL(string: Secrets.apiBaseURL + Secrets.remoteConfigPath) else {
             return
         }
+
         let token = await CognitoAuthService.shared.getValidIdToken()
         guard let token else {
             return
         }
-        
+
         var request = URLRequest(url: url)
         request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
-        
+
         do {
             let (data, response) = try await session.data(for: request)
             guard let http = response as? HTTPURLResponse,
                   (200...299).contains(http.statusCode) else {
                 return
             }
+
             let config = try JSONDecoder().decode(RemoteAppConfig.self, from: data)
             storage.setRemoteAppConfig(config)
         } catch {
@@ -66,10 +69,20 @@ final class AnalyticsIngestService {
     static let shared = AnalyticsIngestService()
     private init() {}
 
+    // Keep this service independent from RemoteConfigService’s private session.
+    private static let networkSession: URLSession = {
+        let config = URLSessionConfiguration.default
+        config.timeoutIntervalForRequest = 20
+        config.timeoutIntervalForResource = 40
+        return URLSession(configuration: config)
+    }()
+
     func sendDailyProfileIfConfigured() async {
         guard let url = AppConfig.analyticsIngestURL else { return }
+
         let apiKey = AppConfig.analyticsIngestApiKey
         guard !apiKey.isEmpty else { return }
+
         guard let profile = AppGroupStorage.shared.getProfile() else { return }
 
         let today = DateFormatters.dayFormatter.string(from: Date())
@@ -102,6 +115,7 @@ final class AnalyticsIngestService {
         request.httpMethod = "POST"
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
         request.setValue(apiKey, forHTTPHeaderField: "x-anchor-api-key")
+
         do {
             request.httpBody = try JSONEncoder().encode(payload)
         } catch {
@@ -109,7 +123,7 @@ final class AnalyticsIngestService {
         }
 
         do {
-            _ = try await RemoteConfigService.networkSession.data(for: request)
+            _ = try await Self.networkSession.data(for: request)
         } catch {
             // best-effort
         }
