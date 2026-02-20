@@ -1,5 +1,6 @@
 import Foundation
 import Shared
+import ManagedSettings
 
 // MARK: - Screen Time Authorization Status
 enum ScreenTimeAuthorizationStatus {
@@ -45,4 +46,7 @@ protocol ScreenTimeServiceProtocol {
 
     /// Temporarily removes blocking for an emergency unanchor.
     func emergencyUnanchor(duration: TimeInterval) async
+
+    /// Temporarily allows a subset of apps while keeping others blocked.
+    func applyTemporaryUnlock(blockedTokens: Set<ManagedSettings.ApplicationToken>, allowedTokens: Set<ManagedSettings.ApplicationToken>, duration: TimeInterval) async
 }

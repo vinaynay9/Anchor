@@ -25,7 +25,7 @@ struct PendingRequestRowView: View {
         HStack {
             VStack(alignment: .leading) {
                 Text(request.friend?.username ?? "Unknown")
-                    .font(AppTypography.bodyBold)
+                    .font(AppTypography.body)
             }
             
             Spacer()

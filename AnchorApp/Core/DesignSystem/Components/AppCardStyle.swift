@@ -21,8 +21,8 @@ struct GlassCard<Content: View>: View {
                             .fill(
                                 LinearGradient(
                                     colors: [
-                                        AppColors.anchorPrimary.opacity(0.1),
-                                        AppColors.anchorAccent.opacity(0.05)
+                                        AppColors.primary.opacity(0.08),
+                                        AppColors.accent.opacity(0.04)
                                     ],
                                     startPoint: .topLeading,
                                     endPoint: .bottomTrailing
@@ -32,20 +32,10 @@ struct GlassCard<Content: View>: View {
             )
             .overlay(
                 RoundedRectangle(cornerRadius: Theme.cornerRadiusMedium)
-                    .stroke(
-                        LinearGradient(
-                            colors: [
-                                AppColors.anchorLavender.opacity(0.3),
-                                AppColors.anchorAccent.opacity(0.2)
-                            ],
-                            startPoint: .topLeading,
-                            endPoint: .bottomTrailing
-                        ),
-                        lineWidth: 1
-                    )
+                    .stroke(AppColors.border.opacity(0.25), lineWidth: 1)
             )
             .shadow(
-                color: AppColors.anchorPrimary.opacity(0.15),
+                color: AppColors.primary.opacity(0.15),
                 radius: Theme.shadowRadius,
                 x: 0,
                 y: 4
@@ -68,21 +58,17 @@ struct SolidCard<Content: View>: View {
             .padding(padding)
             .background(
                 RoundedRectangle(cornerRadius: Theme.cornerRadiusMedium)
-                    .fill(AppColors.secondaryBackground)
+                    .fill(AppColors.surface)
             )
             .overlay(
                 RoundedRectangle(cornerRadius: Theme.cornerRadiusMedium)
-                    .stroke(
-                        LinearGradient(
-                            colors: [
-                                AppColors.anchorLavender.opacity(0.2),
-                                AppColors.anchorAccent.opacity(0.1)
-                            ],
-                            startPoint: .topLeading,
-                            endPoint: .bottomTrailing
-                        ),
-                        lineWidth: 1
-                    )
+                    .stroke(AppColors.border.opacity(0.25), lineWidth: 1)
+            )
+            .shadow(
+                color: AppColors.accent.opacity(0.15),
+                radius: 12,
+                x: 0,
+                y: 6
             )
     }
 }
@@ -105,8 +91,8 @@ struct GradientCard<Content: View>: View {
                     .fill(
                         LinearGradient(
                             colors: [
-                                AppColors.secondaryBackground,
-                                AppColors.secondaryBackground.opacity(0.8)
+                                AppColors.surface,
+                                AppColors.surface.opacity(0.9)
                             ],
                             startPoint: .topLeading,
                             endPoint: .bottomTrailing
@@ -115,24 +101,13 @@ struct GradientCard<Content: View>: View {
             )
             .overlay(
                 RoundedRectangle(cornerRadius: Theme.cornerRadiusMedium)
-                    .stroke(
-                        LinearGradient(
-                            colors: [
-                                AppColors.anchorPrimary.opacity(0.3),
-                                AppColors.anchorAccent.opacity(0.2)
-                            ],
-                            startPoint: .topLeading,
-                            endPoint: .bottomTrailing
-                        ),
-                        lineWidth: 1
-                    )
+                    .stroke(AppColors.border.opacity(0.25), lineWidth: 1)
             )
             .shadow(
-                color: AppColors.anchorAccent.opacity(0.2),
+                color: AppColors.primary.opacity(0.2),
                 radius: Theme.shadowRadius,
                 x: 0,
                 y: 4
             )
     }
 }
-

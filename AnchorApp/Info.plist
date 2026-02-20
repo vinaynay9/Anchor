@@ -13,7 +13,7 @@
 	<key>CFBundlePackageType</key>
 	<string>APPL</string>
 	<key>CFBundleShortVersionString</key>
-	<string>1.0</string>
+	<string>0.1.0</string>
 	<key>CFBundleURLTypes</key>
 	<array>
 		<dict>
@@ -28,7 +28,7 @@
 	<key>CFBundleVersion</key>
 	<string>1</string>
 	<key>NSFamilyControlsUsageDescription</key>
-	<string>Anchor needs Screen Time access to block distracting apps during focus sessions.</string>
+	<string>Anchor needs Screen Time access to block apps during Anchored Mode.</string>
 	<key>UILaunchScreen</key>
 	<dict/>
 </dict>

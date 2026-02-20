@@ -15,7 +15,7 @@ struct SelectAppsView: View {
                     // Header Section
                     VStack(spacing: Theme.spacing) {
                         Text("Choose Apps to Block")
-                            .font(AppTypography.title)
+                            .font(AppTypography.screenTitle)
                             .foregroundColor(AppColors.textPrimary)
                         
                         Text("These apps won't open during your Anchor session.")
@@ -31,33 +31,33 @@ struct SelectAppsView: View {
                     VStack(alignment: .leading, spacing: Theme.spacing) {
                         HStack {
                             Text("Selected Apps")
-                                .font(AppTypography.title3)
+                                .font(AppTypography.sectionHeader)
                                 .foregroundColor(AppColors.textPrimary)
                             
                             Spacer()
                             
                             if !viewModel.selectedAppTokens.isEmpty {
                                 Text("\(viewModel.selectedAppTokens.count)")
-                                    .font(AppTypography.captionBold)
-                                    .foregroundColor(AppColors.anchorAccent)
+                                    .font(AppTypography.caption)
+                                    .foregroundColor(AppColors.accent)
                                     .padding(.horizontal, 10)
                                     .padding(.vertical, 5)
                                     .background(
                                         Capsule()
-                                            .fill(AppColors.anchorAccent.opacity(0.2))
+                                            .fill(AppColors.accent.opacity(0.2))
                                             .overlay(
                                                 Capsule()
-                                                    .stroke(AppColors.anchorAccent.opacity(0.4), lineWidth: 1)
+                                                    .stroke(AppColors.accent.opacity(0.4), lineWidth: 1)
                                             )
                                     )
-                                    .shadow(color: AppColors.anchorAccent.opacity(0.3), radius: 4, x: 0, y: 2)
+                                    .shadow(color: AppColors.accent.opacity(0.3), radius: 4, x: 0, y: 2)
                             }
                         }
                         
                         if viewModel.selectedAppTokens.isEmpty {
                             VStack(spacing: Theme.spacing) {
                                 Image(systemName: "app.badge")
-                                    .font(.system(size: 40))
+                                    .font(AppTypography.screenTitle)
                                     .foregroundColor(AppColors.textSecondary.opacity(0.5))
                                 
                                 Text("No apps selected")
@@ -73,13 +73,13 @@ struct SelectAppsView: View {
                                         Circle()
                                             .fill(
                                                 LinearGradient(
-                                                    colors: [AppColors.anchorAccent, AppColors.anchorLavender],
+                                                    colors: [AppColors.accent, AppColors.textTertiary],
                                                     startPoint: .topLeading,
                                                     endPoint: .bottomTrailing
                                                 )
                                             )
                                             .frame(width: 10, height: 10)
-                                            .shadow(color: AppColors.anchorAccent.opacity(0.5), radius: 3)
+                                            .shadow(color: AppColors.accent.opacity(0.5), radius: 3)
                                         
                                         Text("App \(index + 1)")
                                             .font(AppTypography.caption)
@@ -89,7 +89,7 @@ struct SelectAppsView: View {
                                         
                                         // Show token identifier
                                         Text(token)
-                                            .font(.system(.caption2, design: .monospaced))
+                                            .font(AppTypography.caption)
                                             .foregroundColor(AppColors.textSecondary.opacity(0.5))
                                     }
                                     .padding(.vertical, 6)
@@ -100,12 +100,12 @@ struct SelectAppsView: View {
                     .padding(Theme.padding)
                     .background(
                         RoundedRectangle(cornerRadius: AppLayout.cardCornerRadius)
-                            .fill(AppColors.anchorPrimaryDark)
+                            .fill(AppColors.surface)
                             .overlay(
                                 RoundedRectangle(cornerRadius: AppLayout.cardCornerRadius)
-                                    .stroke(AppColors.anchorLavender.opacity(0.4), lineWidth: 1)
+                                    .stroke(AppColors.textTertiary.opacity(0.4), lineWidth: 1)
                             )
-                            .shadow(color: AppColors.anchorAccent.opacity(0.1), radius: 8, x: 0, y: 4)
+                            .shadow(color: AppColors.accent.opacity(0.1), radius: 8, x: 0, y: 4)
                     )
                     .padding(.horizontal, Theme.padding)
                     
@@ -131,12 +131,12 @@ struct SelectAppsView: View {
                         }) {
                             HStack(spacing: 8) {
                                 Image(systemName: "plus.circle.fill")
-                                    .font(.system(size: 18, weight: .semibold))
+                                    .font(AppTypography.body).fontWeight(.semibold)
                                 Text("Select Apps")
                             }
                         }
                         .buttonStyle(PrimaryButtonStyle())
-                        .shadow(color: AppColors.anchorAccent.opacity(0.4), radius: 12, x: 0, y: 6)
+                        .shadow(color: AppColors.accent.opacity(0.4), radius: 12, x: 0, y: 6)
                         
                         if !viewModel.selectedAppTokens.isEmpty {
                             Button(action: {
@@ -144,7 +144,7 @@ struct SelectAppsView: View {
                             }) {
                                 HStack(spacing: 8) {
                                     Image(systemName: "trash")
-                                        .font(.system(size: 16, weight: .semibold))
+                                        .font(AppTypography.helper).fontWeight(.semibold)
                                     Text("Clear Selection")
                                 }
                             }
@@ -175,4 +175,3 @@ struct SelectAppsView: View {
     SelectAppsView()
         .preferredColorScheme(.dark)
 }
-

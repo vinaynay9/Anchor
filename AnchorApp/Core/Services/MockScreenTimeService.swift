@@ -1,5 +1,6 @@
 import Foundation
 import Shared
+import ManagedSettings
 
 // MARK: - Mock Screen Time Service
 // This implementation works in simulator and doesn't require real Screen Time entitlements
@@ -164,6 +165,13 @@ class MockScreenTimeService: ScreenTimeServiceProtocol {
         isBlocking = false
         simulateShieldActive = false
         logSimulation("🚨 Emergency unanchor for \(duration) seconds")
+    }
+
+    func applyTemporaryUnlock(blockedTokens: Set<ManagedSettings.ApplicationToken>, allowedTokens: Set<ManagedSettings.ApplicationToken>, duration: TimeInterval) async {
+        try? await Task.sleep(nanoseconds: simulatedLatencyNanoseconds)
+        isBlocking = true
+        simulateShieldActive = true
+        logSimulation("🧩 Temporary unlock for \(duration) seconds (allowed \(allowedTokens.count) apps)")
     }
     
     // MARK: - Mock State Accessors (for testing)

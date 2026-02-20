@@ -7,10 +7,10 @@ struct NotificationSettingsView: View {
     var body: some View {
         VStack(spacing: Theme.padding) {
             Text("Notification Settings")
-                .font(AppTypography.title)
+                .font(AppTypography.screenTitle)
                 .padding()
             
-            Text("Enable notifications to receive unlock requests from your accountability partners.")
+            Text("Enable notifications to stay Anchored and track goal completions.")
                 .font(AppTypography.body)
                 .foregroundColor(AppColors.textSecondary)
                 .multilineTextAlignment(.center)

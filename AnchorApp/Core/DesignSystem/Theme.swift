@@ -27,9 +27,9 @@ struct Theme {
     static let animationMedium: Double = 0.3
     static let animationSlow: Double = 0.5
     
-    static let springAnimation = Animation.spring(response: 0.4, dampingFraction: 0.8, blendDuration: 0)
-    static let springAnimationFast = Animation.spring(response: 0.3, dampingFraction: 0.7, blendDuration: 0)
-    static let springAnimationSlow = Animation.spring(response: 0.6, dampingFraction: 0.85, blendDuration: 0)
+    static let springAnimation = AppMotion.gentleSpring
+    static let springAnimationFast = AppMotion.snappy
+    static let springAnimationSlow = AppMotion.standard
     
     // MARK: - Shadow Constants
     static let shadowRadius: CGFloat = 12
@@ -41,4 +41,3 @@ struct Theme {
     static let blurRadius: CGFloat = 20
     static let blurRadiusLarge: CGFloat = 40
 }
-

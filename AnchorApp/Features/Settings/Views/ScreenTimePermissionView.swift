@@ -19,24 +19,24 @@ struct ScreenTimePermissionView: View {
                                         ? AppColors.success.opacity(0.2)
                                         : viewModel.status == .restricted
                                         ? AppColors.warning.opacity(0.2)
-                                        : AppColors.anchorAccent.opacity(0.2)
+                                        : AppColors.accent.opacity(0.2)
                                 )
                                 .frame(width: 120, height: 120)
                             
                             Image(systemName: viewModel.status == .approved ? "checkmark.shield.fill" : viewModel.status == .restricted ? "lock.shield.trianglebadge.exclamationmark.fill" : "lock.shield.fill")
-                                .font(.system(size: 50, weight: .light))
+                                .font(AppTypography.screenTitle).fontWeight(.light)
                                 .foregroundColor(
                                     viewModel.status == .approved
                                         ? AppColors.success
                                         : viewModel.status == .restricted
                                         ? AppColors.warning
-                                        : AppColors.anchorAccent
+                                        : AppColors.accent
                                 )
                         }
                         .padding(.top, Theme.spacing3)
                         
                         Text(statusTitle)
-                            .font(AppTypography.largeTitle)
+                            .font(AppTypography.screenTitle)
                             .foregroundColor(AppColors.textPrimary)
                             .multilineTextAlignment(.center)
                         
@@ -50,13 +50,13 @@ struct ScreenTimePermissionView: View {
                     // Why section
                     VStack(alignment: .leading, spacing: Theme.spacing2) {
                         Text("Why Anchor Needs This")
-                            .font(AppTypography.title3)
+                            .font(AppTypography.sectionHeader)
                             .foregroundColor(AppColors.textPrimary)
                         
                         VStack(alignment: .leading, spacing: Theme.spacing) {
                             ReasonBullet(text: "Identify distracting apps you use most")
-                            ReasonBullet(text: "Block apps during your focus sessions")
-                            ReasonBullet(text: "Enable friend-approved unlock requests")
+                            ReasonBullet(text: "Block apps during your Anchored Mode")
+                            ReasonBullet(text: "Apps unlock when goals are complete")
                         }
                     }
                     .padding(Theme.spacing3)
@@ -85,7 +85,7 @@ struct ScreenTimePermissionView: View {
                             Image(systemName: "checkmark.circle.fill")
                                 .foregroundColor(AppColors.success)
                             Text("Screen Time Access Authorized")
-                                .font(AppTypography.bodyBold)
+                                .font(AppTypography.body)
                                 .foregroundColor(AppColors.textPrimary)
                         }
                         .frame(maxWidth: .infinity)
@@ -129,7 +129,7 @@ struct ScreenTimePermissionView: View {
                                 Image(systemName: "exclamationmark.triangle.fill")
                                     .foregroundColor(AppColors.warning)
                                 Text("Parental Controls Active")
-                                    .font(AppTypography.captionBold)
+                                    .font(AppTypography.caption)
                                     .foregroundColor(AppColors.textPrimary)
                             }
                             
@@ -151,7 +151,7 @@ struct ScreenTimePermissionView: View {
                         }) {
                             Text("Open Settings")
                                 .font(AppTypography.body)
-                                .foregroundColor(AppColors.anchorAccent)
+                                .foregroundColor(AppColors.accent)
                         }
                         .padding(.horizontal, Theme.spacing3)
                     }
@@ -216,8 +216,8 @@ struct ReasonBullet: View {
     var body: some View {
         HStack(alignment: .top, spacing: Theme.spacing) {
             Image(systemName: "checkmark.circle.fill")
-                .font(.system(size: 16))
-                .foregroundColor(AppColors.anchorAccent)
+                .font(AppTypography.helper)
+                .foregroundColor(AppColors.accent)
             
             Text(text)
                 .font(AppTypography.body)
@@ -225,4 +225,3 @@ struct ReasonBullet: View {
         }
     }
 }
-

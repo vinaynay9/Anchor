@@ -9,6 +9,7 @@ struct SettingsRowView: View {
     let trailingContent: AnyView?
     let showChevron: Bool
     @State private var isPressed = false
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
     
     init(
         icon: String,
@@ -35,19 +36,19 @@ struct SettingsRowView: View {
             HStack(spacing: 16) {
                 // Left icon
                 Image(systemName: icon)
-                    .font(.system(size: 18, weight: .thin))
-                    .foregroundColor(AppColors.anchorLavender)
+                    .font(AppTypography.body).fontWeight(.thin)
+                    .foregroundColor(AppColors.textTertiary)
                     .frame(width: 24, height: 24)
                 
                 // Title and subtitle
                 VStack(alignment: .leading, spacing: 2) {
                     Text(title)
-                        .font(.system(size: 17, weight: .medium, design: .default))
+                        .font(AppTypography.body).fontWeight(.medium)
                         .foregroundColor(titleColor ?? AppColors.textPrimary)
                     
                     if let subtitle = subtitle {
                         Text(subtitle)
-                            .font(.system(size: 13, weight: .regular, design: .default))
+                            .font(AppTypography.caption).fontWeight(.regular)
                             .foregroundColor(AppColors.textSecondary)
                     }
                 }
@@ -59,7 +60,7 @@ struct SettingsRowView: View {
                     trailing
                 } else if action != nil || showChevron {
                     Image(systemName: "chevron.right")
-                        .font(.system(size: 14, weight: .semibold))
+                        .font(AppTypography.helper).fontWeight(.semibold)
                         .foregroundColor(AppColors.textSecondary)
                 }
             }
@@ -73,8 +74,8 @@ struct SettingsRowView: View {
                             .stroke(
                                 LinearGradient(
                                     colors: [
-                                        AppColors.anchorLavender.opacity(0.4),
-                                        AppColors.anchorAccent.opacity(0.2)
+                                        AppColors.textTertiary.opacity(0.4),
+                                        AppColors.accent.opacity(0.2)
                                     ],
                                     startPoint: .topLeading,
                                     endPoint: .bottomTrailing
@@ -82,7 +83,7 @@ struct SettingsRowView: View {
                                 lineWidth: 1
                             )
                     )
-                    .shadow(color: AppColors.anchorAccent.opacity(isPressed ? 0.3 : 0.1), radius: isPressed ? 8 : 4, x: 0, y: 0)
+                    .shadow(color: AppColors.accent.opacity(isPressed ? 0.3 : 0.1), radius: isPressed ? 8 : 4, x: 0, y: 0)
             )
             .scaleEffect(isPressed ? 0.98 : 1.0)
             .opacity(isPressed ? 0.9 : 1.0)
@@ -91,13 +92,21 @@ struct SettingsRowView: View {
         .simultaneousGesture(
             DragGesture(minimumDistance: 0)
                 .onChanged { _ in
-                    withAnimation(.easeInOut(duration: 0.15)) {
+                    if reduceMotion {
                         isPressed = true
+                    } else {
+                        withAnimation(AppMotion.snappy) {
+                            isPressed = true
+                        }
                     }
                 }
                 .onEnded { _ in
-                    withAnimation(.easeInOut(duration: 0.15)) {
+                    if reduceMotion {
                         isPressed = false
+                    } else {
+                        withAnimation(AppMotion.snappy) {
+                            isPressed = false
+                        }
                     }
                 }
         )
@@ -123,11 +132,10 @@ extension SettingsRowView {
             action: nil,
             trailingContent: AnyView(
                 Toggle("", isOn: isOn)
-                    .tint(AppColors.anchorAccent)
+                    .tint(AppColors.accent)
                     .labelsHidden()
             ),
             showChevron: false
         )
     }
 }
-

@@ -68,13 +68,13 @@ struct InsightsView: View {
             }
         }) {
             Text(title)
-                .font(AppTypography.bodyBold)
+                .font(AppTypography.body)
                 .foregroundColor(viewModel.selectedTab == tab ? AppColors.onPrimary : AppColors.textSecondary)
                 .frame(maxWidth: .infinity)
                 .padding(.vertical, Theme.spacing)
                 .background(
                     RoundedRectangle(cornerRadius: Theme.cornerRadiusSmall)
-                        .fill(viewModel.selectedTab == tab ? AppColors.anchorPrimary : Color.clear)
+                        .fill(viewModel.selectedTab == tab ? AppColors.primary : Color.clear)
                 )
         }
     }
@@ -98,7 +98,7 @@ struct InsightsView: View {
     private var categoryUsageChart: some View {
         VStack(alignment: .leading, spacing: Theme.spacing) {
             Text("Usage by Category")
-                .font(AppTypography.title2)
+                .font(AppTypography.sectionHeader)
                 .foregroundColor(AppColors.textPrimary)
             
             Chart {
@@ -110,7 +110,7 @@ struct InsightsView: View {
                     )
                     .foregroundStyle(
                         LinearGradient(
-                            colors: [AppColors.anchorPrimary, AppColors.anchorAccent],
+                            colors: [AppColors.primary, AppColors.accent],
                             startPoint: .bottom,
                             endPoint: .top
                         )
@@ -151,7 +151,7 @@ struct InsightsView: View {
     private var topDistractingAppsSection: some View {
         VStack(alignment: .leading, spacing: Theme.spacing) {
             Text("Top Distracting Apps")
-                .font(AppTypography.title2)
+                .font(AppTypography.sectionHeader)
                 .foregroundColor(AppColors.textPrimary)
             
             ForEach(viewModel.topDistractingApps) { app in
@@ -169,7 +169,7 @@ struct InsightsView: View {
             Circle()
                 .fill(
                     LinearGradient(
-                        colors: [AppColors.anchorPrimary.opacity(0.3), AppColors.anchorAccent.opacity(0.2)],
+                        colors: [AppColors.primary.opacity(0.3), AppColors.accent.opacity(0.2)],
                         startPoint: .topLeading,
                         endPoint: .bottomTrailing
                     )
@@ -177,12 +177,12 @@ struct InsightsView: View {
                 .frame(width: 40, height: 40)
                 .overlay(
                     Image(systemName: "app.fill")
-                        .foregroundColor(AppColors.anchorAccent)
+                        .foregroundColor(AppColors.accent)
                 )
             
             VStack(alignment: .leading, spacing: Theme.spacing / 2) {
                 Text(app.displayName)
-                    .font(AppTypography.bodyBold)
+                    .font(AppTypography.body)
                     .foregroundColor(AppColors.textPrimary)
                 
                 Text(app.category)
@@ -193,8 +193,8 @@ struct InsightsView: View {
             Spacer()
             
             Text("\(app.totalMinutes)m")
-                .font(AppTypography.bodyBold)
-                .foregroundColor(AppColors.anchorAccent)
+                .font(AppTypography.body)
+                .foregroundColor(AppColors.accent)
         }
         .padding(.vertical, Theme.spacing / 2)
     }
@@ -219,7 +219,7 @@ struct InsightsView: View {
     private var weeklyTrendChart: some View {
         VStack(alignment: .leading, spacing: Theme.spacing) {
             Text("7-Day Trend")
-                .font(AppTypography.title2)
+                .font(AppTypography.sectionHeader)
                 .foregroundColor(AppColors.textPrimary)
             
             Chart {
@@ -228,7 +228,7 @@ struct InsightsView: View {
                         x: .value("Day", day.date, unit: .day),
                         y: .value("Minutes", day.totalMinutes)
                     )
-                    .foregroundStyle(AppColors.anchorAccent)
+                    .foregroundStyle(AppColors.accent)
                     .interpolationMethod(.catmullRom)
                     
                     AreaMark(
@@ -238,8 +238,8 @@ struct InsightsView: View {
                     .foregroundStyle(
                         LinearGradient(
                             colors: [
-                                AppColors.anchorAccent.opacity(0.3),
-                                AppColors.anchorAccent.opacity(0.05)
+                                AppColors.accent.opacity(0.3),
+                                AppColors.accent.opacity(0.05)
                             ],
                             startPoint: .top,
                             endPoint: .bottom
@@ -283,17 +283,17 @@ struct InsightsView: View {
                     .foregroundColor(AppColors.textSecondary)
                 
                 Text("\(viewModel.currentStreak) days")
-                    .font(AppTypography.title2)
-                    .foregroundColor(AppColors.anchorAccent)
+                    .font(AppTypography.sectionHeader)
+                    .foregroundColor(AppColors.accent)
             }
             
             Spacer()
             
             Image(systemName: "flame.fill")
-                .font(.system(size: 32))
+                .font(AppTypography.sectionHeader)
                 .foregroundColor(
                     viewModel.currentStreak > 0
-                        ? AppColors.anchorAccent
+                        ? AppColors.accent
                         : AppColors.textSecondary.opacity(0.3)
                 )
         }
@@ -305,7 +305,7 @@ struct InsightsView: View {
     private var weeklySummary: some View {
         VStack(alignment: .leading, spacing: Theme.spacing) {
             Text("Weekly Summary")
-                .font(AppTypography.title2)
+                .font(AppTypography.sectionHeader)
                 .foregroundColor(AppColors.textPrimary)
             
             HStack {
@@ -315,7 +315,7 @@ struct InsightsView: View {
                         .foregroundColor(AppColors.textSecondary)
                     
                     Text("\(viewModel.weeklyTotalMinutes) minutes")
-                        .font(AppTypography.title3)
+                        .font(AppTypography.sectionHeader)
                         .foregroundColor(AppColors.textPrimary)
                 }
                 
@@ -328,7 +328,7 @@ struct InsightsView: View {
                     
                     let average = viewModel.weeklyUsage.isEmpty ? 0 : viewModel.weeklyTotalMinutes / viewModel.weeklyUsage.count
                     Text("\(average) minutes")
-                        .font(AppTypography.title3)
+                        .font(AppTypography.sectionHeader)
                         .foregroundColor(AppColors.textPrimary)
                 }
             }
@@ -343,11 +343,11 @@ struct InsightsView: View {
     private var emptyStateView: some View {
         VStack(spacing: Theme.spacing3) {
             Image(systemName: "chart.bar.doc.horizontal")
-                .font(.system(size: 64, weight: .light))
+                .font(AppTypography.screenTitle).fontWeight(.light)
                 .foregroundColor(AppColors.textSecondary.opacity(0.5))
             
             Text("No Insights Available")
-                .font(AppTypography.title2)
+                .font(AppTypography.sectionHeader)
                 .foregroundColor(AppColors.textPrimary)
             
             Text("Usage data will appear here once you start using the app")

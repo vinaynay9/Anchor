@@ -9,7 +9,7 @@ public enum ShieldStateReason: String, Codable, Hashable {
     case free
 }
 
-public struct ShieldState: Codable, Hashable {
+public struct ShieldState: Codable {
     public let reason: ShieldStateReason
     public let sessionId: UUID?
     public let planName: String?

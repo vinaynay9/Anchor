@@ -8,7 +8,7 @@ struct SignInOptionsView: View {
             Spacer()
             
             Text("Anchor")
-                .font(AppTypography.largeTitle)
+                .font(AppTypography.screenTitle)
                 .foregroundColor(AppColors.textPrimary)
                 .padding(.bottom, Theme.padding * 2)
             

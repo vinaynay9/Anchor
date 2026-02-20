@@ -13,23 +13,23 @@ struct GoalsExplanationView: View {
                 
                 // Icon
                 Image(systemName: "target")
-                    .font(.system(size: 64))
-                    .foregroundColor(AppColors.anchorAccent)
+                    .font(AppTypography.screenTitle)
+                    .foregroundColor(AppColors.accent)
                     .padding(.bottom, Theme.spacing)
                 
                 // Title
                 Text("Daily Goals")
-                    .font(AppTypography.largeTitle)
+                    .font(AppTypography.screenTitle)
                     .foregroundColor(AppColors.textPrimary)
                 
                 // Description
                 VStack(alignment: .leading, spacing: Theme.spacing2) {
-                    Text("Set daily habits to stay focused and accountable.")
+                    Text("Set daily habits to stay Anchored.")
                         .font(AppTypography.body)
                         .foregroundColor(AppColors.textSecondary)
                         .multilineTextAlignment(.center)
                     
-                    Text("Complete all goals to unlock your apps, or request an unlock with proof.")
+                    Text("Complete all goals to Break Anchor and unlock apps.")
                         .font(AppTypography.body)
                         .foregroundColor(AppColors.textSecondary)
                         .multilineTextAlignment(.center)

@@ -143,6 +143,10 @@ enum APIEndpoint: Endpoint {
     // Activity Feed
     case getActivityFeed
     
+    // Invites
+    case inviteStats(inviterId: String, inviteCode: String)
+    case inviteAttribution(inviterId: String, inviteCode: String, deviceId: String)
+    
     var path: String {
         switch self {
         // Auth
@@ -184,6 +188,14 @@ enum APIEndpoint: Endpoint {
         
         // Activity Feed
         case .getActivityFeed: return "/activity/feed"
+        
+        // Invites
+        case .inviteStats(let inviterId, let inviteCode):
+            let inviter = inviterId.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? ""
+            let code = inviteCode.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? ""
+            return "/invite/stats?inviterId=\(inviter)&inviteCode=\(code)"
+        case .inviteAttribution:
+            return "/invite/attribution"
         }
     }
     
@@ -192,14 +204,15 @@ enum APIEndpoint: Endpoint {
         // GET
         case .getCurrentUser, .getFriends, .getFriendRequests, .getActiveSession,
              .getPendingUnlockRequests, .getProof, .getProofsForUser, .searchUsers,
-             .getActivityFeed:
+             .getActivityFeed, .inviteStats:
             return .get
         
         // POST
         case .signInApple, .signOut, .addFriend, .startSession, .endSession,
              .createUnlockRequest, .uploadProof, .registerDeviceToken,
              .acceptFriendRequest, .rejectFriendRequest,
-             .approveUnlockRequest, .rejectUnlockRequest, .cancelUnlockRequest:
+             .approveUnlockRequest, .rejectUnlockRequest, .cancelUnlockRequest,
+             .inviteAttribution:
             return .post
         
         // PATCH
@@ -251,6 +264,14 @@ enum APIEndpoint: Endpoint {
         // Notifications
         case .registerDeviceToken(let token):
             return try? JSONEncoder().encode(["device_token": token])
+        
+        // Invites
+        case .inviteAttribution(let inviterId, let inviteCode, let deviceId):
+            return try? JSONEncoder().encode([
+                "inviter_id": inviterId,
+                "invite_code": inviteCode,
+                "device_id": deviceId
+            ])
         
         // No body needed
         default:

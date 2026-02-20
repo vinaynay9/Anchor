@@ -21,6 +21,8 @@ struct RootView: View {
     
     var body: some View {
         ZStack(alignment: .topTrailing) {
+            AppColors.background.ignoresSafeArea()
+
             Group {
                 switch authState {
                 case .signedOut:
@@ -48,7 +50,7 @@ struct RootView: View {
 
     private var internalToolsBadge: some View {
         Text("Internal Tools On")
-            .font(AppTypography.captionBold)
+            .font(AppTypography.caption)
             .foregroundColor(AppColors.textPrimary)
             .padding(.horizontal, 10)
             .padding(.vertical, 6)

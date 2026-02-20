@@ -7,7 +7,7 @@ struct FriendsView: View {
     
     var body: some View {
         ZStack {
-            AppColors.anchorPrimaryDark.ignoresSafeArea()
+            AppColors.primaryDark.ignoresSafeArea()
             
             VStack(spacing: 0) {
                 // Search Bar
@@ -54,8 +54,8 @@ struct FriendsView: View {
                     }
                 }) {
                     Image(systemName: "plus")
-                        .font(AppTypography.bodyBold)
-                        .foregroundColor(AppColors.anchorAccent)
+                        .font(AppTypography.body)
+                        .foregroundColor(AppColors.accent)
                 }
             }
         }
@@ -156,8 +156,8 @@ struct FriendCardView: View {
                     .fill(
                         LinearGradient(
                             colors: [
-                                AppColors.anchorPrimary,
-                                AppColors.anchorAccent
+                                AppColors.primary,
+                                AppColors.accent
                             ],
                             startPoint: .topLeading,
                             endPoint: .bottomTrailing
@@ -166,18 +166,18 @@ struct FriendCardView: View {
                     .frame(width: 56, height: 56)
                     .overlay(
                         Circle()
-                            .stroke(AppColors.anchorLavender.opacity(0.6), lineWidth: 2)
+                            .stroke(AppColors.textTertiary.opacity(0.6), lineWidth: 2)
                     )
                 
                 Text(initials)
-                    .font(AppTypography.title3)
+                    .font(AppTypography.sectionHeader)
                     .foregroundColor(AppColors.textPrimary)
             }
             
             // Friend Info
             VStack(alignment: .leading, spacing: 4) {
                 Text(displayName)
-                    .font(AppTypography.bodyBold)
+                    .font(AppTypography.body)
                     .foregroundColor(AppColors.textPrimary)
                 
                 Text(username)
@@ -194,14 +194,14 @@ struct FriendCardView: View {
                 }
             }) {
                 Text("Remove")
-                    .font(AppTypography.captionBold)
-                    .foregroundColor(AppColors.anchorLavender)
+                    .font(AppTypography.caption)
+                    .foregroundColor(AppColors.textTertiary)
                     .padding(.horizontal, Theme.padding)
                     .padding(.vertical, Theme.spacing)
                     .background(Color.clear)
                     .overlay(
                         RoundedRectangle(cornerRadius: AppLayout.buttonCornerRadius)
-                            .stroke(AppColors.anchorLavender.opacity(0.5), lineWidth: 1.5)
+                            .stroke(AppColors.textTertiary.opacity(0.5), lineWidth: 1.5)
                     )
             }
         }
@@ -224,8 +224,8 @@ struct FriendCardView: View {
                 .stroke(
                     LinearGradient(
                         colors: [
-                            AppColors.anchorPrimary.opacity(0.3),
-                            AppColors.anchorAccent.opacity(0.2)
+                            AppColors.primary.opacity(0.3),
+                            AppColors.accent.opacity(0.2)
                         ],
                         startPoint: .topLeading,
                         endPoint: .bottomTrailing

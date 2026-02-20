@@ -59,7 +59,7 @@ struct PermissionsView: View {
             if let errorMessage {
                 Text(errorMessage)
                     .font(AnchorTheme.Typography.caption)
-                    .foregroundColor(.red)
+                    .foregroundColor(AppColors.error)
             }
 
             Spacer()

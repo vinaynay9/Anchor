@@ -51,8 +51,8 @@ struct AddFriendSheet: View {
                     .fill(
                         LinearGradient(
                             colors: [
-                                AppColors.anchorPrimary.opacity(0.3),
-                                AppColors.anchorAccent.opacity(0.3)
+                                AppColors.primary.opacity(0.3),
+                                AppColors.accent.opacity(0.3)
                             ],
                             startPoint: .topLeading,
                             endPoint: .bottomTrailing
@@ -61,15 +61,15 @@ struct AddFriendSheet: View {
                     .frame(width: 80, height: 80)
                 
                 Image(systemName: "person.badge.plus")
-                    .font(.system(size: 36))
-                    .foregroundColor(AppColors.anchorAccent)
+                    .font(AppTypography.sectionHeader)
+                    .foregroundColor(AppColors.accent)
             }
             .padding(.bottom, Theme.spacing)
             
             // Text Field
             VStack(alignment: .leading, spacing: Theme.spacing) {
                 Text("Friend ID or username")
-                    .font(AppTypography.captionBold)
+                    .font(AppTypography.caption)
                     .foregroundColor(AppColors.textSecondary)
                 
                 TextField("Enter friend ID or username", text: $viewModel.addFriendText)
@@ -81,7 +81,7 @@ struct AddFriendSheet: View {
                     .overlay(
                         RoundedRectangle(cornerRadius: AppLayout.cardCornerRadius)
                             .stroke(
-                                viewModel.addError != nil ? AppColors.error : AppColors.anchorAccent.opacity(0.3),
+                                viewModel.addError != nil ? AppColors.error : AppColors.accent.opacity(0.3),
                                 lineWidth: viewModel.addError != nil ? 2 : 1
                             )
                     )
@@ -115,10 +115,10 @@ struct AddFriendSheet: View {
                             .scaleEffect(0.9)
                     } else if viewModel.showAddSuccess {
                         Image(systemName: "checkmark")
-                            .font(AppTypography.bodyBold)
+                            .font(AppTypography.body)
                     } else {
                         Text("Add Friend")
-                            .font(AppTypography.bodyBold)
+                            .font(AppTypography.body)
                     }
                 }
                 .foregroundColor(AppColors.textPrimary)
@@ -127,8 +127,8 @@ struct AddFriendSheet: View {
                 .background(
                     LinearGradient(
                         colors: [
-                            AppColors.anchorPrimary,
-                            AppColors.anchorAccent
+                            AppColors.primary,
+                            AppColors.accent
                         ],
                         startPoint: .leading,
                         endPoint: .trailing
@@ -162,14 +162,14 @@ struct AddFriendSheet: View {
                     .frame(width: 120, height: 120)
                 
                 Image(systemName: "checkmark.circle.fill")
-                    .font(.system(size: 60))
+                    .font(AppTypography.screenTitle)
                     .foregroundColor(AppColors.success)
             }
             .scaleEffect(viewModel.showAddSuccess ? 1.0 : 0.5)
             .opacity(viewModel.showAddSuccess ? 1.0 : 0.0)
             
             Text("Friend Added!")
-                .font(AppTypography.title2)
+                .font(AppTypography.sectionHeader)
                 .foregroundColor(AppColors.textPrimary)
         }
     }

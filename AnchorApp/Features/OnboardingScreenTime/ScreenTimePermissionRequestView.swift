@@ -20,7 +20,7 @@ struct ScreenTimePermissionRequestView: View {
                                 ? AppColors.success.opacity(0.2)
                                 : viewModel.authorizationStatus == .restricted
                                 ? AppColors.warning.opacity(0.2)
-                                : AppColors.anchorAccent.opacity(0.2)
+                                : AppColors.accent.opacity(0.2)
                         )
                         .frame(width: 120, height: 120)
                     
@@ -29,13 +29,13 @@ struct ScreenTimePermissionRequestView: View {
                           : viewModel.authorizationStatus == .restricted
                           ? "lock.shield.trianglebadge.exclamationmark.fill"
                           : "lock.shield.fill")
-                        .font(.system(size: 50, weight: .light))
+                        .font(AppTypography.screenTitle).fontWeight(.light)
                         .foregroundColor(
                             viewModel.authorizationStatus == .approved
                                 ? AppColors.success
                                 : viewModel.authorizationStatus == .restricted
                                 ? AppColors.warning
-                                : AppColors.anchorAccent
+                                : AppColors.accent
                         )
                 }
                 .padding(.bottom, Theme.spacing2)
@@ -43,7 +43,7 @@ struct ScreenTimePermissionRequestView: View {
                 // Status text
                 VStack(spacing: Theme.spacing2) {
                     Text(statusTitle)
-                        .font(AppTypography.largeTitle)
+                        .font(AppTypography.screenTitle)
                         .foregroundColor(AppColors.textPrimary)
                         .multilineTextAlignment(.center)
                     
@@ -61,7 +61,7 @@ struct ScreenTimePermissionRequestView: View {
                             Image(systemName: "exclamationmark.triangle.fill")
                                 .foregroundColor(AppColors.warning)
                             Text(viewModel.authorizationStatus == .restricted ? "Parental Controls Active" : "Permission Denied")
-                                .font(AppTypography.captionBold)
+                                .font(AppTypography.caption)
                                 .foregroundColor(AppColors.textPrimary)
                         }
                         

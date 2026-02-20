@@ -14,7 +14,7 @@ struct GoalCreationView: View {
             VStack(spacing: Theme.spacing3) {
                 // Title
                 Text("Name Your Daily Habit")
-                    .font(AppTypography.largeTitle)
+                    .font(AppTypography.screenTitle)
                     .foregroundColor(AppColors.textPrimary)
                     .frame(maxWidth: .infinity, alignment: .leading)
                     .padding(.horizontal, Theme.spacing2)
@@ -30,7 +30,7 @@ struct GoalCreationView: View {
                     .overlay(
                         RoundedRectangle(cornerRadius: Theme.cornerRadiusMedium)
                             .stroke(
-                                isTextFieldFocused ? AppColors.anchorAccent : AppColors.textSecondary.opacity(0.3),
+                                isTextFieldFocused ? AppColors.accent : AppColors.textSecondary.opacity(0.3),
                                 lineWidth: isTextFieldFocused ? 2 : 1
                             )
                     )
@@ -41,7 +41,7 @@ struct GoalCreationView: View {
                 // Example goals
                 VStack(alignment: .leading, spacing: Theme.spacing) {
                     Text("Examples:")
-                        .font(AppTypography.captionBold)
+                        .font(AppTypography.caption)
                         .foregroundColor(AppColors.textSecondary)
                     
                     ForEach(["Complete morning workout", "Read for 30 minutes", "Finish work project"], id: \.self) { example in
@@ -51,12 +51,12 @@ struct GoalCreationView: View {
                             HStack {
                                 Text(example)
                                     .font(AppTypography.caption)
-                                    .foregroundColor(AppColors.anchorAccent)
+                                    .foregroundColor(AppColors.accent)
                                 Spacer()
                             }
                             .padding(.vertical, Theme.spacing)
                             .padding(.horizontal, Theme.spacing2)
-                            .background(AppColors.anchorLavender.opacity(0.1))
+                            .background(AppColors.textTertiary.opacity(0.1))
                             .cornerRadius(Theme.cornerRadius)
                         }
                         .buttonStyle(.plain)

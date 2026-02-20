@@ -11,7 +11,7 @@ struct LoadingView: View {
     var body: some View {
         VStack(spacing: Theme.spacing * 2) {
             ProgressView()
-                .progressViewStyle(CircularProgressViewStyle(tint: AppColors.anchorAccent))
+                .progressViewStyle(CircularProgressViewStyle(tint: AppColors.accent))
                 .scaleEffect(1.2)
             
             if let message = message {
@@ -40,7 +40,7 @@ struct LoadingOverlay: View {
             
             VStack(spacing: Theme.spacing * 2) {
                 ProgressView()
-                    .progressViewStyle(CircularProgressViewStyle(tint: AppColors.anchorAccent))
+                    .progressViewStyle(CircularProgressViewStyle(tint: AppColors.accent))
                     .scaleEffect(1.3)
                 
                 if let message = message {
@@ -53,7 +53,7 @@ struct LoadingOverlay: View {
             .background(
                 RoundedRectangle(cornerRadius: AppLayout.cardCornerRadius)
                     .fill(AppColors.surface)
-                    .shadow(color: AppColors.anchorAccent.opacity(0.2), radius: 20, x: 0, y: 10)
+                    .shadow(color: AppColors.accent.opacity(0.2), radius: 20, x: 0, y: 10)
             )
             .padding(Theme.padding * 2)
         }

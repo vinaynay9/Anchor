@@ -35,7 +35,7 @@ struct AnalyticsDashboardView: View {
     private var headerSection: some View {
         VStack(alignment: .leading, spacing: Theme.spacing) {
             Text("Behavioral Metrics")
-                .font(AppTypography.title2)
+                .font(AppTypography.sectionHeader)
                 .foregroundColor(AppColors.textPrimary)
             
             Text("Privacy-safe, aggregate signals for product impact.")
@@ -204,7 +204,7 @@ struct AnalyticsDashboardView: View {
                     TrendBadge(trend: trend)
                 }
                 Text(value)
-                    .font(AppTypography.title3)
+                    .font(AppTypography.sectionHeader)
                     .foregroundColor(AppColors.textPrimary)
             }
             Text(subtitle)
@@ -220,7 +220,7 @@ struct AnalyticsDashboardView: View {
     private func sectionCard<Content: View>(title: String, @ViewBuilder content: () -> Content) -> some View {
         VStack(alignment: .leading, spacing: Theme.spacing2) {
             Text(title.uppercased())
-                .font(AppTypography.captionBold)
+                .font(AppTypography.caption)
                 .foregroundColor(AppColors.textSecondary)
             
             content()
@@ -270,7 +270,7 @@ struct AnalyticsDashboardView: View {
                 TrendBadge(trend: trend)
             }
             Text(value)
-                .font(AppTypography.bodyBold)
+                .font(AppTypography.body)
                 .foregroundColor(AppColors.textPrimary)
         }
     }
@@ -329,7 +329,7 @@ struct TrendBadge: View {
         case .flat: symbol = "arrow.right"
         }
         return Image(systemName: symbol)
-            .font(.system(size: 12, weight: .semibold))
+            .font(AppTypography.caption).fontWeight(.semibold)
             .foregroundColor(AppColors.textSecondary)
     }
 }

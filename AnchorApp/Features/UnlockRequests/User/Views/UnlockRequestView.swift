@@ -8,9 +8,9 @@ struct UnlockRequestView: View {
             // Purple gradient background
             LinearGradient(
                 gradient: Gradient(colors: [
-                    AppColors.anchorPrimary,
-                    AppColors.anchorAccent,
-                    AppColors.anchorLavender
+                    AppColors.primary,
+                    AppColors.accent,
+                    AppColors.textTertiary
                 ]),
                 startPoint: .topLeading,
                 endPoint: .bottomTrailing
@@ -26,7 +26,7 @@ struct UnlockRequestView: View {
                     VStack(alignment: .leading, spacing: Theme.padding) {
                         // Title
                         Text("Request Unlock")
-                            .font(AppTypography.title)
+                            .font(AppTypography.screenTitle)
                             .foregroundColor(AppColors.textPrimary)
                             .padding(.bottom, Theme.spacing)
                         
@@ -41,7 +41,7 @@ struct UnlockRequestView: View {
                             ZStack(alignment: .topLeading) {
                                 // Background
                                 RoundedRectangle(cornerRadius: AppLayout.cardCornerRadius)
-                                    .fill(AppColors.anchorLavender.opacity(0.2))
+                                    .fill(AppColors.textTertiary.opacity(0.2))
                                     .frame(minHeight: 150)
                                 
                                 // Text Editor
@@ -68,7 +68,7 @@ struct UnlockRequestView: View {
                             }
                             .overlay(
                                 RoundedRectangle(cornerRadius: AppLayout.cardCornerRadius)
-                                    .stroke(AppColors.anchorLavender.opacity(0.4), lineWidth: 1)
+                                    .stroke(AppColors.textTertiary.opacity(0.4), lineWidth: 1)
                             )
                             
                             // Character Counter
@@ -109,7 +109,7 @@ struct UnlockRequestView: View {
                                         .progressViewStyle(CircularProgressViewStyle(tint: AppColors.textPrimary))
                                 } else {
                                     Text("Send Request")
-                                        .font(AppTypography.bodyBold)
+                                        .font(AppTypography.body)
                                 }
                             }
                         }
@@ -121,7 +121,7 @@ struct UnlockRequestView: View {
                     .background(
                         RoundedRectangle(cornerRadius: AppLayout.cardCornerRadius)
                             .fill(AppColors.secondaryBackground.opacity(0.9))
-                            .shadow(color: AppColors.anchorPrimary.opacity(0.3), radius: 20, x: 0, y: 10)
+                            .shadow(color: AppColors.primary.opacity(0.3), radius: 20, x: 0, y: 10)
                     )
                     .padding(.horizontal, Theme.padding)
                     

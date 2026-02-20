@@ -1,5 +1,6 @@
 import SwiftUI
 import Combine
+import UIKit
 
 /// Observable manager for toast notifications
 /// Handles queueing, showing, and hiding toasts with animations
@@ -70,8 +71,12 @@ class ToastManager: ObservableObject {
             
             guard !Task.isCancelled else { return }
             
-            withAnimation(.spring(response: 0.4, dampingFraction: 0.8)) {
+            if UIAccessibility.isReduceMotionEnabled {
                 isShowing = false
+            } else {
+                withAnimation(AppMotion.standard) {
+                    isShowing = false
+                }
             }
             
             // Wait for animation to complete before showing next toast
@@ -93,8 +98,12 @@ class ToastManager: ObservableObject {
     func dismiss() {
         dismissTask?.cancel()
         
-        withAnimation(.spring(response: 0.4, dampingFraction: 0.8)) {
+        if UIAccessibility.isReduceMotionEnabled {
             isShowing = false
+        } else {
+            withAnimation(AppMotion.standard) {
+                isShowing = false
+            }
         }
         
         Task {

@@ -1,11 +1,5 @@
 import SwiftUI
 
-extension AppColors {
-    static var accent: Color { primary }
-    static var textTertiary: Color { textSecondary.opacity(0.75) }
-    static var border: Color { textSecondary.opacity(0.25) }
-}
-
 struct AnchorTheme {
     static let background = AppColors.background
     static let cardBackground = AppColors.surface
@@ -16,7 +10,7 @@ struct AnchorTheme {
     static let textTertiary = AppColors.textTertiary
 
     static let cornerRadius: CGFloat = 16
-    static let shadow = Color.black.opacity(0.25)
+    static let shadow = AppColors.border.opacity(0.25)
 
     struct Spacing {
         static let xs: CGFloat = 6
@@ -27,10 +21,10 @@ struct AnchorTheme {
     }
 
     struct Typography {
-        static let title = Font.system(size: 30, weight: .semibold, design: .rounded)
-        static let subtitle = Font.system(size: 17, weight: .regular, design: .rounded)
-        static let body = Font.system(size: 15, weight: .regular, design: .rounded)
-        static let caption = Font.system(size: 13, weight: .medium, design: .rounded)
+        static let title = AppTypography.screenTitle
+        static let subtitle = AppTypography.body
+        static let body = AppTypography.body
+        static let caption = AppTypography.caption
     }
 }
 
@@ -42,7 +36,7 @@ struct PrimaryButton: View {
     var body: some View {
         Button(action: action) {
             Text(title)
-                .font(AnchorTheme.Typography.body)
+                .font(AppTypography.button)
                 .foregroundColor(AnchorTheme.textPrimary)
                 .frame(maxWidth: .infinity)
                 .padding(.vertical, AnchorTheme.Spacing.md)
@@ -61,7 +55,7 @@ struct SecondaryButton: View {
     var body: some View {
         Button(action: action) {
             Text(title)
-                .font(AnchorTheme.Typography.body)
+                .font(AppTypography.button)
                 .foregroundColor(AnchorTheme.textSecondary)
                 .frame(maxWidth: .infinity)
                 .padding(.vertical, AnchorTheme.Spacing.md)

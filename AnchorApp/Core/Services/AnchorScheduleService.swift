@@ -8,7 +8,7 @@ final class AnchorScheduleService {
     private init() {}
 
     var dailyAnchorTime: DailyAnchorTime {
-        storage.getDailyAnchorTime() ?? DailyAnchorTime(hour: 9, minute: 0)
+        storage.getDailyAnchorTime() ?? DailyAnchorTime(hour: 0, minute: 0)
     }
 
     func updateDailyAnchorTime(_ time: DailyAnchorTime) {

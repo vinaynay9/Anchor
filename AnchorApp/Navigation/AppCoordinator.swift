@@ -16,6 +16,7 @@ class AppCoordinator: ObservableObject {
     // Auth state management
     private let authViewModel = AuthViewModel()
     private let screenTimeService = ScreenTimeService.shared
+    private let onboardingService = OnboardingService.shared
     private var cancellables = Set<AnyCancellable>()
     
     // Deep link handling
@@ -26,6 +27,7 @@ class AppCoordinator: ObservableObject {
         case onboarding
         case screenTimeOnboarding
         case auth
+        case postAuthOnboarding
         case main
     }
     
@@ -55,19 +57,17 @@ class AppCoordinator: ObservableObject {
     }
     
     private func determineInitialFlow() {
-        // Check Screen Time authorization
-        // If user has completed onboarding but doesn't have Screen Time access, show Screen Time onboarding
-        if !screenTimeService.isAuthorized() {
-            startScreenTimeOnboardingFlow()
+        if authViewModel.currentUser != nil {
+            routeAfterAuth()
             return
         }
-        
-        // Check auth state
-        if authViewModel.currentUser != nil {
-            startMainFlow()
-        } else {
-            startAuthFlow()
+
+        if !UserDefaults.standard.bool(forKey: "hasCompletedOnboarding") {
+            startOnboardingFlow()
+            return
         }
+
+        startAuthFlow()
     }
     
     private func handleAuthStateChange(user: User?) {
@@ -77,7 +77,7 @@ class AppCoordinator: ObservableObject {
                 // Stay in auth flow for username setup
                 return
             }
-            startMainFlow()
+            routeAfterAuth()
         } else if user == nil && currentFlow == .main {
             // User signed out
             startAuthFlow()
@@ -88,8 +88,7 @@ class AppCoordinator: ObservableObject {
     
     func startOnboardingFlow() {
         currentFlow = .onboarding
-        onboardingFlow = OnboardingFlow(parentCoordinator: self)
-        onboardingFlow?.start()
+        onboardingFlow = nil
     }
     
     func startScreenTimeOnboardingFlow() {
@@ -106,6 +105,17 @@ class AppCoordinator: ObservableObject {
         currentFlow = .main
         mainTabFlow = MainTabFlow()
         mainTabFlow?.start()
+    }
+
+    private func routeAfterAuth() {
+        Task { @MainActor in
+            let state = await onboardingService.loadState()
+            if state.isComplete {
+                startMainFlow()
+            } else {
+                currentFlow = .postAuthOnboarding
+            }
+        }
     }
     
     func handleScreenTimeOnboardingComplete() {
@@ -126,9 +136,6 @@ class AppCoordinator: ObservableObject {
     
     func handleOnboardingComplete() {
         // Called when onboarding completes
-        onboardingFlow?.completeOnboarding()
-        
-        // Determine next flow based on auth state
         if authViewModel.currentUser != nil {
             startMainFlow()
         } else {
@@ -165,48 +172,21 @@ class AppCoordinator: ObservableObject {
             deepLinkHandler.clearPendingDeepLink()
             break
             
-        case .unlockRequest(let id):
-            // Navigate to unlock request detail if ID is provided
-            if let requestId = id, let uuid = UUID(uuidString: requestId) {
-                // Try to load the request and navigate
-                Task {
-                    do {
-                        let requests = try await UnlockRequestService.shared.getPendingUnlockRequests()
-                        if let request = requests.first(where: { $0.id == uuid }) {
-                            await MainActor.run {
-                                mainTabFlow.navigateToUnlockRequestDetail(request: request)
-                                deepLinkHandler.clearPendingDeepLink()
-                            }
-                        } else {
-                            // If request not found, check context from AppGroupStorage
-                            let context = AppGroupStorage.shared.getPendingDeepLinkContext()
-                            if let contextRequestId = context["unlockRequestId"],
-                               let contextUUID = UUID(uuidString: contextRequestId),
-                               let contextRequest = requests.first(where: { $0.id == contextUUID }) {
-                                await MainActor.run {
-                                    mainTabFlow.navigateToUnlockRequestDetail(request: contextRequest)
-                                    deepLinkHandler.clearPendingDeepLink()
-                                    AppGroupStorage.shared.clearPendingDeepLinkContext()
-                                }
-                            } else {
-                                await MainActor.run {
-                                    deepLinkHandler.clearPendingDeepLink()
-                                    AppGroupStorage.shared.clearPendingDeepLinkContext()
-                                }
-                            }
-                        }
-                    } catch {
-                        await MainActor.run {
-                            deepLinkHandler.clearPendingDeepLink()
-                            AppGroupStorage.shared.clearPendingDeepLinkContext()
-                        }
-                    }
-                }
-            } else {
-                // No ID provided, just navigate to friends tab (where unlock requests are shown)
-                deepLinkHandler.clearPendingDeepLink()
-            }
+        case .unlockRequest:
+            // V1: unlock requests are not user-facing. Clear and ignore.
+            deepLinkHandler.clearPendingDeepLink()
+            AppGroupStorage.shared.clearPendingDeepLinkContext()
             
+        case .messagePartner:
+            // V1: partner messaging is not available. Clear and ignore.
+            deepLinkHandler.clearPendingDeepLink()
+            AppGroupStorage.shared.clearPendingDeepLinkContext()
+
+        case .invite:
+            // V1: invite attribution is handled at signup. Clear pending link.
+            deepLinkHandler.clearPendingDeepLink()
+            AppGroupStorage.shared.clearPendingDeepLinkContext()
+
         case .session(let sessionId):
             // Navigate to session detail if session ID is valid
             if let uuid = UUID(uuidString: sessionId) {
@@ -234,10 +214,6 @@ class AppCoordinator: ObservableObject {
                 deepLinkHandler.clearPendingDeepLink()
             }
             
-        case .messagePartner:
-            // Navigate to messaging screen (if implemented)
-            // For now, just navigate to friends tab
-            deepLinkHandler.clearPendingDeepLink()
         }
     }
     
@@ -252,10 +228,10 @@ class AppCoordinator: ObservableObject {
                 .withGlobalToasts()
             
         case .onboarding:
-            if let flow = onboardingFlow {
-                flow.rootView
-                    .withGlobalToasts()
-            }
+            OnboardingRootView(onComplete: { [weak self] in
+                self?.handleOnboardingComplete()
+            })
+            .withGlobalToasts()
             
         case .screenTimeOnboarding:
             ScreenTimeOnboardingFlowView(onComplete: { [weak self] in
@@ -268,6 +244,12 @@ class AppCoordinator: ObservableObject {
                 flow.rootView
                     .withGlobalToasts()
             }
+
+        case .postAuthOnboarding:
+            PostAuthOnboardingFlowView(onComplete: { [weak self] in
+                self?.startMainFlow()
+            })
+            .withGlobalToasts()
             
         case .main:
             if let flow = mainTabFlow {

@@ -3,6 +3,7 @@ import SwiftUI
 struct OnboardingPermissionStepView: View {
     @ObservedObject var viewModel: OnboardingViewModel
     @State private var showCompletionAnimation = false
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
     
     init(viewModel: OnboardingViewModel = OnboardingViewModel()) {
         self.viewModel = viewModel
@@ -20,7 +21,7 @@ struct OnboardingPermissionStepView: View {
                 // Header
                 VStack(spacing: Theme.spacing * 2) {
                     Text("Complete Setup")
-                        .font(AppTypography.largeTitle)
+                        .font(AppTypography.screenTitle)
                         .foregroundColor(AppColors.textPrimary)
                         .multilineTextAlignment(.center)
                     
@@ -36,14 +37,14 @@ struct OnboardingPermissionStepView: View {
                 VStack(spacing: Theme.padding) {
                     PermissionItemView(
                         title: "Screen Time",
-                        description: "Required to block apps during focus sessions",
+                        description: "Required to block apps during Anchored Mode",
                         isGranted: viewModel.screenTimePermissionGranted,
                         icon: "lock.shield.fill"
                     )
                     
                     PermissionItemView(
                         title: "Notifications",
-                        description: "Get reminders and unlock requests from friends",
+                        description: "Get reminders when it's time to Anchor your day",
                         isGranted: viewModel.notificationsPermissionGranted,
                         icon: "bell.fill"
                     )
@@ -55,16 +56,20 @@ struct OnboardingPermissionStepView: View {
                 // Complete Setup button
                 Button(action: {
                     viewModel.completeOnboarding()
-                    withAnimation(.spring(response: 0.5, dampingFraction: 0.7)) {
+                    if reduceMotion {
                         showCompletionAnimation = true
+                    } else {
+                        withAnimation(AppMotion.gentleSpring) {
+                            showCompletionAnimation = true
+                        }
                     }
                 }) {
                     Text("Complete Setup")
-                        .font(AppTypography.bodyBold)
+                        .font(AppTypography.body)
                         .foregroundColor(AppColors.textPrimary)
                         .frame(maxWidth: .infinity)
                         .padding(.vertical, Theme.padding)
-                        .background(AppColors.anchorAccent)
+                        .background(AppColors.accent)
                         .cornerRadius(AppLayout.buttonCornerRadius)
                 }
                 .padding(.horizontal, Theme.padding * 2)
@@ -95,14 +100,14 @@ struct PermissionItemView: View {
                     .frame(width: 50, height: 50)
                 
                 Image(systemName: icon)
-                    .font(.system(size: 22, weight: .medium))
-                    .foregroundColor(isGranted ? AppColors.success : AppColors.anchorAccent)
+                    .font(AppTypography.body).fontWeight(.medium)
+                    .foregroundColor(isGranted ? AppColors.success : AppColors.accent)
             }
             
             // Text content
             VStack(alignment: .leading, spacing: 4) {
                 Text(title)
-                    .font(AppTypography.bodyBold)
+                    .font(AppTypography.body)
                     .foregroundColor(AppColors.textPrimary)
                 
                 Text(description)
@@ -115,17 +120,17 @@ struct PermissionItemView: View {
             // Status indicator
             ZStack {
                 Circle()
-                    .fill(isGranted ? AppColors.success : AppColors.anchorLavender.opacity(0.2))
+                    .fill(isGranted ? AppColors.success : AppColors.textTertiary.opacity(0.2))
                     .frame(width: 24, height: 24)
                 
                 if isGranted {
                     Image(systemName: "checkmark")
-                        .font(.system(size: 12, weight: .bold))
-                        .foregroundColor(.white)
+                        .font(AppTypography.caption).fontWeight(.bold)
+                        .foregroundColor(AppColors.onPrimary)
                 } else {
                     Image(systemName: "exclamationmark")
-                        .font(.system(size: 10, weight: .bold))
-                        .foregroundColor(AppColors.anchorAccent)
+                        .font(AppTypography.caption).fontWeight(.bold)
+                        .foregroundColor(AppColors.accent)
                 }
             }
         }
@@ -135,9 +140,8 @@ struct PermissionItemView: View {
                 .fill(AppColors.secondaryBackground)
                 .overlay(
                     RoundedRectangle(cornerRadius: AppLayout.cardCornerRadius)
-                        .stroke(AppColors.anchorLavender.opacity(0.3), lineWidth: 1)
+                        .stroke(AppColors.textTertiary.opacity(0.3), lineWidth: 1)
                 )
         )
     }
 }
-

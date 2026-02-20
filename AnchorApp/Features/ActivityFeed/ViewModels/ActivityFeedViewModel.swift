@@ -144,13 +144,13 @@ class ActivityFeedViewModel: ObservableObject {
     func getEventColor(for type: FriendActivityType) -> Color {
         switch type {
         case .proofSubmitted:
-            return AppColors.anchorAccent
+            return AppColors.accent
         case .unlockRequested:
             return AppColors.warning
         case .unlockApproved:
             return AppColors.success
         case .sessionStarted:
-            return AppColors.anchorPrimary
+            return AppColors.primary
         case .sessionCompleted:
             return AppColors.success
         }

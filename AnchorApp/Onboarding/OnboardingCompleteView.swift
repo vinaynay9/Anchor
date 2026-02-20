@@ -10,7 +10,7 @@ struct OnboardingCompleteView: View {
             OnboardingCard {
                 VStack(spacing: AnchorTheme.Spacing.sm) {
                     Image(systemName: "checkmark.seal.fill")
-                        .font(.system(size: 48))
+                        .font(AppTypography.screenTitle)
                         .foregroundColor(AnchorTheme.accent)
 
                     Text("You’re ready")

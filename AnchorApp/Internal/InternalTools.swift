@@ -6,8 +6,6 @@ enum InternalToolsKeys {
 }
 
 enum InternalTools {
-    private static let accessPolicy: AdminAccessPolicy = RoleBasedAdminAccessPolicy()
-    
     static var isCompiledIn: Bool {
         #if INTERNAL_TOOLS
         return true
@@ -29,10 +27,10 @@ enum InternalTools {
     }
     
     static func canToggle(user: User?) -> Bool {
-        isCompiledIn && accessPolicy.isAdmin(user: user)
+        false
     }
     
     static func canAccessAdmin(user: User?) -> Bool {
-        isCompiledIn && isRuntimeEnabled && accessPolicy.isAdmin(user: user)
+        false
     }
 }

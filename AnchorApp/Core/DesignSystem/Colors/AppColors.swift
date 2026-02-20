@@ -11,8 +11,8 @@ struct GlassMaterialModifier: ViewModifier {
             .overlay(
                 LinearGradient(
                     colors: [
-                        AppColors.anchorPrimary.opacity(0.1),
-                        AppColors.anchorAccent.opacity(0.05)
+                        AppColors.primary.opacity(0.1),
+                        AppColors.accent.opacity(0.05)
                     ],
                     startPoint: .topLeading,
                     endPoint: .bottomTrailing
@@ -28,8 +28,8 @@ struct CardMaterialModifier: ViewModifier {
             .overlay(
                 LinearGradient(
                     colors: [
-                        AppColors.anchorLavender.opacity(0.08),
-                        AppColors.anchorAccent.opacity(0.04)
+                        AppColors.textTertiary.opacity(0.08),
+                        AppColors.accent.opacity(0.04)
                     ],
                     startPoint: .topLeading,
                     endPoint: .bottomTrailing
@@ -45,8 +45,8 @@ struct PanelMaterialModifier: ViewModifier {
             .overlay(
                 LinearGradient(
                     colors: [
-                        AppColors.anchorPrimary.opacity(0.12),
-                        AppColors.anchorAccent.opacity(0.06)
+                        AppColors.primary.opacity(0.12),
+                        AppColors.accent.opacity(0.06)
                     ],
                     startPoint: .topLeading,
                     endPoint: .bottomTrailing

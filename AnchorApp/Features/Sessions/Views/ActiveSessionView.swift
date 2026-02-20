@@ -5,16 +5,16 @@ struct ActiveSessionView: View {
     let session: LockSession
     @ObservedObject var viewModel: SessionViewModel
     @StateObject private var goalsViewModel = GoalViewModel()
-    @EnvironmentObject var coordinator: MainTabFlow
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
     
     var body: some View {
         ZStack {
             AppColors.background.ignoresSafeArea()
             
             ScrollView {
-                VStack(spacing: Theme.spacing3) {
-                    // Header with status indicator
-                    headerSection
+            VStack(spacing: Theme.spacing3) {
+                // Header with status indicator
+                headerSection
                     
                     // Elapsed time display
                     elapsedTimeSection
@@ -25,13 +25,11 @@ struct ActiveSessionView: View {
                     // Progress Summary
                     progressSummarySection
                     
-                    // Session Timeline
+                    // Anchored Timeline
                     sessionTimelineSection
                     
                     Spacer(minLength: Theme.spacing4)
                     
-                    // Subtle unlock request button
-                    unlockRequestButton
                 }
                 .padding(Theme.spacing2)
             }
@@ -57,17 +55,23 @@ struct ActiveSessionView: View {
     // MARK: - Header Section
     private var headerSection: some View {
         HStack(spacing: Theme.spacing) {
-            Text("Session Active")
-                .font(AppTypography.title2)
+            Text("Anchored")
+                .font(AppTypography.screenTitle)
                 .foregroundColor(AppColors.textPrimary)
             
             Spacer()
             
             // Status indicator dot
             HStack(spacing: Theme.smallSpacing) {
-                BreathingDotView()
-                Text("Blocking Apps")
-                    .font(AppTypography.caption)
+                if reduceMotion {
+                    Circle()
+                        .fill(AppColors.accent)
+                        .frame(width: 8, height: 8)
+                } else {
+                    BreathingDotView()
+                }
+                Text("Anchored Mode")
+                    .font(AppTypography.helper)
                     .foregroundColor(AppColors.textSecondary)
             }
         }
@@ -79,13 +83,13 @@ struct ActiveSessionView: View {
     private var elapsedTimeSection: some View {
         TimelineView(.periodic(from: Date(), by: 1.0)) { context in
             VStack(spacing: Theme.spacing) {
-                Text("Locked for:")
-                    .font(AppTypography.caption)
+                Text("Anchored for:")
+                    .font(AppTypography.helper)
                     .foregroundColor(AppColors.textSecondary)
                 
                 Text(formatElapsedTime(from: session.startTime, to: context.date))
-                    .font(AppTypography.display2)
-                    .foregroundColor(AppColors.anchorAccent)
+                    .font(AppTypography.screenTitle)
+                    .foregroundColor(AppColors.accent)
             }
             .frame(maxWidth: .infinity)
             .padding(.vertical, Theme.spacing3)
@@ -96,7 +100,7 @@ struct ActiveSessionView: View {
     private var dailyGoalsSection: some View {
         VStack(alignment: .leading, spacing: Theme.spacing2) {
             Text("Today's Goals")
-                .font(AppTypography.title3)
+                .font(AppTypography.sectionHeader)
                 .foregroundColor(AppColors.textPrimary)
                 .padding(.horizontal, Theme.spacing2)
             
@@ -111,7 +115,7 @@ struct ActiveSessionView: View {
     private var emptyGoalsView: some View {
         VStack(spacing: Theme.spacing) {
             Image(systemName: "checkmark.circle")
-                .font(.system(size: 32))
+                .font(AppTypography.sectionHeader)
                 .foregroundColor(AppColors.textSecondary.opacity(0.5))
             Text("No goals set")
                 .font(AppTypography.body)
@@ -119,8 +123,12 @@ struct ActiveSessionView: View {
         }
         .frame(maxWidth: .infinity)
         .padding(Theme.spacing3)
-        .background(AppColors.secondaryBackground)
+        .background(AppColors.surface)
         .cornerRadius(Theme.cornerRadiusMedium)
+        .overlay(
+            RoundedRectangle(cornerRadius: Theme.cornerRadiusMedium)
+                .stroke(AppColors.border.opacity(0.25), lineWidth: 1)
+        )
         .padding(.horizontal, Theme.spacing2)
     }
     
@@ -133,39 +141,30 @@ struct ActiveSessionView: View {
             }
         }
         .padding(Theme.spacing2)
-        .background(AppColors.secondaryBackground)
+        .background(AppColors.surface)
         .cornerRadius(Theme.cornerRadiusMedium)
         .overlay(
             RoundedRectangle(cornerRadius: Theme.cornerRadiusMedium)
-                .stroke(
-                    LinearGradient(
-                        colors: [
-                            AppColors.anchorLavender.opacity(0.3),
-                            AppColors.anchorAccent.opacity(0.2)
-                        ],
-                        startPoint: .topLeading,
-                        endPoint: .bottomTrailing
-                    ),
-                    lineWidth: 1
-                )
+                .stroke(AppColors.border.opacity(0.25), lineWidth: 1)
         )
         .padding(.horizontal, Theme.spacing2)
     }
     
     // MARK: - Progress Summary
     private var progressSummarySection: some View {
-        Text("Complete all goals to unlock apps.")
-            .font(AppTypography.caption)
+        Text("Apps unlock when all goals are complete.")
+            .font(AppTypography.helper)
             .foregroundColor(AppColors.textSecondary)
+            .multilineTextAlignment(.center)
             .frame(maxWidth: .infinity, alignment: .center)
             .padding(.horizontal, Theme.spacing2)
     }
     
-    // MARK: - Session Timeline
+    // MARK: - Anchored Timeline
     private var sessionTimelineSection: some View {
         VStack(alignment: .leading, spacing: Theme.spacing2) {
-            Text("Session Timeline")
-                .font(AppTypography.title3)
+            Text("Anchored Timeline")
+                .font(AppTypography.sectionHeader)
                 .foregroundColor(AppColors.textPrimary)
                 .padding(.horizontal, Theme.spacing2)
             
@@ -173,41 +172,14 @@ struct ActiveSessionView: View {
                 SessionTimelineView(events: session.events)
             }
             .padding(Theme.spacing2)
-            .background(AppColors.secondaryBackground)
+            .background(AppColors.surface)
             .cornerRadius(Theme.cornerRadiusMedium)
             .overlay(
                 RoundedRectangle(cornerRadius: Theme.cornerRadiusMedium)
-                    .stroke(
-                        LinearGradient(
-                            colors: [
-                                AppColors.anchorLavender.opacity(0.3),
-                                AppColors.anchorAccent.opacity(0.2)
-                            ],
-                            startPoint: .topLeading,
-                            endPoint: .bottomTrailing
-                        ),
-                        lineWidth: 1
-                    )
+                    .stroke(AppColors.border.opacity(0.25), lineWidth: 1)
             )
             .padding(.horizontal, Theme.spacing2)
         }
-    }
-    
-    // MARK: - Unlock Request Button
-    private var unlockRequestButton: some View {
-        Button(action: {
-            // Navigate to unlock request flow
-            if let session = viewModel.activeSession {
-                // Navigate to unlock request submission view via coordinator
-                coordinator.navigateToUnlockRequestSubmit(session: session)
-            }
-        }) {
-            Text("Request Unlock")
-                .font(AppTypography.caption)
-                .foregroundColor(AppColors.anchorAccent)
-        }
-        .buttonStyle(GhostButtonStyle())
-        .padding(.bottom, Theme.spacing2)
     }
     
     // MARK: - Helper Methods
@@ -230,31 +202,34 @@ struct GoalRowView: View {
     let onToggle: () -> Void
     @State private var checkmarkScale: CGFloat = 1.0
     @State private var highlightOpacity: Double = 0.0
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
     
     var body: some View {
         HStack(spacing: Theme.spacing2) {
             Button(action: {
-                HapticFeedback.soft()
-                withAnimation(.spring(response: 0.3, dampingFraction: 0.5)) {
-                    checkmarkScale = 0.8
-                }
-                DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
-                    withAnimation(.spring(response: 0.3, dampingFraction: 0.5)) {
-                        checkmarkScale = 1.0
+                HapticFeedback.selectionChanged()
+                if !reduceMotion {
+                    withAnimation(AppMotion.gentleSpring) {
+                        checkmarkScale = 0.92
                     }
-                }
-                withAnimation(.easeOut(duration: 0.3)) {
-                    highlightOpacity = 0.2
-                }
-                DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
-                    withAnimation(.easeOut(duration: 0.2)) {
-                        highlightOpacity = 0.0
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+                        withAnimation(AppMotion.gentleSpring) {
+                            checkmarkScale = 1.0
+                        }
+                    }
+                    withAnimation(AppMotion.snappy) {
+                        highlightOpacity = 0.16
+                    }
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.25) {
+                        withAnimation(AppMotion.snappy) {
+                            highlightOpacity = 0.0
+                        }
                     }
                 }
                 onToggle()
             }) {
                 Image(systemName: goal.isCompleted ? "checkmark.circle.fill" : "circle")
-                    .font(.system(size: 24))
+                    .font(AppTypography.sectionHeader)
                     .foregroundColor(goal.isCompleted ? AppColors.success : AppColors.textSecondary)
                     .scaleEffect(checkmarkScale)
             }
@@ -270,7 +245,7 @@ struct GoalRowView: View {
         .padding(.vertical, Theme.spacing)
         .background(
             RoundedRectangle(cornerRadius: Theme.cornerRadius)
-                .fill(AppColors.anchorLavender.opacity(highlightOpacity))
+                .fill(AppColors.accent.opacity(highlightOpacity))
         )
         .contentShape(Rectangle())
     }

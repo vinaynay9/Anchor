@@ -7,7 +7,7 @@ struct UsernameSetupView: View {
     var body: some View {
         VStack(spacing: Theme.padding) {
             Text("Choose a username")
-                .font(AppTypography.title)
+                .font(AppTypography.screenTitle)
                 .padding(.bottom, Theme.padding)
             
             TextField("Username", text: $username)

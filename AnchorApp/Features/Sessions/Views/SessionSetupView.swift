@@ -8,8 +8,7 @@ struct SessionSetupView: View {
     @State private var showActivityPicker = false
     @State private var activitySelection = FamilyActivitySelection()
     @State private var hasSelectedApps = false
-    @State private var requirePhotoProof = false
-    @State private var allowFriendApproval = true
+    @State private var deepAnchor = false
     @State private var showGoalCreation = false
     
     private let activitySelectionService = ActivitySelectionService.shared
@@ -29,8 +28,8 @@ struct SessionSetupView: View {
                     // App Selection Panel
                     appSelectionSection
                     
-                    // Accountability Note
-                    accountabilityNoteSection
+                    // Anchored Mode Note
+                    anchoredModeNoteSection
                     
                     // Optional Settings
                     optionalSettingsSection
@@ -46,7 +45,7 @@ struct SessionSetupView: View {
                 .padding(Theme.spacing2)
             }
         }
-        .navigationTitle("Start Your Daily Session")
+        .navigationTitle("Enter Anchored Mode")
         .navigationBarTitleDisplayMode(.large)
         .sheet(isPresented: $showActivityPicker) {
             ActivityPickerView(selection: $activitySelection)
@@ -80,8 +79,8 @@ struct SessionSetupView: View {
     
     // MARK: - Title Section
     private var titleSection: some View {
-        Text("Start Your Daily Session")
-            .font(AppTypography.largeTitle)
+        Text("Enter Anchored Mode")
+            .font(AppTypography.screenTitle)
             .foregroundColor(AppColors.textPrimary)
             .frame(maxWidth: .infinity, alignment: .leading)
             .padding(.horizontal, Theme.spacing2)
@@ -92,15 +91,15 @@ struct SessionSetupView: View {
         VStack(alignment: .leading, spacing: Theme.spacing2) {
             HStack {
                 Text("Today's Goals")
-                    .font(AppTypography.title3)
+                    .font(AppTypography.sectionHeader)
                     .foregroundColor(AppColors.textPrimary)
                 
                 Spacer()
                 
                 if !goalsViewModel.goals.isEmpty {
                     Text("\(goalsViewModel.getCompletedCount())/\(goalsViewModel.getTotalCount())")
-                        .font(AppTypography.captionBold)
-                        .foregroundColor(AppColors.anchorAccent)
+                        .font(AppTypography.caption)
+                        .foregroundColor(AppColors.accent)
                 }
             }
             .padding(.horizontal, Theme.spacing2)
@@ -116,23 +115,27 @@ struct SessionSetupView: View {
     private var emptyGoalsCard: some View {
         VStack(spacing: Theme.spacing) {
             Image(systemName: "plus.circle")
-                .font(.system(size: 32))
+                .font(AppTypography.sectionHeader)
                 .foregroundColor(AppColors.textSecondary.opacity(0.5))
             Text("No goals set yet")
                 .font(AppTypography.body)
                 .foregroundColor(AppColors.textSecondary)
             Button(action: {
+                HapticFeedback.selectionChanged()
                 showGoalCreation = true
             }) {
                 Text("Add Goal")
-                    .font(AppTypography.captionBold)
             }
-            .buttonStyle(SecondaryButtonStyle())
+            .buttonStyle(SecondaryPressableButtonStyle())
         }
         .frame(maxWidth: .infinity)
         .padding(Theme.spacing3)
-        .background(AppColors.secondaryBackground)
+        .background(AppColors.surface)
         .cornerRadius(Theme.cornerRadiusMedium)
+        .overlay(
+            RoundedRectangle(cornerRadius: Theme.cornerRadiusMedium)
+                .stroke(AppColors.border.opacity(0.25), lineWidth: 1)
+        )
         .padding(.horizontal, Theme.spacing2)
     }
     
@@ -151,21 +154,11 @@ struct SessionSetupView: View {
             }
         }
         .padding(Theme.spacing2)
-        .background(AppColors.secondaryBackground)
+        .background(AppColors.surface)
         .cornerRadius(Theme.cornerRadiusMedium)
         .overlay(
             RoundedRectangle(cornerRadius: Theme.cornerRadiusMedium)
-                .stroke(
-                    LinearGradient(
-                        colors: [
-                            AppColors.anchorLavender.opacity(0.3),
-                            AppColors.anchorAccent.opacity(0.2)
-                        ],
-                        startPoint: .topLeading,
-                        endPoint: .bottomTrailing
-                    ),
-                    lineWidth: 1
-                )
+                .stroke(AppColors.border.opacity(0.25), lineWidth: 1)
         )
         .padding(.horizontal, Theme.spacing2)
     }
@@ -174,11 +167,12 @@ struct SessionSetupView: View {
     private var appSelectionSection: some View {
         VStack(alignment: .leading, spacing: Theme.spacing) {
             Text("Apps to Block")
-                .font(AppTypography.title3)
+                .font(AppTypography.sectionHeader)
                 .foregroundColor(AppColors.textPrimary)
                 .padding(.horizontal, Theme.spacing2)
             
             Button(action: {
+                HapticFeedback.selectionChanged()
                 showActivityPicker = true
             }) {
                 HStack {
@@ -195,28 +189,31 @@ struct SessionSetupView: View {
                     }
                 }
                 .padding(Theme.spacing2)
-                .background(AppColors.secondaryBackground)
+                .background(AppColors.surface)
                 .cornerRadius(Theme.cornerRadiusMedium)
+                .contentShape(Rectangle())
             }
             .padding(.horizontal, Theme.spacing2)
+            .buttonStyle(PressableButtonStyle())
+            .anchorHover()
         }
     }
     
-    // MARK: - Accountability Note
-    private var accountabilityNoteSection: some View {
+    // MARK: - Anchored Mode Note
+    private var anchoredModeNoteSection: some View {
         VStack(alignment: .leading, spacing: Theme.spacing) {
             HStack(alignment: .top, spacing: Theme.spacing) {
                 Image(systemName: "info.circle")
-                    .font(.system(size: 16))
-                    .foregroundColor(AppColors.anchorAccent)
+                    .font(AppTypography.helper)
+                    .foregroundColor(AppColors.accent)
                 
-                Text("Apps stay blocked until you complete all goals or send an unlock request with proof.")
-                    .font(AppTypography.caption)
+                Text("Apps stay locked until you complete all goals.")
+                    .font(AppTypography.helper)
                     .foregroundColor(AppColors.textSecondary)
             }
         }
         .padding(Theme.spacing2)
-        .background(AppColors.anchorLavender.opacity(0.1))
+        .background(AppColors.surfaceElevated)
         .cornerRadius(Theme.cornerRadius)
         .padding(.horizontal, Theme.spacing2)
     }
@@ -225,41 +222,30 @@ struct SessionSetupView: View {
     private var optionalSettingsSection: some View {
         VStack(alignment: .leading, spacing: Theme.spacing) {
             Text("Optional Settings")
-                .font(AppTypography.title3)
+                .font(AppTypography.sectionHeader)
                 .foregroundColor(AppColors.textPrimary)
                 .padding(.horizontal, Theme.spacing2)
             
             VStack(spacing: Theme.spacing) {
-                Toggle(isOn: $requirePhotoProof) {
+                Toggle(isOn: $deepAnchor) {
                     VStack(alignment: .leading, spacing: Theme.smallSpacing) {
-                        Text("Require Photo Proof")
-                            .font(AppTypography.bodyBold)
+                        Text("Deep Anchor")
+                            .font(AppTypography.body)
                             .foregroundColor(AppColors.textPrimary)
-                        Text("Unlock requests must include photo evidence")
-                            .font(AppTypography.caption)
+                        Text("Extended lock. No early exits.")
+                            .font(AppTypography.helper)
                             .foregroundColor(AppColors.textSecondary)
                     }
                 }
-                .tint(AppColors.anchorAccent)
-                
-                Divider()
-                    .background(AppColors.textSecondary.opacity(0.2))
-                
-                Toggle(isOn: $allowFriendApproval) {
-                    VStack(alignment: .leading, spacing: Theme.smallSpacing) {
-                        Text("Allow Friends to Approve Unlocks")
-                            .font(AppTypography.bodyBold)
-                            .foregroundColor(AppColors.textPrimary)
-                        Text("Friends can approve unlock requests")
-                            .font(AppTypography.caption)
-                            .foregroundColor(AppColors.textSecondary)
-                    }
-                }
-                .tint(AppColors.anchorAccent)
+                .tint(AppColors.accent)
             }
             .padding(Theme.spacing2)
-            .background(AppColors.secondaryBackground)
+            .background(AppColors.surface)
             .cornerRadius(Theme.cornerRadiusMedium)
+            .overlay(
+                RoundedRectangle(cornerRadius: Theme.cornerRadiusMedium)
+                    .stroke(AppColors.border.opacity(0.25), lineWidth: 1)
+            )
             .padding(.horizontal, Theme.spacing2)
         }
     }
@@ -268,6 +254,7 @@ struct SessionSetupView: View {
     private var startSessionButton: some View {
         Button(action: {
             Task {
+                HapticFeedback.selectionChanged()
                 await viewModel.startSession()
             }
         }) {
@@ -277,12 +264,13 @@ struct SessionSetupView: View {
                         .progressViewStyle(CircularProgressViewStyle(tint: AppColors.onPrimary))
                         .padding(.trailing, Theme.spacing)
                 }
-                Text("Start Session")
+                Text("Lock & Anchor")
             }
             .frame(maxWidth: .infinity)
         }
-        .buttonStyle(PrimaryButtonStyle())
+        .buttonStyle(PrimaryPressableButtonStyle())
         .disabled(viewModel.isLoading || !hasSelectedApps)
+        .opacity(viewModel.isLoading || !hasSelectedApps ? 0.6 : 1.0)
         .padding(.horizontal, Theme.spacing2)
         .padding(.top, Theme.spacing)
     }
@@ -293,7 +281,7 @@ struct SessionSetupView: View {
             Image(systemName: "exclamationmark.triangle")
                 .foregroundColor(AppColors.error)
             Text(message)
-                .font(AppTypography.caption)
+                .font(AppTypography.helper)
                 .foregroundColor(AppColors.error)
         }
         .padding(Theme.spacing2)

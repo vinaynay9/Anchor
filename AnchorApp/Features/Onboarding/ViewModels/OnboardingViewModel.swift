@@ -1,5 +1,6 @@
 import SwiftUI
 import Combine
+import UIKit
 
 class OnboardingViewModel: ObservableObject {
     @Published var currentPage: Int = 0
@@ -30,16 +31,24 @@ class OnboardingViewModel: ObservableObject {
     
     func nextPage() {
         if currentPage < totalPages - 1 {
-            withAnimation(.easeInOut(duration: 0.3)) {
+            if UIAccessibility.isReduceMotionEnabled {
                 currentPage += 1
+            } else {
+                withAnimation(AppMotion.standard) {
+                    currentPage += 1
+                }
             }
         }
     }
     
     func previousPage() {
         if currentPage > 0 {
-            withAnimation(.easeInOut(duration: 0.3)) {
+            if UIAccessibility.isReduceMotionEnabled {
                 currentPage -= 1
+            } else {
+                withAnimation(AppMotion.standard) {
+                    currentPage -= 1
+                }
             }
         }
     }
@@ -76,4 +85,3 @@ class OnboardingViewModel: ObservableObject {
         }
     }
 }
-

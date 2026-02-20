@@ -2,7 +2,6 @@ import SwiftUI
 
 struct CreateSessionView: View {
     @StateObject private var viewModel = CreateSessionViewModel()
-    @State private var gradientOffset: CGFloat = 0
     
     var body: some View {
         ZStack {
@@ -11,68 +10,41 @@ struct CreateSessionView: View {
                 .ignoresSafeArea()
             
             ScrollView {
-                VStack(spacing: 24) {
-                    // Animated gradient header
+                VStack(spacing: Theme.spacing3) {
+                    // Header
                     gradientHeader
-                        .padding(.top, 20)
+                        .padding(.top, Theme.spacing2)
                     
                     // Duration picker card
                     durationPickerCard
                     
-                    // Friend selection card
-                    friendSelectionCard
-                    
                     // Start session button
                     startSessionButton
-                        .padding(.bottom, 32)
+                        .padding(.bottom, Theme.spacing4)
                 }
-                .padding(.horizontal, 20)
+                .padding(.horizontal, Theme.spacing2)
             }
-        }
-        .onAppear {
-            startGradientAnimation()
         }
     }
     
     // MARK: - Gradient Header
     private var gradientHeader: some View {
-        VStack(spacing: 12) {
-            Text("Start Focus Session")
-                .font(.system(size: 32, weight: .bold))
+        VStack(spacing: Theme.spacing) {
+            Text("Enter Anchored Mode")
+                .font(AppTypography.screenTitle)
                 .foregroundColor(AppColors.textPrimary)
             
-            Text("Lock in your focus with accountability")
-                .font(.system(size: 16, weight: .regular))
+            Text("Lock selected apps until your goals are complete.")
+                .font(AppTypography.body)
                 .foregroundColor(AppColors.textSecondary)
         }
         .frame(maxWidth: .infinity)
-        .padding(.vertical, 32)
-        .background(
-            LinearGradient(
-                gradient: Gradient(colors: [
-                    AppColors.anchorPrimary,
-                    AppColors.anchorAccent,
-                    AppColors.anchorLavender
-                ]),
-                startPoint: UnitPoint(x: 0 - gradientOffset, y: 0),
-                endPoint: UnitPoint(x: 1 - gradientOffset, y: 1)
-            )
-        )
+        .padding(.vertical, Theme.spacing3)
+        .background(AppColors.surface)
         .cornerRadius(AppLayout.cardCornerRadius)
-        .shadow(color: AppColors.anchorAccent.opacity(0.3), radius: 20, x: 0, y: 10)
         .overlay(
             RoundedRectangle(cornerRadius: AppLayout.cardCornerRadius)
-                .stroke(
-                    LinearGradient(
-                        gradient: Gradient(colors: [
-                            AppColors.anchorLavender.opacity(0.6),
-                            AppColors.anchorAccent.opacity(0.4)
-                        ]),
-                        startPoint: .topLeading,
-                        endPoint: .bottomTrailing
-                    ),
-                    lineWidth: 1
-                )
+                .stroke(AppColors.border.opacity(0.25), lineWidth: 1)
         )
     }
     
@@ -80,7 +52,7 @@ struct CreateSessionView: View {
     private var durationPickerCard: some View {
         VStack(alignment: .leading, spacing: 16) {
             Text("Duration")
-                .font(.system(size: 20, weight: .semibold))
+                .font(AppTypography.sectionHeader)
                 .foregroundColor(AppColors.textPrimary)
             
             LazyVGrid(columns: [
@@ -94,22 +66,22 @@ struct CreateSessionView: View {
             }
         }
         .padding(20)
-        .background(AppColors.secondaryBackground)
+        .background(AppColors.surface)
         .cornerRadius(AppLayout.cardCornerRadius)
-        .shadow(color: Color.black.opacity(0.3), radius: 8, x: 0, y: 4)
         .overlay(
             RoundedRectangle(cornerRadius: AppLayout.cardCornerRadius)
-                .stroke(AppColors.anchorLavender.opacity(0.3), lineWidth: 1)
+                .stroke(AppColors.border.opacity(0.25), lineWidth: 1)
         )
     }
     
     private func durationButton(duration: Int) -> some View {
         Button(action: {
+            HapticFeedback.selectionChanged()
             viewModel.selectedDuration = duration
         }) {
             VStack(spacing: 4) {
                 Text("\(duration)")
-                    .font(.system(size: 18, weight: .semibold))
+                    .font(AppTypography.sectionHeader)
                     .foregroundColor(
                         viewModel.selectedDuration == duration
                             ? AppColors.textPrimary
@@ -117,10 +89,10 @@ struct CreateSessionView: View {
                     )
                 
                 Text("min")
-                    .font(.system(size: 12, weight: .regular))
+                    .font(AppTypography.caption)
                     .foregroundColor(
                         viewModel.selectedDuration == duration
-                            ? AppColors.anchorLavender
+                            ? AppColors.textSecondary
                             : AppColors.textSecondary.opacity(0.6)
                     )
             }
@@ -128,7 +100,7 @@ struct CreateSessionView: View {
             .padding(.vertical, 16)
             .background(
                 viewModel.selectedDuration == duration
-                    ? AppColors.anchorAccent.opacity(0.2)
+                    ? AppColors.accent.opacity(0.12)
                     : Color.clear
             )
             .cornerRadius(AppLayout.chipCornerRadius)
@@ -136,126 +108,34 @@ struct CreateSessionView: View {
                 RoundedRectangle(cornerRadius: AppLayout.chipCornerRadius)
                     .stroke(
                         viewModel.selectedDuration == duration
-                            ? AppColors.anchorLavender
-                            : Color.clear,
-                        lineWidth: 2
+                            ? AppColors.border.opacity(0.6)
+                            : AppColors.border.opacity(0.2),
+                        lineWidth: 1
                     )
             )
         }
-        .buttonStyle(PlainButtonStyle())
-    }
-    
-    // MARK: - Friend Selection Card
-    private var friendSelectionCard: some View {
-        VStack(alignment: .leading, spacing: 16) {
-            Text("Select Friends")
-                .font(.system(size: 20, weight: .semibold))
-                .foregroundColor(AppColors.textPrimary)
-            
-            VStack(spacing: 12) {
-                ForEach(viewModel.mockFriends) { friend in
-                    friendRow(friend: friend)
-                }
-            }
-        }
-        .padding(20)
-        .background(AppColors.secondaryBackground)
-        .cornerRadius(AppLayout.cardCornerRadius)
-        .shadow(color: Color.black.opacity(0.3), radius: 8, x: 0, y: 4)
-        .overlay(
-            RoundedRectangle(cornerRadius: AppLayout.cardCornerRadius)
-                .stroke(AppColors.anchorLavender.opacity(0.3), lineWidth: 1)
-        )
-    }
-    
-    private func friendRow(friend: MockFriend) -> some View {
-        Button(action: {
-            viewModel.toggleFriend(friend.id)
-        }) {
-            HStack(spacing: 16) {
-                // Checkbox
-                ZStack {
-                    RoundedRectangle(cornerRadius: 6)
-                        .fill(
-                            viewModel.selectedFriends.contains(friend.id)
-                                ? AppColors.anchorAccent
-                                : Color.clear
-                        )
-                        .frame(width: 24, height: 24)
-                        .overlay(
-                            RoundedRectangle(cornerRadius: 6)
-                                .stroke(
-                                    viewModel.selectedFriends.contains(friend.id)
-                                        ? AppColors.anchorLavender
-                                        : AppColors.textSecondary.opacity(0.4),
-                                    lineWidth: 2
-                                )
-                        )
-                    
-                    if viewModel.selectedFriends.contains(friend.id) {
-                        Image(systemName: "checkmark")
-                            .font(.system(size: 12, weight: .bold))
-                            .foregroundColor(AppColors.textPrimary)
-                    }
-                }
-                
-                // Friend name
-                Text(friend.name)
-                    .font(.system(size: 16, weight: .medium))
-                    .foregroundColor(AppColors.textPrimary)
-                
-                Spacer()
-            }
-            .padding(.vertical, 8)
-        }
-        .buttonStyle(PlainButtonStyle())
+        .buttonStyle(PressableButtonStyle())
     }
     
     // MARK: - Start Session Button
     private var startSessionButton: some View {
         Button(action: {
+            HapticFeedback.selectionChanged()
             viewModel.startSession()
         }) {
             HStack {
                 Spacer()
-                Text("Start Session")
-                    .font(.system(size: 18, weight: .semibold))
-                    .foregroundColor(AppColors.textPrimary)
+                Text("Lock & Anchor")
+                    .font(AppTypography.button)
+                    .foregroundColor(AppColors.onPrimary)
                 Spacer()
             }
             .padding(.vertical, 16)
-            .background(
-                LinearGradient(
-                    gradient: Gradient(colors: [
-                        AppColors.anchorAccent,
-                        AppColors.anchorLavender
-                    ]),
-                    startPoint: .leading,
-                    endPoint: .trailing
-                )
-            )
-            .cornerRadius(AppLayout.buttonCornerRadius)
-            .shadow(color: AppColors.anchorAccent.opacity(0.4), radius: 12, x: 0, y: 6)
-            .overlay(
-                RoundedRectangle(cornerRadius: AppLayout.buttonCornerRadius)
-                    .stroke(AppColors.anchorLavender.opacity(0.5), lineWidth: 1)
-            )
         }
-        .buttonStyle(PlainButtonStyle())
-    }
-    
-    // MARK: - Animation
-    private func startGradientAnimation() {
-        withAnimation(
-            Animation.linear(duration: 3.0)
-                .repeatForever(autoreverses: false)
-        ) {
-            gradientOffset = 1.0
-        }
+        .buttonStyle(PrimaryPressableButtonStyle())
     }
 }
 
 #Preview {
     CreateSessionView()
 }
-

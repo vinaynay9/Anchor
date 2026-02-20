@@ -12,6 +12,9 @@ struct AppConfig {
     static let apiBaseURL = Secrets.apiBaseURL
     static let apiVersion = "v1"
     static let analyticsIngestApiKey = ProcessInfo.processInfo.environment["ANCHOR_INGEST_API_KEY"] ?? ""
+    
+    // MARK: - Invites
+    static let inviteBaseURL = URL(string: "https://anchor.app/invite")!
 
     static var analyticsIngestURL: URL? {
         let trimmed = apiBaseURL.trimmingCharacters(in: .whitespacesAndNewlines)
@@ -28,6 +31,10 @@ struct AppConfig {
         let trimmed = apiBaseURL.trimmingCharacters(in: .whitespacesAndNewlines)
         let fallback = "http://localhost"
         let base = (trimmed.isEmpty || trimmed == "REPLACE_ME" || trimmed == "https://REPLACE_ME") ? fallback : trimmed
+        // If apiBaseURL is already a full base (e.g. API Gateway /v0), use it directly.
+        if base.contains("/v0") || base.contains("execute-api") {
+            return URL(string: base) ?? URL(string: fallback)!
+        }
         if let url = URL(string: "\(base)/rest/\(apiVersion)") {
             return url
         }
@@ -39,6 +46,8 @@ struct AppConfig {
         static let currentUserId = "currentUserId"
         static let accessToken = "accessToken"
         static let refreshToken = "refreshToken"
+        static let hasSeenOnboarding = "hasSeenOnboarding"
+        static let hasCompletedOnboarding = "hasCompletedOnboarding"
     }
     
     // MARK: - App Group Storage Keys

@@ -83,8 +83,8 @@ struct ProofGalleryView: View {
                             .stroke(
                                 LinearGradient(
                                     colors: [
-                                        AppColors.anchorPrimary.opacity(0.3),
-                                        AppColors.anchorAccent.opacity(0.2)
+                                        AppColors.primary.opacity(0.3),
+                                        AppColors.accent.opacity(0.2)
                                     ],
                                     startPoint: .topLeading,
                                     endPoint: .bottomTrailing
@@ -99,7 +99,7 @@ struct ProofGalleryView: View {
                     .overlay(
                         VStack(spacing: Theme.spacing) {
                             Image(systemName: "exclamationmark.triangle")
-                                .font(.system(size: 24))
+                                .font(AppTypography.sectionHeader)
                                 .foregroundColor(AppColors.error.opacity(0.7))
                             Text("Failed to load")
                                 .font(AppTypography.caption)

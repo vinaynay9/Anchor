@@ -16,7 +16,7 @@ struct ScreenTimeIntroView: View {
                     Circle()
                         .fill(
                             LinearGradient(
-                                colors: [AppColors.anchorPrimary, AppColors.anchorLavender],
+                                colors: [AppColors.primary, AppColors.textTertiary],
                                 startPoint: .topLeading,
                                 endPoint: .bottomTrailing
                             )
@@ -25,19 +25,20 @@ struct ScreenTimeIntroView: View {
                         .blur(radius: 60)
                         .opacity(0.6)
                     
-                    Image(systemName: "anchor.fill")
-                        .font(.system(size: 80, weight: .light))
-                        .foregroundColor(AppColors.anchorAccent)
+                    Image("Anchor_logo")
+                        .resizable()
+                        .scaledToFit()
+                        .frame(width: 84, height: 84)
                 }
                 .padding(.bottom, Theme.spacing3)
                 
                 VStack(spacing: Theme.spacing2) {
-                    Text("Stay Accountable with Anchor")
-                        .font(AppTypography.display)
+                    Text("Stay Anchored with Anchor")
+                        .font(AppTypography.screenTitle)
                         .foregroundColor(AppColors.textPrimary)
                         .multilineTextAlignment(.center)
                     
-                    Text("Block distractions, stay focused, and let your friends help you unlock apps when you need them")
+                    Text("Lock selected apps until your goals are complete.")
                         .font(AppTypography.body)
                         .foregroundColor(AppColors.textSecondary)
                         .multilineTextAlignment(.center)
@@ -57,4 +58,3 @@ struct ScreenTimeIntroView: View {
         }
     }
 }
-

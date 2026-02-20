@@ -18,4 +18,13 @@ manifest_hash = ""
 packagetype = "Zip"
 functions = ["V0RollupWeekly"]
 
+[function_build_definitions.48779310-f3cc-433b-b661-70ffe0d95263]
+codeuri = "/Users/vinaygovindaraju/Documents/Projects/Active/Anchor/infra/aws-v0/src/invite_stats"
+runtime = "nodejs20.x"
+architecture = "x86_64"
+handler = "index.handler"
+manifest_hash = ""
+packagetype = "Zip"
+functions = ["InviteStatsFunction"]
+
 [layer_build_definitions]

@@ -1,11 +1,12 @@
 import SwiftUI
 import Shared
 
-struct OnboardingRootView: View {
+struct LegacyOnboardingRootView: View {
     @StateObject private var state = OnboardingState()
     @StateObject private var authViewModel = AuthViewModel()
     @Namespace private var heroNamespace
     @State private var step: Step = .intro
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     enum Step: Int, CaseIterable {
         case intro = 0
@@ -79,7 +80,7 @@ struct OnboardingRootView: View {
                 Capsule()
                     .fill(item.rawValue <= step.rawValue ? AnchorTheme.accent : AnchorTheme.cardBackground)
                     .frame(height: 6)
-                    .animation(.spring(response: 0.4, dampingFraction: 0.8), value: step)
+                    .animation(AppMotion.animation(AppMotion.gentleSpring, reduceMotion: reduceMotion), value: step)
             }
         }
     }
@@ -92,8 +93,12 @@ struct OnboardingRootView: View {
     }
 
     private func goTo(_ next: Step) {
-        withAnimation(.spring(response: 0.5, dampingFraction: 0.85)) {
+        if reduceMotion {
             step = next
+        } else {
+            withAnimation(AppMotion.gentleSpring) {
+                step = next
+            }
         }
     }
 }

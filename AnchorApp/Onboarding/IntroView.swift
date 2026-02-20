@@ -15,9 +15,10 @@ struct IntroView: View {
                     .blur(radius: 10)
                     .matchedGeometryEffect(id: "hero", in: namespace)
 
-                Image(systemName: "anchor.fill")
-                    .font(.system(size: 64, weight: .semibold))
-                    .foregroundColor(AnchorTheme.accent)
+                Image("Anchor_logo")
+                    .resizable()
+                    .scaledToFit()
+                    .frame(width: 72, height: 72)
             }
             .padding(.bottom, AnchorTheme.Spacing.md)
 
@@ -26,7 +27,7 @@ struct IntroView: View {
                     .font(AnchorTheme.Typography.title)
                     .foregroundColor(AnchorTheme.textPrimary)
 
-                Text("Stay focused by tying apps to the goals you complete.")
+                Text("Lock apps. Set goals. Stay Anchored.")
                     .font(AnchorTheme.Typography.subtitle)
                     .foregroundColor(AnchorTheme.textSecondary)
                     .multilineTextAlignment(.center)
@@ -34,9 +35,9 @@ struct IntroView: View {
 
             OnboardingCard {
                 VStack(alignment: .leading, spacing: AnchorTheme.Spacing.sm) {
-                    bullet("Block distractions with Screen Time")
-                    bullet("Unlock apps by completing goals")
-                    bullet("Reset daily and build consistency")
+                    bullet("Lock selected apps until goals are complete")
+                    bullet("Anchor your day with daily goals")
+                    bullet("Break Anchor when all goals are done")
                 }
             }
 

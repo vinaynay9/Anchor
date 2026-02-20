@@ -268,6 +268,7 @@ class ScreenTimeService: ScreenTimeServiceProtocol {
         LoggerService.shared.logInfo("Stopping blocking", category: "ScreenTime")
         do {
             try deactivateShields()
+            appGroupStorage.setShieldState(ShieldState(reason: .free))
             LoggerService.shared.logInfo("Blocking stopped successfully", category: "ScreenTime")
         } catch {
             LoggerService.shared.logError("Failed to stop blocking", error: error, category: "ScreenTime")
@@ -292,6 +293,7 @@ class ScreenTimeService: ScreenTimeServiceProtocol {
             categories: nil,
             categoryTokens: categoryTokens.isEmpty ? nil : categoryTokens
         )
+        appGroupStorage.setShieldState(ShieldState(reason: .activeLock))
     }
 
     func applyChallengeOverrides() async {
@@ -309,7 +311,27 @@ class ScreenTimeService: ScreenTimeServiceProtocol {
         LoggerService.shared.logWarning("Emergency unanchor triggered for \(duration) seconds", category: "ScreenTime")
         let until = Date().addingTimeInterval(duration)
         appGroupStorage.setEmergencyUnanchorUntil(until)
+        appGroupStorage.setTemporaryUnlockUntil(until)
         await stopBlocking()
+    }
+
+    func applyTemporaryUnlock(
+        blockedTokens: Set<ManagedSettings.ApplicationToken>,
+        allowedTokens: Set<ManagedSettings.ApplicationToken>,
+        duration: TimeInterval
+    ) async {
+        LoggerService.shared.logInfo("Applying temporary unlock for \(duration) seconds", category: "ScreenTime")
+        let until = Date().addingTimeInterval(duration)
+        appGroupStorage.setTemporaryUnlockUntil(until)
+        appGroupStorage.setShieldState(ShieldState(reason: .free))
+
+        let tokensToBlock = blockedTokens.subtracting(allowedTokens)
+        store.shield.applications = tokensToBlock.isEmpty ? nil : tokensToBlock
+        store.shield.applicationCategories = .all()
+
+        DispatchQueue.main.asyncAfter(deadline: .now() + duration) { [weak self] in
+            Task { await self?.applyDailyAnchor() }
+        }
     }
     
     // MARK: - App Selection
@@ -406,7 +428,7 @@ class ScreenTimeService: ScreenTimeServiceProtocol {
         
         // Clear app group storage
         appGroupStorage.clearSessionState()
-        appGroupStorage.setShieldState(nil)
+        appGroupStorage.setShieldState(ShieldState(reason: .free))
         
         // Clear session selections
         sessionSelections.removeAll()
@@ -474,4 +496,3 @@ final class ChallengeService {
         return []
     }
 }
-

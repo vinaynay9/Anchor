@@ -50,7 +50,7 @@ struct SignInView: View {
             if let error = authViewModel.errorMessage {
                 Text(error)
                     .font(AnchorTheme.Typography.caption)
-                    .foregroundColor(.red)
+                    .foregroundColor(AppColors.error)
             }
 
             Spacer()

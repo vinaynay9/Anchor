@@ -27,6 +27,11 @@ class ActivitySelectionService: ActivitySelectionServiceProtocol {
             throw ActivitySelectionError.storageUnavailable
         }
     }
+
+    @discardableResult
+    func saveSelectionSafe(_ selection: FamilyActivitySelection) -> Bool {
+        return appGroupStorage.saveFamilyActivitySelection(selection, forKey: .familyActivitySelection)
+    }
     
     // MARK: - Load Selection
     
@@ -86,4 +91,3 @@ enum ActivitySelectionError: LocalizedError {
         }
     }
 }
-

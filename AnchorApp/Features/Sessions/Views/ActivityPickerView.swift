@@ -13,11 +13,16 @@ struct ActivityPickerView: View {
                 .toolbar {
                     ToolbarItem(placement: .navigationBarTrailing) {
                         Button("Done") {
+                            HapticFeedback.selectionChanged()
                             dismiss()
                         }
                     }
                 }
+                .background(AppColors.background)
+                .scrollContentBackground(.hidden)
+                .tint(AppColors.accent)
+                .toolbarBackground(AppColors.background, for: .navigationBar)
+                .toolbarBackground(.visible, for: .navigationBar)
         }
     }
 }
-

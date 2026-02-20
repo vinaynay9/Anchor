@@ -77,7 +77,7 @@ struct UnlockRequestDetailView: View {
         return ScrollView {
             VStack(alignment: .leading, spacing: Theme.padding) {
                 Text("Unlock Request")
-                    .font(AppTypography.title)
+                    .font(AppTypography.screenTitle)
                     .foregroundColor(AppColors.textPrimary)
                     .transition(.opacity)
                 
@@ -90,7 +90,7 @@ struct UnlockRequestDetailView: View {
                         .font(AppTypography.caption)
                         .foregroundColor(AppColors.textSecondary)
                     Text(status.rawValue.capitalized)
-                        .font(AppTypography.captionBold)
+                        .font(AppTypography.caption)
                         .foregroundColor(statusColor(for: status))
                 }
                 .padding(.vertical, Theme.spacing)
@@ -114,7 +114,7 @@ struct UnlockRequestDetailView: View {
                         .cornerRadius(AppLayout.chipCornerRadius)
                         .overlay(
                             RoundedRectangle(cornerRadius: AppLayout.chipCornerRadius)
-                                .stroke(AppColors.anchorLavender.opacity(0.1), lineWidth: 1)
+                                .stroke(AppColors.textTertiary.opacity(0.1), lineWidth: 1)
                         )
                 }
                 
@@ -122,7 +122,7 @@ struct UnlockRequestDetailView: View {
                 if isLoadingProof {
                     HStack(spacing: 12) {
                         ProgressView()
-                            .progressViewStyle(CircularProgressViewStyle(tint: AppColors.anchorAccent))
+                            .progressViewStyle(CircularProgressViewStyle(tint: AppColors.accent))
                         Text("Loading proof...")
                             .font(AppTypography.body)
                             .foregroundColor(AppColors.textSecondary)
@@ -134,7 +134,7 @@ struct UnlockRequestDetailView: View {
                 } else if let proof = proof {
                     VStack(alignment: .leading, spacing: Theme.spacing) {
                         Text("Proof Photo")
-                            .font(AppTypography.bodyBold)
+                            .font(AppTypography.body)
                             .foregroundColor(AppColors.textPrimary)
                         
                         AsyncImage(url: proof.thumbnailUrl ?? proof.fileUrl) { phase in
@@ -144,7 +144,7 @@ struct UnlockRequestDetailView: View {
                                     RoundedRectangle(cornerRadius: AppLayout.cardCornerRadius)
                                         .fill(AppColors.surface)
                                     ProgressView()
-                                        .progressViewStyle(CircularProgressViewStyle(tint: AppColors.anchorAccent))
+                                        .progressViewStyle(CircularProgressViewStyle(tint: AppColors.accent))
                                 }
                                 .frame(height: 300)
                             case .success(let image):
@@ -158,8 +158,8 @@ struct UnlockRequestDetailView: View {
                                             .stroke(
                                                 LinearGradient(
                                                     colors: [
-                                                        AppColors.anchorAccent.opacity(0.4),
-                                                        AppColors.anchorLavender.opacity(0.3)
+                                                        AppColors.accent.opacity(0.4),
+                                                        AppColors.textTertiary.opacity(0.3)
                                                     ],
                                                     startPoint: .topLeading,
                                                     endPoint: .bottomTrailing
@@ -167,11 +167,11 @@ struct UnlockRequestDetailView: View {
                                                 lineWidth: 2
                                             )
                                     )
-                                    .shadow(color: AppColors.anchorAccent.opacity(0.2), radius: 12, x: 0, y: 4)
+                                    .shadow(color: AppColors.accent.opacity(0.2), radius: 12, x: 0, y: 4)
                             case .failure:
                                 VStack(spacing: 12) {
                                     Image(systemName: "exclamationmark.triangle")
-                                        .font(.system(size: 32))
+                                        .font(AppTypography.sectionHeader)
                                         .foregroundColor(AppColors.error.opacity(0.7))
                                     Text("Failed to load image")
                                         .font(AppTypography.body)
@@ -191,7 +191,7 @@ struct UnlockRequestDetailView: View {
                     .cornerRadius(AppLayout.cardCornerRadius)
                     .overlay(
                         RoundedRectangle(cornerRadius: AppLayout.cardCornerRadius)
-                            .stroke(AppColors.anchorLavender.opacity(0.1), lineWidth: 1)
+                            .stroke(AppColors.textTertiary.opacity(0.1), lineWidth: 1)
                     )
                 } else if let proofError = proofError {
                     HStack(spacing: 12) {
@@ -245,9 +245,9 @@ struct UnlockRequestDetailView: View {
                         }) {
                             HStack(spacing: 8) {
                                 Image(systemName: "xmark.circle.fill")
-                                    .font(.system(size: 16, weight: .semibold))
+                                    .font(AppTypography.helper).fontWeight(.semibold)
                                 Text("Deny")
-                                    .font(AppTypography.bodyBold)
+                                    .font(AppTypography.body)
                             }
                         }
                         .buttonStyle(SecondaryButtonStyle())
@@ -261,9 +261,9 @@ struct UnlockRequestDetailView: View {
                         }) {
                             HStack(spacing: 8) {
                                 Image(systemName: "checkmark.circle.fill")
-                                    .font(.system(size: 16, weight: .semibold))
+                                    .font(AppTypography.helper).fontWeight(.semibold)
                                 Text("Approve")
-                                    .font(AppTypography.bodyBold)
+                                    .font(AppTypography.body)
                             }
                         }
                         .buttonStyle(PrimaryButtonStyle())
@@ -275,7 +275,7 @@ struct UnlockRequestDetailView: View {
                     HStack {
                         Spacer()
                         ProgressView()
-                            .progressViewStyle(CircularProgressViewStyle(tint: AppColors.anchorAccent))
+                            .progressViewStyle(CircularProgressViewStyle(tint: AppColors.accent))
                         Text("Processing...")
                             .font(AppTypography.body)
                             .foregroundColor(AppColors.textSecondary)
@@ -303,7 +303,7 @@ struct UnlockRequestDetailView: View {
     private var createRequestContent: some View {
         VStack(alignment: .leading, spacing: Theme.padding) {
             Text("Request Unlock")
-                .font(AppTypography.title)
+                .font(AppTypography.screenTitle)
                 .foregroundColor(AppColors.textPrimary)
             
             TextField("Message (optional)", text: .constant(""))

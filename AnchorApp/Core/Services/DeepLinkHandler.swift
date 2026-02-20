@@ -27,35 +27,55 @@ public enum DeepLink {
     case unlockRequest(id: String?)
     case session(id: String)
     case messagePartner
+    case invite(inviterId: String, inviteCode: String)
     
     /// Parses a URL into a DeepLink enum
     /// - Parameter url: The URL to parse (e.g., "anchor://unlock-request/123")
     /// - Returns: A DeepLink if the URL is valid, nil otherwise
     static func parse(from url: URL) -> DeepLink? {
-        guard url.scheme == "anchor" else { return nil }
-        
-        switch url.host {
-        case "open":
-            return .home
-            
-        case "unlock-request":
-            // Extract ID from path if present: anchor://unlock-request/123
-            let pathComponents = url.pathComponents.filter { $0 != "/" }
-            let id = pathComponents.first
-            return .unlockRequest(id: id)
-            
-        case "session":
-            // Extract session ID from path: anchor://session/123
-            let pathComponents = url.pathComponents.filter { $0 != "/" }
-            guard let sessionId = pathComponents.first else { return nil }
-            return .session(id: sessionId)
-            
-        case "message-partner":
-            return .messagePartner
-            
-        default:
-            return nil
+        if url.scheme == "anchor" {
+            switch url.host {
+            case "open":
+                return .home
+                
+            case "unlock-request":
+                // Extract ID from path if present: anchor://unlock-request/123
+                let pathComponents = url.pathComponents.filter { $0 != "/" }
+                let id = pathComponents.first
+                return .unlockRequest(id: id)
+                
+            case "session":
+                // Extract session ID from path: anchor://session/123
+                let pathComponents = url.pathComponents.filter { $0 != "/" }
+                guard let sessionId = pathComponents.first else { return nil }
+                return .session(id: sessionId)
+                
+            case "message-partner":
+                return .messagePartner
+                
+            case "invite":
+                if let components = URLComponents(url: url, resolvingAgainstBaseURL: false),
+                   let inviterId = components.queryItems?.first(where: { $0.name == "inviter" })?.value,
+                   let inviteCode = components.queryItems?.first(where: { $0.name == "code" })?.value {
+                    return .invite(inviterId: inviterId, inviteCode: inviteCode)
+                }
+                return nil
+                
+            default:
+                return nil
+            }
         }
+        
+        // Support universal links like https://anchor.app/invite?code=...&inviter=...
+        if let components = URLComponents(url: url, resolvingAgainstBaseURL: false),
+           let host = components.host, host.contains("anchor."),
+           components.path.contains("/invite"),
+           let inviterId = components.queryItems?.first(where: { $0.name == "inviter" })?.value,
+           let inviteCode = components.queryItems?.first(where: { $0.name == "code" })?.value {
+            return .invite(inviterId: inviterId, inviteCode: inviteCode)
+        }
+        
+        return nil
     }
 }
 
@@ -85,6 +105,10 @@ public class DeepLinkHandler: ObservableObject {
         // Context may already be set by shield extension when opening app
         if case .unlockRequest(let id) = deepLink, let requestId = id {
             AppGroupStorage.shared.setPendingDeepLinkContext(requestId: requestId)
+        }
+        if case .invite(let inviterId, let inviteCode) = deepLink {
+            let attribution = InviteAttribution(inviterId: inviterId, inviteCode: inviteCode)
+            AppGroupStorage.shared.setInviteAttribution(attribution)
         }
         
         pendingDeepLink = deepLink

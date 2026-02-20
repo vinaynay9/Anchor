@@ -38,8 +38,8 @@ struct ActivityFeedView: View {
                     viewModel.refreshActivityFeed()
                 }) {
                     Image(systemName: "arrow.clockwise")
-                        .font(AppTypography.bodyBold)
-                        .foregroundColor(AppColors.anchorAccent)
+                        .font(AppTypography.body)
+                        .foregroundColor(AppColors.accent)
                 }
             }
         }
@@ -63,7 +63,7 @@ struct ActivityFeedView: View {
                     VStack(alignment: .leading, spacing: Theme.spacing) {
                         // Section Header
                         Text(group.sectionTitle)
-                            .font(AppTypography.subheadlineBold)
+                            .font(AppTypography.helper)
                             .foregroundColor(AppColors.textSecondary)
                             .padding(.horizontal, Theme.spacing2)
                             .padding(.top, Theme.spacing2)
@@ -87,7 +87,7 @@ struct ActivityFeedView: View {
                     HStack {
                         Spacer()
                         ProgressView()
-                            .progressViewStyle(CircularProgressViewStyle(tint: AppColors.anchorAccent))
+                            .progressViewStyle(CircularProgressViewStyle(tint: AppColors.accent))
                         Spacer()
                     }
                     .padding(Theme.spacing3)
@@ -137,7 +137,7 @@ struct ActivityEventRowView: View {
                     .frame(width: 48, height: 48)
                 
                 Image(systemName: viewModel.getEventIcon(for: event.type))
-                    .font(.system(size: 20, weight: .medium))
+                    .font(AppTypography.body).fontWeight(.medium)
                     .foregroundColor(viewModel.getEventColor(for: event.type))
                     .scaleEffect(isPulsing && event.type == .unlockApproved ? 1.1 : 1.0)
             }
@@ -156,7 +156,7 @@ struct ActivityEventRowView: View {
             // Event Details
             VStack(alignment: .leading, spacing: Theme.smallSpacing) {
                 Text(viewModel.getEventTitle(for: event.type, friendName: viewModel.getFriendName(for: event.friendId)))
-                    .font(AppTypography.bodyBold)
+                    .font(AppTypography.body)
                     .foregroundColor(AppColors.textPrimary)
                 
                 if let metadata = event.metadata, let message = metadata["message"], !message.isEmpty {

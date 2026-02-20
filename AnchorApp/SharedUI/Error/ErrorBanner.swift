@@ -4,6 +4,7 @@ import SwiftUI
 struct ErrorBanner: View {
     let message: String
     let onDismiss: (() -> Void)?
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
     
     init(message: String, onDismiss: (() -> Void)? = nil) {
         self.message = message
@@ -25,8 +26,12 @@ struct ErrorBanner: View {
             
             if let onDismiss = onDismiss {
                 Button(action: {
-                    withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
+                    if reduceMotion {
                         onDismiss()
+                    } else {
+                        withAnimation(AppMotion.snappy) {
+                            onDismiss()
+                        }
                     }
                 }) {
                     Image(systemName: "xmark.circle.fill")
@@ -48,4 +53,3 @@ struct ErrorBanner: View {
         .transition(.move(edge: .top).combined(with: .opacity))
     }
 }
-

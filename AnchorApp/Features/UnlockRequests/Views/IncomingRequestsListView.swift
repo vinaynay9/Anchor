@@ -17,10 +17,10 @@ struct IncomingRequestsListView: View {
                 // Error state
                 VStack(spacing: Theme.padding) {
                     Image(systemName: "exclamationmark.triangle")
-                        .font(.system(size: 48))
+                        .font(AppTypography.screenTitle)
                         .foregroundColor(AppColors.error)
                     Text("Error loading requests")
-                        .font(AppTypography.title)
+                        .font(AppTypography.screenTitle)
                         .foregroundColor(AppColors.textPrimary)
                     Text(errorMessage)
                         .font(AppTypography.body)
@@ -32,7 +32,7 @@ struct IncomingRequestsListView: View {
                         viewModel.loadPendingRequests()
                     }) {
                         Text("Retry")
-                            .font(AppTypography.bodyBold)
+                            .font(AppTypography.body)
                     }
                     .buttonStyle(PrimaryButtonStyle())
                     .padding(.top, Theme.spacing)
@@ -63,8 +63,8 @@ struct IncomingRequestsListView: View {
                                 viewModel.loadPendingRequests()
                             }) {
                                 Text("Retry")
-                                    .font(AppTypography.captionBold)
-                                    .foregroundColor(AppColors.anchorAccent)
+                                    .font(AppTypography.caption)
+                                    .foregroundColor(AppColors.accent)
                             }
                         }
                         .padding()
@@ -93,7 +93,7 @@ struct IncomingRequestsListView: View {
                         HStack {
                             Spacer()
                             ProgressView()
-                                .progressViewStyle(CircularProgressViewStyle(tint: AppColors.anchorAccent))
+                                .progressViewStyle(CircularProgressViewStyle(tint: AppColors.accent))
                             Spacer()
                         }
                         .padding()
@@ -125,8 +125,8 @@ struct UnlockRequestRowView: View {
                     .fill(
                         LinearGradient(
                             colors: [
-                                AppColors.anchorPrimary.opacity(0.3),
-                                AppColors.anchorAccent.opacity(0.2)
+                                AppColors.primary.opacity(0.3),
+                                AppColors.accent.opacity(0.2)
                             ],
                             startPoint: .topLeading,
                             endPoint: .bottomTrailing
@@ -135,13 +135,13 @@ struct UnlockRequestRowView: View {
                     .frame(width: 44, height: 44)
                 
                 Image(systemName: "lock.open")
-                    .font(.system(size: 18, weight: .medium))
-                    .foregroundColor(AppColors.anchorAccent)
+                    .font(AppTypography.body).fontWeight(.medium)
+                    .foregroundColor(AppColors.accent)
             }
             
             VStack(alignment: .leading, spacing: 4) {
                 Text("Unlock Request")
-                    .font(AppTypography.bodyBold)
+                    .font(AppTypography.body)
                     .foregroundColor(AppColors.textPrimary)
                 if let message = request.message {
                     Text(message)
@@ -162,7 +162,7 @@ struct UnlockRequestRowView: View {
                         .fill(AppColors.warning)
                         .frame(width: 6, height: 6)
                     Text("Pending")
-                        .font(AppTypography.captionBold)
+                        .font(AppTypography.caption)
                         .foregroundColor(AppColors.warning)
                 }
             }
@@ -178,8 +178,8 @@ struct UnlockRequestRowView: View {
                 .stroke(
                     LinearGradient(
                         colors: [
-                            AppColors.anchorPrimary.opacity(0.2),
-                            AppColors.anchorAccent.opacity(0.1)
+                            AppColors.primary.opacity(0.2),
+                            AppColors.accent.opacity(0.1)
                         ],
                         startPoint: .topLeading,
                         endPoint: .bottomTrailing

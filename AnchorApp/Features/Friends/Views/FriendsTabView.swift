@@ -61,8 +61,8 @@ struct FriendsTabView: View {
                         }
                     }) {
                         Image(systemName: "plus")
-                            .font(AppTypography.bodyBold)
-                            .foregroundColor(AppColors.anchorAccent)
+                            .font(AppTypography.body)
+                            .foregroundColor(AppColors.accent)
                     }
                 }
             }
@@ -91,9 +91,9 @@ struct FriendsTabView: View {
                 }) {
                     HStack(spacing: Theme.spacing) {
                         Image(systemName: section.icon)
-                            .font(.system(size: 14, weight: .semibold))
+                            .font(AppTypography.helper).fontWeight(.semibold)
                         Text(section.rawValue)
-                            .font(AppTypography.subheadlineBold)
+                            .font(AppTypography.helper)
                     }
                     .foregroundColor(selectedSection == section ? AppColors.onPrimary : AppColors.textSecondary)
                     .frame(maxWidth: .infinity)
@@ -103,8 +103,8 @@ struct FriendsTabView: View {
                             if selectedSection == section {
                                 LinearGradient(
                                     colors: [
-                                        AppColors.anchorAccent,
-                                        AppColors.anchorPrimary
+                                        AppColors.accent,
+                                        AppColors.primary
                                     ],
                                     startPoint: .leading,
                                     endPoint: .trailing
@@ -265,8 +265,8 @@ struct RequestsSectionView: View {
                         viewModel.loadPendingRequests()
                     }) {
                         Text("Retry")
-                            .font(AppTypography.captionBold)
-                            .foregroundColor(AppColors.anchorAccent)
+                            .font(AppTypography.caption)
+                            .foregroundColor(AppColors.accent)
                     }
                 }
                 .padding()
@@ -290,7 +290,7 @@ struct RequestsSectionView: View {
                 HStack {
                     Spacer()
                     ProgressView()
-                        .progressViewStyle(CircularProgressViewStyle(tint: AppColors.anchorAccent))
+                        .progressViewStyle(CircularProgressViewStyle(tint: AppColors.accent))
                     Spacer()
                 }
                 .padding()
@@ -304,10 +304,10 @@ struct RequestsSectionView: View {
     private func errorView(_ message: String) -> some View {
         VStack(spacing: Theme.spacing2) {
             Image(systemName: "exclamationmark.triangle")
-                .font(.system(size: 48))
+                .font(AppTypography.screenTitle)
                 .foregroundColor(AppColors.error)
             Text("Error loading requests")
-                .font(AppTypography.title)
+                .font(AppTypography.screenTitle)
                 .foregroundColor(AppColors.textPrimary)
             Text(message)
                 .font(AppTypography.body)

@@ -85,6 +85,14 @@ public enum AppGroupStorageKey: String {
     /// **Read by:** ActivitySelectionService, ScreenTimeService (to apply app blocking)
     /// **Lifecycle:** Persists across app launches, cleared when user explicitly clears selection
     case familyActivitySelection = "familyActivitySelection"
+
+    /// **Key:** `"unlockedFamilyActivitySelection"`
+    /// **Type:** JSON-encoded `FamilyActivitySelection`
+    /// **Purpose:** Stores the app selection that can be unlocked per goal (V1 policy mode)
+    /// **Written by:** OnboardingAppSelectionViewModel
+    /// **Read by:** DailyGoalService, ScreenTimeService
+    /// **Lifecycle:** Persists across launches, cleared if onboarding is reset
+    case unlockedFamilyActivitySelection = "unlockedFamilyActivitySelection"
     
     /// **Key Prefix:** `"familyActivitySelection_"`
     /// **Type:** Prefix for dynamic session-specific keys
@@ -94,6 +102,28 @@ public enum AppGroupStorageKey: String {
     /// **Read by:** ScreenTimeService (to restore session-specific app selections)
     /// **Lifecycle:** Created per session, persists until session ends or is manually cleared
     case familyActivitySelectionPrefix = "familyActivitySelection_"
+
+    /// **Key:** `"dailyGoalProgress"`
+    /// **Type:** JSON-encoded `DailyGoalProgress`
+    /// **Purpose:** Stores daily completion state for onboarding goals
+    /// **Written by:** DailyGoalService
+    /// **Read by:** DailyGoalService, Goals UI, Shield
+    /// **Lifecycle:** Resets each local day
+    case dailyGoalProgress = "dailyGoalProgress"
+
+    /// **Key:** `"lastDailyAnchorAppliedDate"`
+    /// **Type:** String (YYYY-MM-DD, local)
+    /// **Purpose:** Tracks when daily anchoring was last applied
+    /// **Written by:** DailyAnchorService
+    /// **Read by:** DailyAnchorService
+    case lastDailyAnchorAppliedDate = "lastDailyAnchorAppliedDate"
+
+    /// **Key:** `"temporaryUnlockUntil"`
+    /// **Type:** TimeInterval (since 1970)
+    /// **Purpose:** Tracks temporary unlock expiration time
+    /// **Written by:** ScreenTimeService
+    /// **Read by:** DailyAnchorService
+    case temporaryUnlockUntil = "temporaryUnlockUntil"
     
     /// **Key:** `"currentSessionFriendIds"`
     /// **Type:** Array of String (UUID strings)
@@ -207,6 +237,21 @@ public enum AppGroupStorageKey: String {
     /// **Type:** Bool
     /// **Purpose:** Whether required profile fields have been collected.
     case profileComplete = "profileComplete"
+
+    /// **Key:** `"inviteState"`
+    /// **Type:** JSON-encoded `InviteState`
+    /// **Purpose:** Stores the current invite link and stats for the user/device.
+    case inviteState = "inviteState"
+
+    /// **Key:** `"inviteAttribution"`
+    /// **Type:** JSON-encoded `InviteAttribution`
+    /// **Purpose:** Stores pending invite attribution from a deep link.
+    case inviteAttribution = "inviteAttribution"
+
+    /// **Key:** `"onboardingState"`
+    /// **Type:** JSON-encoded `OnboardingState`
+    /// **Purpose:** Stores post-auth onboarding state machine progress.
+    case onboardingState = "onboardingState"
 
     /// **Key:** `"lastAppOpenAt"`
     /// **Type:** Date (stored as TimeInterval)
@@ -484,7 +529,22 @@ public final class AppGroupStorage {
     public func clearFamilyActivitySelection(forKey key: AppGroupStorageKey = .familyActivitySelection) {
         clearFamilyActivitySelection(forKeyString: key.rawValue)
     }
-    
+
+    // MARK: - Unlocked App Selection
+
+    @discardableResult
+    public func saveUnlockedFamilyActivitySelection(_ selection: FamilyActivitySelection) -> Bool {
+        return saveFamilyActivitySelection(selection, forKey: .unlockedFamilyActivitySelection)
+    }
+
+    public func loadUnlockedFamilyActivitySelection() -> FamilyActivitySelection? {
+        return loadFamilyActivitySelection(forKey: .unlockedFamilyActivitySelection)
+    }
+
+    public func clearUnlockedFamilyActivitySelection() {
+        clearFamilyActivitySelection(forKey: .unlockedFamilyActivitySelection)
+    }
+
     /// Internal method to clear FamilyActivitySelection with a raw string key.
     private func clearFamilyActivitySelection(forKeyString keyString: String) {
         defaults?.removeObject(forKey: keyString)
@@ -783,6 +843,57 @@ public final class AppGroupStorage {
         return try? JSONDecoder().decode(DailyAnchorTime.self, from: data)
     }
 
+    // MARK: - Daily Goal Progress
+
+    public func setDailyGoalProgress(_ progress: DailyGoalProgress?) {
+        guard let defaults = defaults else { return }
+        if let progress = progress, let data = try? JSONEncoder().encode(progress) {
+            defaults.set(data, forKey: AppGroupStorageKey.dailyGoalProgress.rawValue)
+        } else {
+            defaults.removeObject(forKey: AppGroupStorageKey.dailyGoalProgress.rawValue)
+        }
+        notifyUpdate(forKey: .dailyGoalProgress)
+    }
+
+    public func getDailyGoalProgress() -> DailyGoalProgress? {
+        guard let defaults = defaults,
+              let data = defaults.data(forKey: AppGroupStorageKey.dailyGoalProgress.rawValue) else {
+            return nil
+        }
+        return try? JSONDecoder().decode(DailyGoalProgress.self, from: data)
+    }
+
+    // MARK: - Daily Anchor Applied Date
+
+    public func setLastDailyAnchorAppliedDate(_ dateString: String?) {
+        if let dateString = dateString {
+            defaults?.set(dateString, forKey: AppGroupStorageKey.lastDailyAnchorAppliedDate.rawValue)
+        } else {
+            defaults?.removeObject(forKey: AppGroupStorageKey.lastDailyAnchorAppliedDate.rawValue)
+        }
+        notifyUpdate(forKey: .lastDailyAnchorAppliedDate)
+    }
+
+    public func getLastDailyAnchorAppliedDate() -> String? {
+        defaults?.string(forKey: AppGroupStorageKey.lastDailyAnchorAppliedDate.rawValue)
+    }
+
+    // MARK: - Temporary Unlock
+
+    public func setTemporaryUnlockUntil(_ date: Date?) {
+        if let date = date {
+            defaults?.set(date.timeIntervalSince1970, forKey: AppGroupStorageKey.temporaryUnlockUntil.rawValue)
+        } else {
+            defaults?.removeObject(forKey: AppGroupStorageKey.temporaryUnlockUntil.rawValue)
+        }
+        notifyUpdate(forKey: .temporaryUnlockUntil)
+    }
+
+    public func getTemporaryUnlockUntil() -> Date? {
+        let ts = defaults?.double(forKey: AppGroupStorageKey.temporaryUnlockUntil.rawValue) ?? 0
+        return ts > 0 ? Date(timeIntervalSince1970: ts) : nil
+    }
+
     public func setAnchoringEligibility(_ isEligible: Bool) {
         defaults?.set(isEligible, forKey: AppGroupStorageKey.anchoringEligibility.rawValue)
         notifyUpdate(forKey: .anchoringEligibility)
@@ -901,6 +1012,73 @@ public final class AppGroupStorage {
     public func setProfileComplete(_ complete: Bool) {
         defaults?.set(complete, forKey: AppGroupStorageKey.profileComplete.rawValue)
         notifyUpdate(forKey: .profileComplete)
+    }
+
+    // MARK: - Invite State
+
+    public func getInviteState() -> InviteState? {
+        guard let defaults = defaults,
+              let data = defaults.data(forKey: AppGroupStorageKey.inviteState.rawValue) else {
+            return nil
+        }
+        return try? JSONDecoder().decode(InviteState.self, from: data)
+    }
+
+    public func setInviteState(_ state: InviteState) {
+        guard let defaults = defaults,
+              let data = try? JSONEncoder().encode(state) else { return }
+        defaults.set(data, forKey: AppGroupStorageKey.inviteState.rawValue)
+        notifyUpdate(forKey: .inviteState)
+    }
+
+    public func incrementInviteCountLocal() {
+        guard let current = getInviteState() else { return }
+        let updated = InviteState(
+            inviterId: current.inviterId,
+            inviteCode: current.inviteCode,
+            inviteLink: current.inviteLink,
+            inviteCount: current.inviteCount + 1,
+            lastRefreshAt: current.lastRefreshAt
+        )
+        setInviteState(updated)
+    }
+
+    // MARK: - Onboarding State
+
+    public func getOnboardingState() -> OnboardingState? {
+        guard let defaults = defaults,
+              let data = defaults.data(forKey: AppGroupStorageKey.onboardingState.rawValue) else {
+            return nil
+        }
+        return try? JSONDecoder().decode(OnboardingState.self, from: data)
+    }
+
+    public func setOnboardingState(_ state: OnboardingState?) {
+        guard let defaults = defaults else { return }
+        if let state, let data = try? JSONEncoder().encode(state) {
+            defaults.set(data, forKey: AppGroupStorageKey.onboardingState.rawValue)
+        } else {
+            defaults.removeObject(forKey: AppGroupStorageKey.onboardingState.rawValue)
+        }
+        notifyUpdate(forKey: .onboardingState)
+    }
+
+    public func getInviteAttribution() -> InviteAttribution? {
+        guard let defaults = defaults,
+              let data = defaults.data(forKey: AppGroupStorageKey.inviteAttribution.rawValue) else {
+            return nil
+        }
+        return try? JSONDecoder().decode(InviteAttribution.self, from: data)
+    }
+
+    public func setInviteAttribution(_ attribution: InviteAttribution?) {
+        guard let defaults = defaults else { return }
+        if let attribution, let data = try? JSONEncoder().encode(attribution) {
+            defaults.set(data, forKey: AppGroupStorageKey.inviteAttribution.rawValue)
+        } else {
+            defaults.removeObject(forKey: AppGroupStorageKey.inviteAttribution.rawValue)
+        }
+        notifyUpdate(forKey: .inviteAttribution)
     }
 
     public func setLastAppOpenAt(_ date: Date?) {

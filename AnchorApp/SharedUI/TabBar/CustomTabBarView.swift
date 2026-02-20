@@ -3,6 +3,7 @@ import SwiftUI
 struct CustomTabBarView: View {
     @Binding var selectedTab: TabItem
     @Namespace private var tabAnimation
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
     
     var body: some View {
         HStack(spacing: 0) {
@@ -12,8 +13,12 @@ struct CustomTabBarView: View {
                     isSelected: selectedTab == tab,
                     namespace: tabAnimation
                 ) {
-                    withAnimation(.spring(response: 0.3, dampingFraction: 0.6)) {
+                    if reduceMotion {
                         selectedTab = tab
+                    } else {
+                        withAnimation(AppMotion.snappy) {
+                            selectedTab = tab
+                        }
                     }
                 }
             }
@@ -23,7 +28,7 @@ struct CustomTabBarView: View {
         .background(
             ZStack {
                 // Ultra-dark blur overlay
-                AppColors.anchorPrimaryDark
+                AppColors.surfaceElevated
                     .opacity(0.95)
                 
                 // Blur effect
@@ -38,7 +43,7 @@ struct CustomTabBarView: View {
                 topTrailingRadius: 28
             )
         )
-        .shadow(color: Color.black.opacity(0.3), radius: 20, x: 0, y: -5)
+        .shadow(color: AppColors.textPrimary.opacity(0.2), radius: 20, x: 0, y: -5)
         .overlay(
             UnevenRoundedRectangle(
                 topLeadingRadius: 28,
@@ -49,8 +54,8 @@ struct CustomTabBarView: View {
             .stroke(
                 LinearGradient(
                     colors: [
-                        AppColors.anchorAccent.opacity(0.2),
-                        AppColors.anchorLavender.opacity(0.1)
+                        AppColors.accent.opacity(0.2),
+                        AppColors.textTertiary.opacity(0.1)
                     ],
                     startPoint: .leading,
                     endPoint: .trailing
@@ -80,8 +85,8 @@ private struct TabBarButton: View {
                         .fill(
                             RadialGradient(
                                 colors: [
-                                    AppColors.anchorAccent.opacity(0.4),
-                                    AppColors.anchorLavender.opacity(0.2),
+                                    AppColors.accent.opacity(0.4),
+                                    AppColors.textTertiary.opacity(0.2),
                                     Color.clear
                                 ],
                                 center: .center,
@@ -96,11 +101,11 @@ private struct TabBarButton: View {
                 
                 // Icon
                 Image(systemName: tab.iconName)
-                    .font(.system(size: isSelected ? 24 : 20, weight: isSelected ? .semibold : .regular))
+                    .font(AppTypography.sectionHeader)
                     .foregroundStyle(
                         isSelected
                             ? LinearGradient(
-                                colors: [AppColors.anchorAccent, AppColors.anchorLavender],
+                                colors: [AppColors.accent, AppColors.textTertiary],
                                 startPoint: .topLeading,
                                 endPoint: .bottomTrailing
                             )
@@ -148,4 +153,3 @@ private struct VisualEffectView: UIViewRepresentable {
         uiView.effect = UIBlurEffect(style: style)
     }
 }
-

@@ -34,7 +34,7 @@ struct ProofUploadView: View {
                 Button(action: { dismiss() }) {
                     Image(systemName: "xmark")
                         .foregroundColor(AppColors.textPrimary)
-                        .font(.system(size: 18, weight: .semibold))
+                        .font(AppTypography.body).fontWeight(.semibold)
                 }
                 .disabled(viewModel.isUploading)
             }
@@ -68,8 +68,8 @@ struct ProofUploadView: View {
                     .stroke(
                         LinearGradient(
                             colors: [
-                                AppColors.anchorAccent.opacity(0.6),
-                                AppColors.anchorLavender.opacity(0.4)
+                                AppColors.accent.opacity(0.6),
+                                AppColors.textTertiary.opacity(0.4)
                             ],
                             startPoint: .topLeading,
                             endPoint: .bottomTrailing
@@ -77,7 +77,7 @@ struct ProofUploadView: View {
                         lineWidth: 3
                     )
             )
-            .shadow(color: AppColors.anchorAccent.opacity(0.3), radius: 20, x: 0, y: 10)
+            .shadow(color: AppColors.accent.opacity(0.3), radius: 20, x: 0, y: 10)
     }
     
     private var uploadStateSection: some View {
@@ -86,11 +86,11 @@ struct ProofUploadView: View {
                 // Uploading state
                 VStack(spacing: 20) {
                     ProgressView()
-                        .progressViewStyle(CircularProgressViewStyle(tint: AppColors.anchorAccent))
+                        .progressViewStyle(CircularProgressViewStyle(tint: AppColors.accent))
                         .scaleEffect(1.2)
                     
                     Text("Sending your proof…")
-                        .font(AppTypography.bodyBold)
+                        .font(AppTypography.body)
                         .foregroundColor(AppColors.textPrimary)
                     
                     // Progress bar
@@ -105,7 +105,7 @@ struct ProofUploadView: View {
                             RoundedRectangle(cornerRadius: 8)
                                 .fill(
                                     LinearGradient(
-                                        colors: [AppColors.anchorAccent, AppColors.anchorLavender],
+                                        colors: [AppColors.accent, AppColors.textTertiary],
                                         startPoint: .leading,
                                         endPoint: .trailing
                                     )
@@ -122,7 +122,7 @@ struct ProofUploadView: View {
                 .cornerRadius(AppLayout.cardCornerRadius)
                 .overlay(
                     RoundedRectangle(cornerRadius: AppLayout.cardCornerRadius)
-                        .stroke(AppColors.anchorLavender.opacity(0.2), lineWidth: 1)
+                        .stroke(AppColors.textTertiary.opacity(0.2), lineWidth: 1)
                 )
             } else if viewModel.uploadComplete {
                 // Success state
@@ -133,14 +133,14 @@ struct ProofUploadView: View {
                             .frame(width: 80, height: 80)
                         
                         Image(systemName: "checkmark.circle.fill")
-                            .font(.system(size: 48, weight: .medium))
+                            .font(AppTypography.screenTitle).fontWeight(.medium)
                             .foregroundColor(AppColors.success)
                             .scaleEffect(showSuccessAnimation ? 1.0 : 0.3)
                             .opacity(showSuccessAnimation ? 1.0 : 0.0)
                     }
                     
                     Text("Proof sent!")
-                        .font(AppTypography.title3)
+                        .font(AppTypography.sectionHeader)
                         .foregroundColor(AppColors.textPrimary)
                         .opacity(showSuccessAnimation ? 1.0 : 0.0)
                         .offset(y: showSuccessAnimation ? 0 : 10)
@@ -166,11 +166,11 @@ struct ProofUploadView: View {
                 // Error state
                 VStack(spacing: 20) {
                     Image(systemName: "exclamationmark.triangle.fill")
-                        .font(.system(size: 48, weight: .medium))
+                        .font(AppTypography.screenTitle).fontWeight(.medium)
                         .foregroundColor(AppColors.error)
                     
                     Text("Upload failed")
-                        .font(AppTypography.title3)
+                        .font(AppTypography.sectionHeader)
                         .foregroundColor(AppColors.textPrimary)
                     
                     Text(errorMessage)
@@ -183,16 +183,16 @@ struct ProofUploadView: View {
                     }) {
                         HStack(spacing: 8) {
                             Image(systemName: "arrow.clockwise")
-                                .font(.system(size: 16, weight: .semibold))
+                                .font(AppTypography.helper).fontWeight(.semibold)
                             Text("Try again")
-                                .font(AppTypography.bodyBold)
+                                .font(AppTypography.body)
                         }
                         .foregroundColor(AppColors.onPrimary)
                         .frame(maxWidth: .infinity)
                         .padding(.vertical, 16)
                         .background(
                             LinearGradient(
-                                colors: [AppColors.anchorAccent, AppColors.anchorLavender],
+                                colors: [AppColors.accent, AppColors.textTertiary],
                                 startPoint: .leading,
                                 endPoint: .trailing
                             )

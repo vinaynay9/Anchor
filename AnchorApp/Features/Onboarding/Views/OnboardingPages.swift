@@ -13,7 +13,7 @@ struct WelcomeOnboardingPage: View {
                 Circle()
                     .fill(
                         LinearGradient(
-                            colors: [AppColors.anchorPrimary, AppColors.anchorLavender],
+                            colors: [AppColors.primary, AppColors.textTertiary],
                             startPoint: .topLeading,
                             endPoint: .bottomTrailing
                         )
@@ -22,18 +22,19 @@ struct WelcomeOnboardingPage: View {
                     .blur(radius: 60)
                     .opacity(0.6)
                 
-                Image(systemName: "anchor.fill")
-                    .font(.system(size: 80, weight: .light))
-                    .foregroundColor(AppColors.anchorAccent)
+                Image("Anchor_logo")
+                    .resizable()
+                    .scaledToFit()
+                    .frame(width: 84, height: 84)
             }
             .padding(.bottom, Theme.spacing3)
             
             VStack(spacing: Theme.spacing2) {
-                Text("Welcome to Anchor")
-                    .font(AppTypography.display)
+                Text("Anchor your day")
+                    .font(AppTypography.screenTitle)
                     .foregroundColor(AppColors.textPrimary)
                 
-                Text("Your personal accountability partner for staying focused and productive")
+                Text("Lock apps. Set goals. Stay Anchored.")
                     .font(AppTypography.body)
                     .foregroundColor(AppColors.textSecondary)
                     .multilineTextAlignment(.center)
@@ -56,23 +57,24 @@ struct WelcomeOnboardingPage: View {
 // MARK: - Description Slides
 struct DescriptionSlidesPage: View {
     @State private var currentSlide = 0
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
     let onContinue: () -> Void
     
     private let slides = [
         SlideData(
             icon: "lock.shield.fill",
-            title: "Stay Focused",
-            description: "Block distracting apps during your focus sessions and stay on track with your goals"
+            title: "Stay Anchored",
+            description: "Lock selected apps until your goals are complete."
         ),
         SlideData(
             icon: "person.2.fill",
-            title: "Stay Accountable",
-            description: "Connect with friends who help you stay accountable and unlock your apps when you need them"
+            title: "Anchor your day",
+            description: "Goals unlock your apps when you finish them."
         ),
         SlideData(
             icon: "target",
-            title: "Build Habits",
-            description: "Set daily goals and complete them to unlock your apps, building better habits every day"
+            title: "Stay Anchored",
+            description: "Set daily goals to Anchor you down and unlock apps when done."
         )
     ]
     
@@ -91,7 +93,7 @@ struct DescriptionSlidesPage: View {
             HStack(spacing: Theme.spacing) {
                 ForEach(0..<slides.count, id: \.self) { index in
                     Circle()
-                        .fill(index == currentSlide ? AppColors.anchorAccent : AppColors.anchorAccent.opacity(0.3))
+                        .fill(index == currentSlide ? AppColors.accent : AppColors.accent.opacity(0.3))
                         .frame(width: 8, height: 8)
                         .animation(Theme.springAnimationFast, value: currentSlide)
                 }
@@ -100,7 +102,7 @@ struct DescriptionSlidesPage: View {
             
             Button(action: {
                 if currentSlide < slides.count - 1 {
-                    withAnimation(Theme.springAnimation) {
+                    animate {
                         currentSlide += 1
                     }
                 } else {
@@ -113,6 +115,16 @@ struct DescriptionSlidesPage: View {
             .buttonStyle(PrimaryButtonStyle())
             .padding(.horizontal, Theme.spacing3)
             .padding(.bottom, Theme.spacing3)
+        }
+    }
+
+    private func animate(_ animation: Animation = AppMotion.gentleSpring, delay: Double = 0, _ changes: @escaping () -> Void) {
+        if reduceMotion {
+            changes()
+        } else {
+            withAnimation(animation.delay(delay)) {
+                changes()
+            }
         }
     }
 }
@@ -136,14 +148,14 @@ struct SlideView: View {
                     .frame(width: 120, height: 120)
                 
                 Image(systemName: slide.icon)
-                    .font(.system(size: 50, weight: .light))
-                    .foregroundColor(AppColors.anchorAccent)
+                    .font(AppTypography.screenTitle).fontWeight(.light)
+                    .foregroundColor(AppColors.accent)
             }
             .padding(.bottom, Theme.spacing3)
             
             VStack(spacing: Theme.spacing2) {
                 Text(slide.title)
-                    .font(AppTypography.largeTitle)
+                    .font(AppTypography.screenTitle)
                     .foregroundColor(AppColors.textPrimary)
                 
                 Text(slide.description)
@@ -171,7 +183,7 @@ struct SignInOnboardingPage: View {
             
             VStack(spacing: Theme.spacing2) {
                 Text("Sign In")
-                    .font(AppTypography.largeTitle)
+                    .font(AppTypography.screenTitle)
                     .foregroundColor(AppColors.textPrimary)
                 
                 Text("Create an account or sign in to continue")
@@ -193,7 +205,7 @@ struct SignInOnboardingPage: View {
                 }) {
                     HStack {
                         Image(systemName: "applelogo")
-                            .font(.system(size: 18))
+                            .font(AppTypography.body)
                         Text("Continue with Apple")
                             .frame(maxWidth: .infinity)
                     }
@@ -205,7 +217,7 @@ struct SignInOnboardingPage: View {
                 Button(action: onLogin) {
                     Text("Already have an account? Sign In")
                         .font(AppTypography.caption)
-                        .foregroundColor(AppColors.anchorAccent)
+                        .foregroundColor(AppColors.accent)
                 }
                 .buttonStyle(GhostButtonStyle())
                 .padding(.top, Theme.spacing)
@@ -246,7 +258,7 @@ struct ProfileOnboardingPage: View {
 
             VStack(spacing: Theme.spacing2) {
                 Text("Your Profile")
-                    .font(AppTypography.largeTitle)
+                    .font(AppTypography.screenTitle)
                     .foregroundColor(AppColors.textPrimary)
 
                 Text("This helps Anchor personalize your experience")
@@ -306,7 +318,7 @@ struct PermissionsExplanationPage: View {
             VStack(spacing: Theme.spacing3) {
                 VStack(spacing: Theme.spacing2) {
                     Text("Permissions")
-                        .font(AppTypography.largeTitle)
+                        .font(AppTypography.screenTitle)
                         .foregroundColor(AppColors.textPrimary)
                     
                     Text("Anchor needs these permissions to work properly")
@@ -321,25 +333,13 @@ struct PermissionsExplanationPage: View {
                     PermissionExplanationItem(
                         icon: "lock.shield.fill",
                         title: "Screen Time",
-                        description: "Required to block apps during focus sessions"
+                        description: "Anchor needs Screen Time permission to block apps during Anchored Mode"
                     )
                     
                     PermissionExplanationItem(
-                        icon: "camera.fill",
-                        title: "Camera",
-                        description: "For taking photo proof when requesting unlocks"
-                    )
-                    
-                    PermissionExplanationItem(
-                        icon: "mic.fill",
-                        title: "Microphone",
-                        description: "For voice notes and witness confirmations"
-                    )
-                    
-                    PermissionExplanationItem(
-                        icon: "person.crop.circle.fill",
-                        title: "Contacts",
-                        description: "To find and add accountability friends"
+                        icon: "bell.fill",
+                        title: "Notifications",
+                        description: "Reminders to Lock & Anchor and track goal completion"
                     )
                 }
                 .padding(.horizontal, Theme.spacing2)
@@ -375,13 +375,13 @@ struct PermissionExplanationItem: View {
                     .frame(width: 50, height: 50)
                 
                 Image(systemName: icon)
-                    .font(.system(size: 22, weight: .medium))
-                    .foregroundColor(AppColors.anchorAccent)
+                    .font(AppTypography.body).fontWeight(.medium)
+                    .foregroundColor(AppColors.accent)
             }
             
             VStack(alignment: .leading, spacing: Theme.smallSpacing) {
                 Text(title)
-                    .font(AppTypography.bodyBold)
+                    .font(AppTypography.body)
                     .foregroundColor(AppColors.textPrimary)
                 
                 Text(description)
@@ -401,12 +401,13 @@ struct PermissionExplanationItem: View {
 struct GoalCreationOnboardingPage: View {
     @ObservedObject var goalViewModel: GoalViewModel
     @State private var showGoalCreation = false
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
     let onContinue: () -> Void
     
     var body: some View {
         VStack(spacing: Theme.spacing3) {
             Text("Set Your First Goal")
-                .font(AppTypography.largeTitle)
+                .font(AppTypography.screenTitle)
                 .foregroundColor(AppColors.textPrimary)
                 .padding(.top, Theme.spacing3)
             
@@ -449,33 +450,15 @@ struct GoalCreationOnboardingPage: View {
             }
         }
     }
-}
 
-// MARK: - Friend Selection Onboarding Page
-struct FriendSelectionOnboardingPage: View {
-    let onComplete: () -> Void
-    
-    var body: some View {
-        VStack(spacing: Theme.spacing3) {
-            Text("Add Accountability Friends")
-                .font(AppTypography.largeTitle)
-                .foregroundColor(AppColors.textPrimary)
-                .padding(.top, Theme.spacing3)
-            
-            Text("You can add friends later in settings")
-                .font(AppTypography.body)
-                .foregroundColor(AppColors.textSecondary)
-                .padding(.horizontal, Theme.spacing3)
-            
-            Spacer()
-            
-            Button(action: onComplete) {
-                Text("Get Started")
-                    .frame(maxWidth: .infinity)
+    private func animate(_ animation: Animation = AppMotion.gentleSpring, delay: Double = 0, _ changes: @escaping () -> Void) {
+        if reduceMotion {
+            changes()
+        } else {
+            withAnimation(animation.delay(delay)) {
+                changes()
             }
-            .buttonStyle(PrimaryButtonStyle())
-            .padding(.horizontal, Theme.spacing3)
-            .padding(.bottom, Theme.spacing3)
         }
     }
+
 }

@@ -66,7 +66,7 @@ class AppDelegate: NSObject, UIApplicationDelegate {
         
         // Initialize offline sync service for background syncing
         Task { @MainActor in
-            OfflineSyncService.shared.startPeriodicSync()
+            // V1: offline unlock/proof sync removed
         }
         
         // Cleanup old cached data on app launch
@@ -156,15 +156,21 @@ class AppDelegate: NSObject, UIApplicationDelegate {
 struct AnchorAppApp: App {
     @UIApplicationDelegateAdaptor(AppDelegate.self) var appDelegate
     @StateObject private var appCoordinator = AppCoordinator()
-    @AppStorage("hasCompletedOnboarding") private var hasCompletedOnboarding: Bool = false
+    @Environment(\.scenePhase) private var scenePhase
     
     var body: some Scene {
         WindowGroup {
-            if hasCompletedOnboarding {
-                appCoordinator.rootView
-            } else {
-                OnboardingRootView()
-            }
+            appCoordinator.rootView
+                .task {
+                    DailyAnchorService.shared.registerScheduleIfNeeded()
+                    await DailyAnchorService.shared.applyIfNeeded()
+                }
+                .onChange(of: scenePhase) { newPhase in
+                    if newPhase == .active {
+                        DailyAnchorService.shared.registerScheduleIfNeeded()
+                        Task { await DailyAnchorService.shared.applyIfNeeded() }
+                    }
+                }
         }
     }
 }

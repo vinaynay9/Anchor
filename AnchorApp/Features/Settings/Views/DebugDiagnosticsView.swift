@@ -1,5 +1,6 @@
 import SwiftUI
 import Combine
+import Shared
 
 /// Debug diagnostics view for viewing logs and toggling verbose logging.
 /// **Warning:** This is for debugging purposes only.
@@ -7,6 +8,10 @@ struct DebugDiagnosticsView: View {
     private let logger = LoggerService.shared
     @State private var logs: [String] = []
     @State private var isVerboseLoggingEnabled: Bool = false
+    @State private var isAnchored: Bool = false
+    @State private var nextLockTimeText: String = "—"
+    @State private var completedGoals: Int = 0
+    @State private var unlockMinutes: Int = 0
     @State private var cancellables = Set<AnyCancellable>()
     
     var body: some View {
@@ -19,6 +24,9 @@ struct DebugDiagnosticsView: View {
                 
                 // Controls section
                 controlsSection
+
+                // Anchor Status
+                anchorStatusSection
                 
                 // Logs section
                 logsSection
@@ -28,6 +36,7 @@ struct DebugDiagnosticsView: View {
         .navigationBarTitleDisplayMode(.inline)
         .onAppear {
             loadLogs()
+            loadAnchorState()
             setupSubscriptions()
         }
     }
@@ -40,7 +49,7 @@ struct DebugDiagnosticsView: View {
                 Image(systemName: "exclamationmark.triangle.fill")
                     .foregroundColor(AppColors.warning)
                 Text("Debug Mode")
-                    .font(AppTypography.title3)
+                    .font(AppTypography.sectionHeader)
                     .foregroundColor(AppColors.textPrimary)
             }
             
@@ -91,7 +100,7 @@ struct DebugDiagnosticsView: View {
                         Text("Refresh")
                     }
                     .font(AppTypography.body)
-                    .foregroundColor(AppColors.anchorPrimary)
+                    .foregroundColor(AppColors.primary)
                     .frame(maxWidth: .infinity)
                     .padding(Theme.spacing)
                     .background(AppColors.secondaryBackground)
@@ -117,13 +126,33 @@ struct DebugDiagnosticsView: View {
         }
         .padding(Theme.spacing2)
     }
+
+    private var anchorStatusSection: some View {
+        VStack(alignment: .leading, spacing: Theme.spacing) {
+            Text("Anchor Status")
+                .font(AppTypography.sectionHeader)
+                .foregroundColor(AppColors.textPrimary)
+                .padding(.horizontal, Theme.spacing2)
+
+            VStack(alignment: .leading, spacing: Theme.spacing2) {
+                statusRow(label: "Locked", value: isAnchored ? "Yes" : "No")
+                statusRow(label: "Next lock time", value: nextLockTimeText)
+                statusRow(label: "Goals completed", value: "\(completedGoals)")
+                statusRow(label: "Unlock minutes", value: "\(unlockMinutes)")
+            }
+            .padding(Theme.spacing2)
+            .background(AppColors.secondaryBackground)
+            .cornerRadius(Theme.cornerRadiusMedium)
+        }
+        .padding(.top, Theme.spacing2)
+    }
     
     // MARK: - Logs Section
     
     private var logsSection: some View {
         VStack(alignment: .leading, spacing: Theme.spacing) {
             Text("Recent Logs")
-                .font(AppTypography.title3)
+                .font(AppTypography.sectionHeader)
                 .foregroundColor(AppColors.textPrimary)
                 .padding(.horizontal, Theme.spacing2)
             
@@ -152,6 +181,33 @@ struct DebugDiagnosticsView: View {
     private func loadLogs() {
         logs = logger.getRecentLogs(limit: 100)
     }
+
+    private func loadAnchorState() {
+        let shieldState = AppGroupStorage.shared.getShieldState()
+        isAnchored = shieldState?.isBlocking ?? false
+
+        if let progress = AppGroupStorage.shared.getDailyGoalProgress() {
+            completedGoals = progress.completedGoalIds.count
+            unlockMinutes = progress.earnedUnlockMinutesToday
+        } else {
+            completedGoals = 0
+            unlockMinutes = 0
+        }
+
+        let time = AppGroupStorage.shared.getDailyAnchorTime() ?? DailyAnchorTime(hour: 0, minute: 0)
+        let calendar = Calendar.current
+        let now = Date()
+        var components = calendar.dateComponents([.year, .month, .day], from: now)
+        components.hour = time.hour
+        components.minute = time.minute
+        components.second = 0
+        let todayLock = calendar.date(from: components) ?? now
+        let next = now > todayLock ? calendar.date(byAdding: .day, value: 1, to: todayLock) ?? todayLock : todayLock
+        let formatter = DateFormatter()
+        formatter.dateStyle = .none
+        formatter.timeStyle = .short
+        nextLockTimeText = formatter.string(from: next)
+    }
     
     private func setupSubscriptions() {
         // Load initial verbose logging state
@@ -168,8 +224,21 @@ struct DebugDiagnosticsView: View {
             .autoconnect()
             .sink { [self] _ in
                 loadLogs()
+                loadAnchorState()
             }
             .store(in: &cancellables)
+    }
+}
+
+private func statusRow(label: String, value: String) -> some View {
+    HStack {
+        Text(label)
+            .font(AppTypography.body)
+            .foregroundColor(AppColors.textSecondary)
+        Spacer()
+        Text(value)
+            .font(AppTypography.body)
+            .foregroundColor(AppColors.textPrimary)
     }
 }
 
@@ -188,7 +257,7 @@ private struct LogEntryView: View {
             
             // Log text
             Text(log)
-                .font(.system(.caption, design: .monospaced))
+                .font(AppTypography.caption)
                 .foregroundColor(AppColors.textPrimary)
                 .textSelection(.enabled)
             
@@ -206,7 +275,7 @@ private struct LogEntryView: View {
         } else if log.contains("[WARN]") {
             return AppColors.warning
         } else {
-            return AppColors.anchorPrimary
+            return AppColors.primary
         }
     }
 }

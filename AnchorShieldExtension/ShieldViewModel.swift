@@ -9,13 +9,10 @@ private let shieldLog = OSLog(subsystem: "com.vinay.Anchor", category: "Shield")
 
 @MainActor
 class ShieldViewModel: ObservableObject {
-    @Published var title: String = "You're anchored."
-    @Published var subtitle: String = "This app is blocked during your anchor window."
+    @Published var title: String = "Anchored"
+    @Published var subtitle: String = "Complete your goals in Anchor to unlock apps."
     @Published var remainingTimeText: String?
-    @Published var isWaitingForFriendApproval: Bool = false
-    @Published var primaryButtonTitle: String = "Request Unlock"
-    @Published var secondaryButtonTitle: String = "Message Your Accountability Partner"
-    @Published var explanationText: String = "Why is this blocked?"
+    @Published var primaryButtonTitle: String = "Open Anchor"
     
     // Goal progress state (calculated in ViewModel, not View)
     @Published var goalProgressText: String?
@@ -48,105 +45,30 @@ class ShieldViewModel: ObservableObject {
     
     /// Updates goal progress state. Called from ViewModel to keep business logic out of View.
     func refreshGoalProgress() {
-        goalTotalCount = 0
-        goalCompletedCount = 0
-        goalProgressText = nil
+        let state = appGroupStorage.getOnboardingState()
+        let total = state?.goals.count ?? 0
+        let progress = appGroupStorage.getDailyGoalProgress()
+        let today = localDayString(for: Date())
+
+        goalTotalCount = total
+        if let progress, progress.date == today {
+            goalCompletedCount = progress.completedGoalIds.count
+        } else {
+            goalCompletedCount = 0
+        }
+        if total > 0 {
+            goalProgressText = "\(goalCompletedCount) / \(total) complete"
+        } else {
+            goalProgressText = nil
+        }
     }
     
     func refresh() {
-        let state = appGroupStorage.getSessionState() // Now returns SharedSessionState?
-        let hasPendingUnlock = appGroupStorage.hasPendingUnlockRequest()
         let shieldState = appGroupStorage.getShieldState()
-        
-        // Use ShieldDecision to check if unlock is approved for this specific app
-        let isUnlockApproved = appGroupStorage.isUnlockApproved()
-        
-        if let shieldState = shieldState {
-            switch shieldState.reason {
-            case .waitingForQuorum:
-                isWaitingForFriendApproval = true
-                title = "Unlock pending."
-                subtitle = "Waiting for group quorum to approve."
-                primaryButtonTitle = "Open Anchor"
-                secondaryButtonTitle = "Return to Anchor"
-                explanationText = "Group sessions unlock only when a quorum approves."
-                remainingTimeText = nil
-                return
-            case .goalNotApproved:
-                isWaitingForFriendApproval = false
-                title = "Goals incomplete."
-                subtitle = "Complete your goals before unlocking."
-                primaryButtonTitle = "Open Anchor"
-                secondaryButtonTitle = "Return to Anchor"
-                explanationText = "This lock requires goals to be completed before unlock."
-                remainingTimeText = nil
-                return
-            case .contractPenaltyActive:
-                isWaitingForFriendApproval = false
-                title = "Contract penalty active."
-                subtitle = "This lock is enforced by a social contract."
-                primaryButtonTitle = "Open Anchor"
-                secondaryButtonTitle = "Return to Anchor"
-                explanationText = "Unlocking is restricted by contract consequences."
-                remainingTimeText = nil
-                return
-            case .unlockApproved:
-                // fall through to approved state below
-                break
-            case .activeLock, .free:
-                break
-            }
-        }
-        
-        // Check if unlock has been approved for this app - show approved state
-        if isUnlockApproved {
-            isWaitingForFriendApproval = false
-            title = "Unlock approved."
-            subtitle = "Your anchor approved this unlock. You can access the app now."
-            primaryButtonTitle = "Open Anchor"
-            secondaryButtonTitle = "Return to Anchor"
-            explanationText = "Your unlock request has been approved. The app should be accessible now. If you still see this screen, try closing and reopening the app."
-            remainingTimeText = nil
-            return
-        }
-        
-        // Check for pending unlock request
-        if hasPendingUnlock {
-            isWaitingForFriendApproval = true
-            title = "Unlock pending."
-            subtitle = "Waiting for your anchor to review your request."
-            primaryButtonTitle = "Open Anchor"
-            secondaryButtonTitle = "Message Your Accountability Partner"
-            explanationText = "Your unlock request is being reviewed. You'll be notified once your partner responds."
-            remainingTimeText = nil
-        } else if let state = state, state.isActive {
-            // Active session
-            isWaitingForFriendApproval = false
-            title = "You're anchored."
-            subtitle = "This app is blocked during your anchor window."
-            primaryButtonTitle = "Request Unlock"
-            secondaryButtonTitle = "Message Your Accountability Partner"
-            explanationText = "This app is blocked to help you stay focused. You can request temporary access or message your accountability partner."
-            
-            // Calculate remaining time from remainingSeconds or endTime
-            if let seconds = state.remainingSeconds {
-                remainingTimeText = formatTime(TimeInterval(seconds))
-            } else if let endTime = state.endTime {
-                let remaining = max(0, endTime.timeIntervalSince(Date()))
-                remainingTimeText = formatTime(remaining)
-            } else {
-                remainingTimeText = nil
-            }
-        } else {
-            // No active session - fallback state
-            isWaitingForFriendApproval = false
-            title = "You're anchored."
-            subtitle = "This app is blocked by Anchor."
-            primaryButtonTitle = "Open Anchor"
-            secondaryButtonTitle = "Message Your Accountability Partner"
-            explanationText = "This app is blocked. Open Anchor to manage your session."
-            remainingTimeText = nil
-        }
+        title = (shieldState?.isBlocking ?? false) ? "Anchored" : "Locked"
+        subtitle = "Complete your goals in Anchor to unlock apps."
+        primaryButtonTitle = "Open Anchor"
+        remainingTimeText = nil
     }
     
     func openAnchorApp() {
@@ -161,33 +83,6 @@ class ShieldViewModel: ObservableObject {
         }
         
         openURL(ShieldURLScheme.anchorApp)
-    }
-    
-    func openUnlockRequest() {
-        os_log("Opening unlock request from shield", log: shieldLog, type: .info)
-        
-        let bundleId = appGroupStorage.getCurrentBlockedBundleId()
-        
-        // Log for debugging
-        os_log("Unlock request bundle ID: %{public}@", log: shieldLog, type: .info, bundleId ?? "nil")
-        
-        // Write unlock request context with bundle ID for the main app
-        // The main app will use this to pass bundleId to the unlock request
-        appGroupStorage.setPendingDeepLinkContext(
-            requestId: nil,  // Will be assigned when request is created
-            bundleId: bundleId
-        )
-        
-        // Also store the bundle ID directly for easy access
-        if let bundleId = bundleId {
-            appGroupStorage.setCurrentBlockedBundleId(bundleId)
-        }
-        
-        openURL(ShieldURLScheme.unlockRequest)
-    }
-    
-    func openMessagePartner() {
-        openURL(ShieldURLScheme.messagePartner)
     }
     
     private func openURL(_ urlString: String) {
@@ -211,5 +106,14 @@ class ShieldViewModel: ObservableObject {
         } else {
             return String(format: "%d:%02d", minutes, seconds)
         }
+    }
+
+    private func localDayString(for date: Date) -> String {
+        let formatter = DateFormatter()
+        formatter.calendar = Calendar.current
+        formatter.locale = Locale(identifier: "en_US_POSIX")
+        formatter.timeZone = TimeZone.current
+        formatter.dateFormat = "yyyy-MM-dd"
+        return formatter.string(from: date)
     }
 }

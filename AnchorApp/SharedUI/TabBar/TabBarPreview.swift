@@ -9,12 +9,6 @@ struct TabBarPreview: View {
             switch tab {
             case .home:
                 HomeScreen()
-            case .sessions:
-                SessionsScreen()
-            case .apps:
-                AppsScreen()
-            case .friends:
-                FriendsScreen()
             case .settings:
                 SettingsScreen()
             }
@@ -25,4 +19,3 @@ struct TabBarPreview: View {
 #Preview {
     TabBarPreview()
 }
-

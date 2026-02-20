@@ -25,7 +25,7 @@ struct ActiveSessionMockView: View {
                     // Background circle
                     Circle()
                         .stroke(
-                            AppColors.anchorAccent.opacity(0.1),
+                            AppColors.accent.opacity(0.1),
                             lineWidth: 12
                         )
                         .frame(width: 280, height: 280)
@@ -36,8 +36,8 @@ struct ActiveSessionMockView: View {
                         .stroke(
                             LinearGradient(
                                 colors: [
-                                    AppColors.anchorAccent,
-                                    AppColors.anchorLavender
+                                    AppColors.accent,
+                                    AppColors.textTertiary
                                 ],
                                 startPoint: .topLeading,
                                 endPoint: .bottomTrailing
@@ -50,12 +50,12 @@ struct ActiveSessionMockView: View {
                         .frame(width: 280, height: 280)
                         .rotationEffect(.degrees(-90))
                         .animation(.linear(duration: 1.0), value: viewModel.progress)
-                        .shadow(color: AppColors.anchorAccent.opacity(0.3), radius: 8, x: 0, y: 0)
+                        .shadow(color: AppColors.accent.opacity(0.3), radius: 8, x: 0, y: 0)
                     
                     // Countdown time
                     VStack(spacing: Theme.spacing) {
                         Text(viewModel.formattedTime)
-                            .font(.system(size: 64, weight: .bold, design: .rounded))
+                            .font(AppTypography.screenTitle).fontWeight(.bold)
                             .foregroundColor(AppColors.textPrimary)
                             .monospacedDigit()
                             .contentTransition(.numericText())
@@ -78,13 +78,13 @@ struct ActiveSessionMockView: View {
                         viewModel.endSession()
                     }) {
                         Text("End Session")
-                            .font(AppTypography.bodyBold)
+                            .font(AppTypography.body)
                             .foregroundColor(AppColors.textPrimary)
                             .frame(maxWidth: .infinity)
                             .padding()
-                            .background(AppColors.anchorPrimary)
+                            .background(AppColors.primary)
                             .cornerRadius(AppLayout.buttonCornerRadius)
-                            .shadow(color: AppColors.anchorPrimary.opacity(0.3), radius: 8, x: 0, y: 4)
+                            .shadow(color: AppColors.primary.opacity(0.3), radius: 8, x: 0, y: 4)
                     }
                     .buttonStyle(PlainButtonStyle())
                     .scaleEffect(viewModel.isRunning ? 1.0 : 0.98)
@@ -95,7 +95,7 @@ struct ActiveSessionMockView: View {
                         viewModel.submitProof()
                     }) {
                         Text("Submit Proof")
-                            .font(AppTypography.bodyBold)
+                            .font(AppTypography.body)
                             .foregroundColor(AppColors.textPrimary)
                             .frame(maxWidth: .infinity)
                             .padding()
@@ -103,7 +103,7 @@ struct ActiveSessionMockView: View {
                             .cornerRadius(AppLayout.buttonCornerRadius)
                             .overlay(
                                 RoundedRectangle(cornerRadius: AppLayout.buttonCornerRadius)
-                                    .stroke(AppColors.anchorLavender, lineWidth: 2)
+                                    .stroke(AppColors.textTertiary, lineWidth: 2)
                             )
                     }
                     .buttonStyle(PlainButtonStyle())

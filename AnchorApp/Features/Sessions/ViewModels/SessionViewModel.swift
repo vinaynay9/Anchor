@@ -7,13 +7,19 @@ class SessionViewModel: ObservableObject {
     @Published var activeSession: LockSession?
     @Published var isLoading = false
     @Published var errorMessage: String?
+    @Published var isAnchored: Bool = false
+    @Published var goalsCompleted: Int = 0
+    @Published var goalsTotal: Int = 0
+    @Published var usageSummaries: [AppUsageSummary] = []
+    @Published var usageError: String?
     @Published var selectedDurationMinutes: Int = 25
-    @Published var selectedFriendIds: [String] = []
     @Published var selectedCategories: Set<AppCategory> = []
     @Published var schedule: LockSessionSchedule? = nil
     
     private let sessionService: SessionServiceProtocol
     private let screenTimeService: ScreenTimeServiceProtocol
+    private let dailyGoalService = DailyGoalService.shared
+    private let usageReportService = UsageReportService.shared
     
     init(
         sessionService: SessionServiceProtocol = SessionService.shared,
@@ -57,6 +63,23 @@ class SessionViewModel: ObservableObject {
             }
         }
     }
+
+    func loadDashboardData() async {
+        let shieldState = AppGroupStorage.shared.getShieldState()
+        isAnchored = shieldState?.isBlocking ?? false
+
+        let progress = dailyGoalService.loadProgress()
+        goalsCompleted = progress.completedGoalIds.count
+        goalsTotal = max((await dailyGoalService.loadGoals()).count, 0)
+
+        do {
+            usageSummaries = try await usageReportService.fetchDailyUsage()
+            usageError = nil
+        } catch {
+            usageSummaries = []
+            usageError = error.localizedDescription
+        }
+    }
     
     func startSession() async {
         isLoading = true
@@ -70,7 +93,7 @@ class SessionViewModel: ObservableObject {
                 
                 // Verify authorization was granted
                 if !screenTimeService.isAuthorized() {
-                    self.errorMessage = "Screen Time authorization is required to start a session."
+                    self.errorMessage = "Screen Time authorization is required to enter Anchored Mode."
                     self.isLoading = false
                     return
                 }
@@ -86,7 +109,7 @@ class SessionViewModel: ObservableObject {
             let categories = selectedCategories.isEmpty ? nil : Array(selectedCategories)
             let session = try await sessionService.startSession(
                 durationMinutes: selectedDurationMinutes,
-                friendIds: selectedFriendIds,
+                friendIds: [],
                 categories: categories,
                 schedule: schedule
             )

@@ -26,13 +26,11 @@ protocol FullScreenCoverPresenting {
 
 /// Enum for sheet destinations
 enum SheetDestination: Identifiable, Hashable {
-    case addFriend
     case createSession
     case selectApps
     
     var id: String {
         switch self {
-        case .addFriend: return "addFriend"
         case .createSession: return "createSession"
         case .selectApps: return "selectApps"
         }

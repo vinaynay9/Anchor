@@ -38,7 +38,7 @@ struct ProofCaptureView: View {
                 Button(action: { dismiss() }) {
                     Image(systemName: "xmark")
                         .foregroundColor(AppColors.textPrimary)
-                        .font(.system(size: 18, weight: .semibold))
+                        .font(AppTypography.body).fontWeight(.semibold)
                 }
             }
         }
@@ -49,7 +49,7 @@ struct ProofCaptureView: View {
             // Header section
             VStack(spacing: 12) {
                 Text("Send proof to your friend")
-                    .font(AppTypography.title2)
+                    .font(AppTypography.sectionHeader)
                     .foregroundColor(AppColors.textPrimary)
                     .multilineTextAlignment(.center)
                 
@@ -85,8 +85,8 @@ struct ProofCaptureView: View {
                     .overlay(
                         LinearGradient(
                             colors: [
-                                AppColors.anchorPrimary.opacity(0.1),
-                                AppColors.anchorAccent.opacity(0.05)
+                                AppColors.primary.opacity(0.1),
+                                AppColors.accent.opacity(0.05)
                             ],
                             startPoint: .topLeading,
                             endPoint: .bottomTrailing
@@ -97,9 +97,9 @@ struct ProofCaptureView: View {
                             .stroke(
                                 LinearGradient(
                                     colors: [
-                                        AppColors.anchorAccent.opacity(0.6),
-                                        AppColors.anchorLavender.opacity(0.4),
-                                        AppColors.anchorAccent.opacity(0.6)
+                                        AppColors.accent.opacity(0.6),
+                                        AppColors.textTertiary.opacity(0.4),
+                                        AppColors.accent.opacity(0.6)
                                     ],
                                     startPoint: .topLeading,
                                     endPoint: .bottomTrailing
@@ -125,8 +125,8 @@ struct ProofCaptureView: View {
                             .fill(
                                 LinearGradient(
                                     colors: [
-                                        AppColors.anchorAccent.opacity(0.3),
-                                        AppColors.anchorLavender.opacity(0.2)
+                                        AppColors.accent.opacity(0.3),
+                                        AppColors.textTertiary.opacity(0.2)
                                     ],
                                     startPoint: .topLeading,
                                     endPoint: .bottomTrailing
@@ -140,8 +140,8 @@ struct ProofCaptureView: View {
                             .fill(
                                 LinearGradient(
                                     colors: [
-                                        AppColors.anchorAccent,
-                                        AppColors.anchorLavender
+                                        AppColors.accent,
+                                        AppColors.textTertiary
                                     ],
                                     startPoint: .topLeading,
                                     endPoint: .bottomTrailing
@@ -150,12 +150,12 @@ struct ProofCaptureView: View {
                             .frame(width: 72, height: 72)
                             .overlay(
                                 Circle()
-                                    .stroke(Color.white.opacity(0.3), lineWidth: 2)
+                                    .stroke(AppColors.textPrimary.opacity(0.3), lineWidth: 2)
                             )
                         
                         // Inner circle
                         Circle()
-                            .fill(Color.white)
+                            .fill(AppColors.textPrimary)
                             .frame(width: 60, height: 60)
                     }
                 }
@@ -200,8 +200,8 @@ struct ProofCaptureView: View {
                         .stroke(
                             LinearGradient(
                                 colors: [
-                                    AppColors.anchorAccent.opacity(0.4),
-                                    AppColors.anchorLavender.opacity(0.3)
+                                    AppColors.accent.opacity(0.4),
+                                    AppColors.textTertiary.opacity(0.3)
                                 ],
                                 startPoint: .topLeading,
                                 endPoint: .bottomTrailing
@@ -221,9 +221,9 @@ struct ProofCaptureView: View {
                     }) {
                         HStack(spacing: 8) {
                             Image(systemName: "arrow.counterclockwise")
-                                .font(.system(size: 16, weight: .semibold))
+                                .font(AppTypography.helper).fontWeight(.semibold)
                             Text("Retake")
-                                .font(AppTypography.bodyBold)
+                                .font(AppTypography.body)
                         }
                         .foregroundColor(AppColors.textPrimary)
                         .frame(maxWidth: .infinity)
@@ -232,7 +232,7 @@ struct ProofCaptureView: View {
                         .cornerRadius(AppLayout.cardCornerRadius)
                         .overlay(
                             RoundedRectangle(cornerRadius: AppLayout.cardCornerRadius)
-                                .stroke(AppColors.anchorLavender.opacity(0.3), lineWidth: 1)
+                                .stroke(AppColors.textTertiary.opacity(0.3), lineWidth: 1)
                         )
                     }
                     
@@ -243,16 +243,16 @@ struct ProofCaptureView: View {
                     }) {
                         HStack(spacing: 8) {
                             Text("Use Photo")
-                                .font(AppTypography.bodyBold)
+                                .font(AppTypography.body)
                             Image(systemName: "checkmark")
-                                .font(.system(size: 16, weight: .semibold))
+                                .font(AppTypography.helper).fontWeight(.semibold)
                         }
                         .foregroundColor(AppColors.textPrimary)
                         .frame(maxWidth: .infinity)
                         .padding(.vertical, 16)
                         .background(
                             LinearGradient(
-                                colors: [AppColors.anchorAccent, AppColors.anchorLavender],
+                                colors: [AppColors.accent, AppColors.textTertiary],
                                 startPoint: .leading,
                                 endPoint: .trailing
                             )
@@ -279,4 +279,3 @@ struct ProofCaptureView: View {
     }
     
 }
-

@@ -6,8 +6,6 @@ import Shared
 class SettingsViewModel: ObservableObject {
     // Notification toggles with @AppStorage
     @AppStorage("sessionRemindersEnabled") var sessionRemindersEnabled: Bool = true
-    @AppStorage("unlockRequestAlertsEnabled") var unlockRequestAlertsEnabled: Bool = true
-    @AppStorage("witnessRequestEnabled") var witnessRequestEnabled: Bool = true
     
     // Alert state
     @Published var showClearDataAlert = false
@@ -16,13 +14,16 @@ class SettingsViewModel: ObservableObject {
     @Published var emergencyDurationMinutes: Int = 30
     @Published var isProcessingEmergencyUnanchor = false
     @Published var dailyAnchorTime: Date
+    @Published var showLockTimeConfirmation = false
+    @Published var pendingLockTime: Date?
     @Published var isCognitoSignedIn: Bool = false
+    @Published var inviteState: InviteState?
     
     private let anchorScheduleService = AnchorScheduleService.shared
-    private let friendService: FriendServiceProtocol
+    private let dailyAnchorService = DailyAnchorService.shared
     private let notificationService: NotificationServiceProtocol
-    private let auditService: AuditServiceProtocol
     private let screenTimeService: ScreenTimeServiceProtocol
+    private let inviteService: InviteServiceProtocol
     
     // User info (mock for now - should come from AuthService)
     var userInitials: String {
@@ -41,15 +42,13 @@ class SettingsViewModel: ObservableObject {
     }
     
     init(
-        friendService: FriendServiceProtocol = FriendService.shared,
         notificationService: NotificationServiceProtocol = NotificationService.shared,
-        auditService: AuditServiceProtocol = AuditService.shared,
-        screenTimeService: ScreenTimeServiceProtocol = ScreenTimeService.shared
+        screenTimeService: ScreenTimeServiceProtocol = ScreenTimeService.shared,
+        inviteService: InviteServiceProtocol = InviteService.shared
     ) {
-        self.friendService = friendService
         self.notificationService = notificationService
-        self.auditService = auditService
         self.screenTimeService = screenTimeService
+        self.inviteService = inviteService
         
         let schedule = anchorScheduleService.dailyAnchorTime
         var components = Calendar.current.dateComponents([.year, .month, .day], from: Date())
@@ -90,7 +89,16 @@ class SettingsViewModel: ObservableObject {
         let components = Calendar.current.dateComponents([.hour, .minute], from: date)
         let hour = components.hour ?? 0
         let minute = components.minute ?? 0
-        anchorScheduleService.updateDailyAnchorTime(DailyAnchorTime(hour: hour, minute: minute))
+        let time = DailyAnchorTime(hour: hour, minute: minute)
+        anchorScheduleService.updateDailyAnchorTime(time)
+        dailyAnchorService.updateLockStartTime(time)
+    }
+
+    func requiresConfirmation(for date: Date) -> Bool {
+        let components = Calendar.current.dateComponents([.hour, .minute], from: date)
+        let hour = components.hour ?? 0
+        let minute = components.minute ?? 0
+        return hour > 0 || minute > 0
     }
 
     func requestEmergencyUnanchor() {
@@ -99,23 +107,7 @@ class SettingsViewModel: ObservableObject {
         
         Task {
             let durationSeconds = TimeInterval(emergencyDurationMinutes * 60)
-            let anchors = (try? await friendService.getFriends()) ?? []
             await screenTimeService.emergencyUnanchor(duration: durationSeconds)
-            await notificationService.notifyAnchorsEmergencyUnanchor(
-                anchors: anchors,
-                reason: emergencyReason,
-                duration: durationSeconds
-            )
-            
-            let anchorIds = anchors.map(\.id)
-            let event = AuditEvent(
-                type: .emergencyUnanchor,
-                reason: emergencyReason,
-                durationMinutes: emergencyDurationMinutes,
-                notifiedAnchorIds: anchorIds
-            )
-            auditService.recordEvent(event)
-
             let payload = AnalyticsPayload(
                 userState: .free,
                 metrics: AnalyticsMetrics(doubleValues: ["durationMinutes": Double(emergencyDurationMinutes)])
@@ -166,6 +158,22 @@ class SettingsViewModel: ObservableObject {
 
     func refreshCognitoStatus() {
         isCognitoSignedIn = CognitoAuthService.shared.isSignedIn
+    }
+
+    func loadInviteState() async {
+        let state = await inviteService.currentInviteState()
+        await MainActor.run {
+            self.inviteState = state
+        }
+    }
+
+    func refreshInviteStatsIfNeeded(force: Bool = false) async {
+        await inviteService.refreshInviteStatsIfNeeded(force: force)
+        await loadInviteState()
+    }
+
+    func sharePayload() async -> (url: URL, message: String) {
+        await inviteService.sharePayload()
     }
 
     func signInForRemoteConfig() {

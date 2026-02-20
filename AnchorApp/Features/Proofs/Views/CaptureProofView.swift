@@ -35,14 +35,14 @@ struct CaptureProofView: View {
                 }) {
                     VStack {
                         Image(systemName: "camera.fill")
-                            .font(.system(size: 50))
+                            .font(AppTypography.screenTitle)
                         Text("Take Photo")
-                            .font(AppTypography.bodyBold)
+                            .font(AppTypography.body)
                     }
-                    .foregroundColor(.white)
+                    .foregroundColor(AppColors.onPrimary)
                     .frame(maxWidth: .infinity)
                     .padding()
-                    .background(AppColors.anchorPrimary)
+                    .background(AppColors.primary)
                     .cornerRadius(AppLayout.buttonCornerRadius)
                 }
                 .padding()
@@ -50,7 +50,7 @@ struct CaptureProofView: View {
             
             if let errorMessage = viewModel.errorMessage {
                 Text(errorMessage)
-                    .foregroundColor(.red)
+                    .foregroundColor(AppColors.error)
                     .padding()
             }
         }
@@ -102,4 +102,3 @@ struct ImagePicker: UIViewControllerRepresentable {
         }
     }
 }
-

@@ -12,12 +12,12 @@ struct ScreenTimeWhyView: View {
         ReasonItem(
             icon: "lock.shield.fill",
             title: "Block During Sessions",
-            description: "We'll block distracting apps when you start a focus session"
+            description: "We'll block distracting apps when you start a Anchored Mode"
         ),
         ReasonItem(
             icon: "person.2.fill",
-            title: "Friend Unlock Requests",
-            description: "Your accountability friends can approve unlock requests when you need access"
+            title: "Unlock control",
+            description: "Apps unlock when you complete your goals."
         )
     ]
     
@@ -36,13 +36,13 @@ struct ScreenTimeWhyView: View {
                                 .frame(width: 120, height: 120)
                             
                             Image(systemName: "lock.shield.fill")
-                                .font(.system(size: 50, weight: .light))
-                                .foregroundColor(AppColors.anchorAccent)
+                                .font(AppTypography.screenTitle).fontWeight(.light)
+                                .foregroundColor(AppColors.accent)
                         }
                         .padding(.top, Theme.spacing3)
                         
                         Text("Why We Need Screen Time Access")
-                            .font(AppTypography.largeTitle)
+                            .font(AppTypography.screenTitle)
                             .foregroundColor(AppColors.textPrimary)
                             .multilineTextAlignment(.center)
                         
@@ -94,13 +94,13 @@ struct ReasonRowView: View {
                     .frame(width: 50, height: 50)
                 
                 Image(systemName: reason.icon)
-                    .font(.system(size: 22, weight: .medium))
-                    .foregroundColor(AppColors.anchorAccent)
+                    .font(AppTypography.body).fontWeight(.medium)
+                    .foregroundColor(AppColors.accent)
             }
             
             VStack(alignment: .leading, spacing: Theme.smallSpacing) {
                 Text(reason.title)
-                    .font(AppTypography.bodyBold)
+                    .font(AppTypography.body)
                     .foregroundColor(AppColors.textPrimary)
                 
                 Text(reason.description)

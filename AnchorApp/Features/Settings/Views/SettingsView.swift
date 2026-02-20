@@ -1,5 +1,6 @@
 import SwiftUI
 import Shared
+import UIKit
 
 struct SettingsView: View {
     @StateObject private var viewModel = SettingsViewModel()
@@ -9,6 +10,15 @@ struct SettingsView: View {
     @AppStorage(InternalToolsKeys.isEnabled) private var internalToolsEnabled: Bool = false
     @AppStorage("analyticsRemoteExportEnabled") private var analyticsRemoteExportEnabled: Bool = false
     @AppStorage("hasCompletedOnboarding") private var hasCompletedOnboarding: Bool = false
+    @AppStorage("hasSeenOnboarding") private var hasSeenOnboarding: Bool = false
+    @State private var showShareSheet = false
+    @State private var shareItems: [Any] = []
+    @State private var lockTime: Date = Date()
+    @State private var previousLockTime: Date = Date()
+    @State private var lockConfirmationText: String = ""
+    @State private var lockConfirmationError: String?
+
+    private let lockConfirmationPhrase = "I know I am destroying my habits by changing my lock time"
     
     var body: some View {
         ZStack {
@@ -16,14 +26,17 @@ struct SettingsView: View {
             
             ScrollView {
                 VStack(spacing: Theme.spacing3) {
+                    // Invite CTA
+                    inviteCTASection
+
                     // Profile Section
                     profileSection
+
+                    // Lock Schedule
+                    lockScheduleSection
                     
                     // Permissions Section
                     permissionsSection
-                    
-                    // Friends & Accountability Section
-                    friendsAccountabilitySection
                     
                     // App Controls Section
                     appControlsSection
@@ -37,6 +50,9 @@ struct SettingsView: View {
         }
         .navigationTitle("Settings")
         .navigationBarTitleDisplayMode(.large)
+        .sheet(isPresented: $showShareSheet) {
+            ShareSheet(items: shareItems)
+        }
         .alert("Clear Local Data", isPresented: $viewModel.showClearDataAlert) {
             Button("Cancel", role: .cancel) {
                 viewModel.showClearDataAlert = false
@@ -47,13 +63,96 @@ struct SettingsView: View {
         } message: {
             Text("This will permanently delete all local data. This action cannot be undone.")
         }
+        .sheet(isPresented: $viewModel.showLockTimeConfirmation) {
+            lockTimeConfirmationSheet
+        }
+        .onAppear {
+            lockTime = viewModel.dailyAnchorTime
+            previousLockTime = lockTime
+            Task {
+                await viewModel.loadInviteState()
+                await viewModel.refreshInviteStatsIfNeeded()
+            }
+        }
+    }
+
+    // MARK: - Invite CTA
+    private var inviteCTASection: some View {
+        VStack(alignment: .leading, spacing: Theme.spacing) {
+            Text("INVITE FRIENDS")
+                .font(AppTypography.caption)
+                .foregroundColor(AppColors.textSecondary)
+                .tracking(0.5)
+
+            VStack(alignment: .leading, spacing: Theme.spacing2) {
+                HStack {
+                    VStack(alignment: .leading, spacing: 6) {
+                        Text("Invite Friends")
+                            .font(AppTypography.sectionHeader)
+                            .foregroundColor(AppColors.textPrimary)
+
+                        Text(inviteSubtitle)
+                            .font(AppTypography.helper)
+                            .foregroundColor(AppColors.textSecondary)
+                    }
+                    Spacer()
+                }
+
+                HStack(spacing: Theme.spacing) {
+                    Button(action: { shareInvite() }) {
+                        Text("Share Link")
+                            .frame(maxWidth: .infinity)
+                    }
+                    .buttonStyle(PrimaryPressableButtonStyle())
+
+                    Button(action: { copyInviteLink() }) {
+                        Text("Copy Link")
+                            .frame(maxWidth: .infinity)
+                    }
+                    .buttonStyle(SecondaryPressableButtonStyle())
+                }
+            }
+            .padding(Theme.spacing2)
+            .background(AppColors.surface)
+            .cornerRadius(Theme.cornerRadiusMedium)
+            .overlay(
+                RoundedRectangle(cornerRadius: Theme.cornerRadiusMedium)
+                    .stroke(AppColors.border.opacity(0.25), lineWidth: 1)
+            )
+            .anchorHover()
+        }
+    }
+
+    private var inviteSubtitle: String {
+        let count = viewModel.inviteState?.inviteCount ?? 0
+        return "Your link • \(count) invited"
+    }
+
+    private func shareInvite() {
+        Task {
+            let payload = await viewModel.sharePayload()
+            await MainActor.run {
+                shareItems = [payload.message, payload.url]
+                showShareSheet = true
+            }
+        }
+    }
+
+    private func copyInviteLink() {
+        Task {
+            let payload = await viewModel.sharePayload()
+            await MainActor.run {
+                UIPasteboard.general.string = payload.url.absoluteString
+                ToastManager.shared.show("Invite link copied")
+            }
+        }
     }
     
     // MARK: - Profile Section
     private var profileSection: some View {
         VStack(alignment: .leading, spacing: Theme.spacing) {
             Text("PROFILE")
-                .font(AppTypography.captionBold)
+                .font(AppTypography.caption)
                 .foregroundColor(AppColors.textSecondary)
                 .tracking(0.5)
             
@@ -63,7 +162,7 @@ struct SettingsView: View {
                     Circle()
                         .fill(
                             LinearGradient(
-                                colors: [AppColors.anchorPrimary, AppColors.anchorAccent],
+                                colors: [AppColors.primary, AppColors.accent],
                                 startPoint: .topLeading,
                                 endPoint: .bottomTrailing
                             )
@@ -71,14 +170,14 @@ struct SettingsView: View {
                         .frame(width: 80, height: 80)
                     
                     Text(viewModel.userInitials)
-                        .font(AppTypography.title)
+                        .font(AppTypography.screenTitle)
                         .foregroundColor(AppColors.onPrimary)
                 }
                 .padding(.top, Theme.spacing)
                 
                 // Name
                 Text(viewModel.displayName)
-                    .font(AppTypography.title3)
+                    .font(AppTypography.sectionHeader)
                     .foregroundColor(AppColors.textPrimary)
                 
                 // Email
@@ -99,12 +198,117 @@ struct SettingsView: View {
             )
         }
     }
+
+    // MARK: - Lock Schedule
+    private var lockScheduleSection: some View {
+        VStack(alignment: .leading, spacing: Theme.spacing) {
+            Text("LOCK SCHEDULE")
+                .font(AppTypography.caption)
+                .foregroundColor(AppColors.textSecondary)
+                .tracking(0.5)
+
+            VStack(alignment: .leading, spacing: Theme.spacing2) {
+                Text("Lock start time")
+                    .font(AppTypography.sectionHeader)
+                    .foregroundColor(AppColors.textPrimary)
+
+                DatePicker(
+                    "",
+                    selection: $lockTime,
+                    displayedComponents: .hourAndMinute
+                )
+                .datePickerStyle(.wheel)
+                .labelsHidden()
+                .onChange(of: lockTime) { newValue in
+                    if viewModel.requiresConfirmation(for: newValue) {
+                        viewModel.pendingLockTime = newValue
+                        viewModel.showLockTimeConfirmation = true
+                        lockTime = previousLockTime
+                    } else {
+                        previousLockTime = newValue
+                        viewModel.updateDailyAnchorTime(newValue)
+                    }
+                }
+
+                Text("Default is 12:00 AM. Later times require confirmation.")
+                    .font(AppTypography.caption)
+                    .foregroundColor(AppColors.textSecondary)
+            }
+            .padding(Theme.spacing2)
+            .background(AppColors.surface)
+            .cornerRadius(Theme.cornerRadiusMedium)
+            .overlay(
+                RoundedRectangle(cornerRadius: Theme.cornerRadiusMedium)
+                    .stroke(AppColors.border.opacity(0.25), lineWidth: 1)
+            )
+        }
+    }
+
+    private var lockTimeConfirmationSheet: some View {
+        ZStack {
+            AppColors.background.ignoresSafeArea()
+
+            VStack(spacing: Theme.spacing3) {
+                Text("Confirm change")
+                    .font(AppTypography.screenTitle)
+                    .foregroundColor(AppColors.textPrimary)
+
+                Text("Type the phrase below to move your lock time later.")
+                    .font(AppTypography.body)
+                    .foregroundColor(AppColors.textSecondary)
+                    .multilineTextAlignment(.center)
+
+                Text(lockConfirmationPhrase)
+                    .font(AppTypography.caption)
+                    .foregroundColor(AppColors.textSecondary)
+                    .multilineTextAlignment(.center)
+
+                TextField("Type the phrase", text: $lockConfirmationText)
+                    .textFieldStyle(AppTextFieldStyle())
+                    .autocapitalization(.none)
+                    .disableAutocorrection(true)
+
+                if let error = lockConfirmationError {
+                    Text(error)
+                        .font(AppTypography.caption)
+                        .foregroundColor(AppColors.accent)
+                }
+
+                HStack(spacing: Theme.spacing) {
+                    Button("Cancel") {
+                        lockConfirmationText = ""
+                        lockConfirmationError = nil
+                        viewModel.showLockTimeConfirmation = false
+                    }
+                    .buttonStyle(SecondaryPressableButtonStyle())
+
+                    Button("Confirm") {
+                        let input = lockConfirmationText.trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
+                        let expected = lockConfirmationPhrase.lowercased()
+                        guard input == expected, let pending = viewModel.pendingLockTime else {
+                            lockConfirmationError = "Phrase does not match. Try again."
+                            return
+                        }
+                        previousLockTime = pending
+                        lockTime = pending
+                        viewModel.updateDailyAnchorTime(pending)
+                        lockConfirmationText = ""
+                        lockConfirmationError = nil
+                        viewModel.pendingLockTime = nil
+                        viewModel.showLockTimeConfirmation = false
+                    }
+                    .buttonStyle(PrimaryPressableButtonStyle())
+                }
+            }
+            .padding(Theme.spacing3)
+        }
+    }
     
     // MARK: - Permissions Section
     private var permissionsSection: some View {
         VStack(alignment: .leading, spacing: Theme.spacing) {
             Text("PERMISSIONS")
-                .font(AppTypography.captionBold)
+                .font(AppTypography.caption)
                 .foregroundColor(AppColors.textSecondary)
                 .tracking(0.5)
             
@@ -137,44 +341,11 @@ struct SettingsView: View {
         }
     }
     
-    // MARK: - Friends & Accountability Section
-    private var friendsAccountabilitySection: some View {
-        VStack(alignment: .leading, spacing: Theme.spacing) {
-            Text("FRIENDS & ACCOUNTABILITY")
-                .font(AppTypography.captionBold)
-                .foregroundColor(AppColors.textSecondary)
-                .tracking(0.5)
-            
-            VStack(spacing: 0) {
-                SettingsRowView(
-                    icon: "person.2",
-                    title: "Manage Friends",
-                    action: {
-                        // Navigate to friends tab
-                        coordinator.friendsPath = NavigationPath()
-                    }
-                )
-                
-                Divider()
-                    .background(AppColors.textSecondary.opacity(0.2))
-                    .padding(.leading, 50)
-                
-                SettingsRowView(
-                    icon: "checkmark.shield",
-                    title: "Witness Request Toggle",
-                    isOn: $viewModel.witnessRequestEnabled
-                )
-            }
-            .background(AppColors.secondaryBackground)
-            .cornerRadius(Theme.cornerRadiusMedium)
-        }
-    }
-    
     // MARK: - App Controls Section
     private var appControlsSection: some View {
         VStack(alignment: .leading, spacing: Theme.spacing) {
             Text("APP CONTROLS")
-                .font(AppTypography.captionBold)
+                .font(AppTypography.caption)
                 .foregroundColor(AppColors.textSecondary)
                 .tracking(0.5)
             
@@ -222,6 +393,7 @@ struct SettingsView: View {
                     title: "Reset Onboarding (Debug)",
                     action: {
                         hasCompletedOnboarding = false
+                        hasSeenOnboarding = false
                     }
                 )
                 #endif
@@ -262,7 +434,7 @@ struct SettingsView: View {
     private var accountSection: some View {
         VStack(alignment: .leading, spacing: Theme.spacing) {
             Text("ACCOUNT")
-                .font(AppTypography.captionBold)
+                .font(AppTypography.caption)
                 .foregroundColor(AppColors.textSecondary)
                 .tracking(0.5)
             
@@ -312,4 +484,14 @@ struct SettingsView: View {
             viewModel.refreshCognitoStatus()
         }
     }
+}
+
+struct ShareSheet: UIViewControllerRepresentable {
+    let items: [Any]
+
+    func makeUIViewController(context: Context) -> UIActivityViewController {
+        UIActivityViewController(activityItems: items, applicationActivities: nil)
+    }
+
+    func updateUIViewController(_ uiViewController: UIActivityViewController, context: Context) {}
 }

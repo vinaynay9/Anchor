@@ -48,7 +48,7 @@ struct UnlockRequestSubmitView: View {
                     VStack(spacing: Theme.spacing3) {
                         // Title
                         Text("Submit Proof")
-                            .font(AppTypography.largeTitle)
+                            .font(AppTypography.screenTitle)
                             .foregroundColor(AppColors.textPrimary)
                             .frame(maxWidth: .infinity, alignment: .leading)
                             .padding(.horizontal, Theme.spacing2)
@@ -86,7 +86,7 @@ struct UnlockRequestSubmitView: View {
     private var habitSummaryCard: some View {
         VStack(alignment: .leading, spacing: Theme.spacing2) {
             Text("Today's Goals")
-                .font(AppTypography.title3)
+                .font(AppTypography.sectionHeader)
                 .foregroundColor(AppColors.textPrimary)
             
             let goals = goalsViewModel.goals
@@ -123,8 +123,8 @@ struct UnlockRequestSubmitView: View {
                 .stroke(
                     LinearGradient(
                         colors: [
-                            AppColors.anchorLavender.opacity(0.3),
-                            AppColors.anchorAccent.opacity(0.2)
+                            AppColors.textTertiary.opacity(0.3),
+                            AppColors.accent.opacity(0.2)
                         ],
                         startPoint: .topLeading,
                         endPoint: .bottomTrailing
@@ -139,7 +139,7 @@ struct UnlockRequestSubmitView: View {
     private var evidenceOptionsSection: some View {
         VStack(alignment: .leading, spacing: Theme.spacing2) {
             Text("Evidence Options")
-                .font(AppTypography.title3)
+                .font(AppTypography.sectionHeader)
                 .foregroundColor(AppColors.textPrimary)
                 .padding(.horizontal, Theme.spacing2)
             
@@ -171,7 +171,7 @@ struct UnlockRequestSubmitView: View {
     private var messageInputSection: some View {
         VStack(alignment: .leading, spacing: Theme.spacing) {
             Text("Optional Message")
-                .font(AppTypography.bodyBold)
+                .font(AppTypography.body)
                 .foregroundColor(AppColors.textPrimary)
                 .padding(.horizontal, Theme.spacing2)
             
@@ -234,12 +234,12 @@ struct UnlockRequestSubmitView: View {
                     .blur(radius: 15)
                 
                 Image(systemName: "checkmark.circle.fill")
-                    .font(.system(size: 64))
+                    .font(AppTypography.screenTitle)
                     .foregroundColor(AppColors.success)
             }
             
             Text("Request Sent")
-                .font(AppTypography.largeTitle)
+                .font(AppTypography.screenTitle)
                 .foregroundColor(AppColors.textPrimary)
             
             Text("Your friend will approve shortly.")
@@ -334,18 +334,18 @@ struct EvidenceOptionButton: View {
                 ZStack {
                     RoundedRectangle(cornerRadius: Theme.cornerRadius)
                         .fill(
-                            isSelected ? AppColors.anchorAccent.opacity(0.2) : AppColors.secondaryBackground
+                            isSelected ? AppColors.accent.opacity(0.2) : AppColors.secondaryBackground
                         )
                         .frame(width: 50, height: 50)
                     
                     Image(systemName: evidenceType.icon)
-                        .font(.system(size: 22, weight: .medium))
-                        .foregroundColor(isSelected ? AppColors.anchorAccent : AppColors.textSecondary)
+                        .font(AppTypography.body).fontWeight(.medium)
+                        .foregroundColor(isSelected ? AppColors.accent : AppColors.textSecondary)
                 }
                 
                 VStack(alignment: .leading, spacing: Theme.smallSpacing) {
                     Text(evidenceType.rawValue)
-                        .font(AppTypography.bodyBold)
+                        .font(AppTypography.body)
                         .foregroundColor(AppColors.textPrimary)
                     
                     Text(evidenceType.description)
@@ -363,12 +363,12 @@ struct EvidenceOptionButton: View {
             .padding(Theme.spacing2)
             .background(
                 RoundedRectangle(cornerRadius: Theme.cornerRadiusMedium)
-                    .fill(isSelected ? AppColors.anchorLavender.opacity(0.1) : AppColors.secondaryBackground)
+                    .fill(isSelected ? AppColors.textTertiary.opacity(0.1) : AppColors.secondaryBackground)
             )
             .overlay(
                 RoundedRectangle(cornerRadius: Theme.cornerRadiusMedium)
                     .stroke(
-                        isSelected ? AppColors.anchorAccent : AppColors.textSecondary.opacity(0.2),
+                        isSelected ? AppColors.accent : AppColors.textSecondary.opacity(0.2),
                         lineWidth: isSelected ? 2 : 1
                     )
             )

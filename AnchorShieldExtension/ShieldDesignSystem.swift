@@ -21,16 +21,16 @@ struct ShieldColors {
     // Use AppColors anchor variants for brand consistency
     static let shieldBackground = AppColors.shieldBackground
     static let shieldText = AppColors.shieldText
-    static let primary = AppColors.anchorAccent
-    static let primaryDark = AppColors.anchorPrimary
-    static let accentLight = AppColors.anchorLavender
+    static let primary = AppColors.accent
+    static let primaryDark = AppColors.primary
+    static let accentLight = AppColors.textTertiary
     static let textSecondary = AppColors.textSecondary
     static let textTertiary = AppColors.textSecondary.opacity(0.7)
     
     // Button colors
-    static let primaryButtonBackground = AppColors.anchorAccent
-    static let secondaryButtonBackground = AppColors.anchorPrimaryDark.opacity(0.3)
-    static let secondaryButtonBorder = AppColors.anchorLavender.opacity(0.4)
+    static let primaryButtonBackground = AppColors.accent
+    static let secondaryButtonBackground = AppColors.primary.opacity(0.3)
+    static let secondaryButtonBorder = AppColors.textTertiary.opacity(0.4)
 }
 
 struct ShieldTypography {

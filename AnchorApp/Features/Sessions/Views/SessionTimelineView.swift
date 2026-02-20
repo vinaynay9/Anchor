@@ -5,6 +5,7 @@ struct SessionTimelineView: View {
     let events: [SessionEvent]
     
     @State private var animatedEventIds: Set<UUID> = []
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
     
     private var sortedEvents: [SessionEvent] {
         events.sorted { $0.timestamp < $1.timestamp }
@@ -31,8 +32,12 @@ struct SessionTimelineView: View {
                 .onAppear {
                     // Animate new events with fade + slide
                     if !animatedEventIds.contains(event.id) {
-                        _ = withAnimation(.spring(response: 0.4, dampingFraction: 0.8).delay(Double(index) * 0.1)) {
+                        if reduceMotion {
                             animatedEventIds.insert(event.id)
+                        } else {
+                            _ = withAnimation(AppMotion.standard.delay(Double(index) * 0.06)) {
+                                animatedEventIds.insert(event.id)
+                            }
                         }
                         
                         // Haptic feedback for major events
@@ -49,7 +54,7 @@ struct SessionTimelineView: View {
     private var emptyStateView: some View {
         VStack(spacing: Theme.spacing) {
             Image(systemName: "clock.badge.questionmark")
-                .font(.system(size: 32))
+                .font(AppTypography.sectionHeader)
                 .foregroundColor(AppColors.textSecondary)
             Text("No events yet")
                 .font(AppTypography.body)
@@ -85,8 +90,8 @@ struct TimelineEventRow: View {
                         .frame(width: 32, height: 32)
                     
                     Image(systemName: iconName(for: event.type))
-                        .font(.system(size: 14, weight: .semibold))
-                        .foregroundColor(.white)
+                        .font(AppTypography.caption)
+                        .foregroundColor(AppColors.onPrimary)
                 }
                 
                 // Timeline line (if not last)
@@ -104,12 +109,12 @@ struct TimelineEventRow: View {
             VStack(alignment: .leading, spacing: Theme.smallSpacing) {
                 // Title
                 Text(title(for: event.type))
-                    .font(AppTypography.bodyBold)
+                    .font(AppTypography.sectionHeader)
                     .foregroundColor(AppColors.textPrimary)
                 
                 // Timestamp
                 Text(formatTimestamp(event.timestamp))
-                    .font(AppTypography.caption)
+                    .font(AppTypography.helper)
                     .foregroundColor(AppColors.textSecondary)
                 
                 // Metadata (if available)
@@ -121,7 +126,7 @@ struct TimelineEventRow: View {
             .padding(.leading, Theme.spacing)
         }
         .opacity(isAnimated ? 1 : 0)
-        .offset(x: isAnimated ? 0 : -20)
+        .offset(x: isAnimated ? 0 : -12)
     }
     
     private func metadataView(_ metadata: [String: String]) -> some View {
@@ -129,10 +134,10 @@ struct TimelineEventRow: View {
             if let bundleId = metadata["bundleId"] {
                 HStack(spacing: Theme.smallSpacing) {
                     Image(systemName: "app.badge")
-                        .font(.system(size: 10))
+                        .font(AppTypography.caption)
                         .foregroundColor(AppColors.textSecondary)
                     Text(bundleId)
-                        .font(AppTypography.caption2)
+                        .font(AppTypography.caption)
                         .foregroundColor(AppColors.textSecondary)
                 }
             }
@@ -140,10 +145,10 @@ struct TimelineEventRow: View {
             if let reason = metadata["reason"] {
                 HStack(alignment: .top, spacing: Theme.smallSpacing) {
                     Image(systemName: "text.bubble")
-                        .font(.system(size: 10))
+                        .font(AppTypography.caption)
                         .foregroundColor(AppColors.textSecondary)
                     Text(reason)
-                        .font(AppTypography.caption2)
+                        .font(AppTypography.caption)
                         .foregroundColor(AppColors.textSecondary)
                         .lineLimit(2)
                 }
@@ -174,7 +179,7 @@ struct TimelineEventRow: View {
         case .sessionStarted:
             return AppColors.success
         case .proofSubmitted:
-            return AppColors.anchorAccent
+            return AppColors.accent
         case .unlockRequested:
             return AppColors.warning
         case .unlockApproved:
@@ -189,17 +194,17 @@ struct TimelineEventRow: View {
     private func title(for type: SessionEventType) -> String {
         switch type {
         case .sessionStarted:
-            return "Session started"
+            return "Anchored"
         case .proofSubmitted:
             return "Proof submitted"
         case .unlockRequested:
-            return "Unlock requested"
+            return "Break Anchor requested"
         case .unlockApproved:
-            return "Unlock approved"
+            return "Break Anchor approved"
         case .unlockDenied:
-            return "Unlock denied"
+            return "Break Anchor denied"
         case .sessionEnded:
-            return "Session ended"
+            return "Break Anchor"
         }
     }
     

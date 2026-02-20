@@ -7,13 +7,11 @@ class MainTabFlow: Coordinator, SheetPresenting {
     @Published var path = NavigationPath()
     @Published var presentedSheet: SheetDestination?
     
-    // Navigation paths for each tab (4 tabs: Home, Insights, Friends, Settings)
+    // Navigation paths for each tab (Home, Settings)
     @Published var sessionsPath = NavigationPath()  // Home tab navigation
-    @Published var insightsPath = NavigationPath()   // Insights tab navigation
-    @Published var friendsPath = NavigationPath()    // Friends tab navigation (includes unlock requests)
     @Published var settingsPath = NavigationPath()  // Settings tab navigation
     
-    // Tab selection (0: Home, 1: Insights, 2: Friends, 3: Settings)
+    // Tab selection (0: Home, 1: Settings)
     @Published var selectedTab: Int = 0
     
     func start() {
@@ -34,28 +32,6 @@ class MainTabFlow: Coordinator, SheetPresenting {
         sessionsPath.append(session)
     }
     
-    // MARK: - Friends Navigation
-    
-    func navigateToAddFriend() {
-        presentedSheet = .addFriend
-    }
-    
-    func navigateToFriendDetail(friend: Friend) {
-        friendsPath.append(friend)
-    }
-    
-    // MARK: - Requests Navigation (now part of Friends tab)
-    
-    func navigateToUnlockRequestDetail(request: UnlockRequest) {
-        friendsPath.append(request)
-    }
-    
-    func navigateToUnlockRequestSubmit(session: LockSession) {
-        // Navigate to unlock request submission in the friends tab
-        selectedTab = 2 // Switch to Friends tab
-        friendsPath.append("unlockRequestSubmit_\(session.id.uuidString)")
-    }
-    
     // MARK: - Settings Navigation
     
     func navigateToScreenTimeSettings() {
@@ -65,11 +41,9 @@ class MainTabFlow: Coordinator, SheetPresenting {
     func navigateToNotificationSettings() {
         settingsPath.append("notificationSettings")
     }
-    
-    // MARK: - Insights Navigation
-    
-    func navigateToInsights() {
-        selectedTab = 1 // Switch to Insights tab
+
+    func navigateToInviteFriends() {
+        settingsPath.append("inviteFriends")
     }
     
     // MARK: - App Selection
@@ -83,4 +57,3 @@ class MainTabFlow: Coordinator, SheetPresenting {
             .environmentObject(self)
     }
 }
-

@@ -69,7 +69,7 @@ struct FamilyActivityPickerWrapper: View {
                             onDismiss?()
                             dismiss()
                         }
-                        .foregroundColor(AppColors.anchorAccent)
+                        .foregroundColor(AppColors.accent)
                         .fontWeight(.semibold)
                     }
                 }

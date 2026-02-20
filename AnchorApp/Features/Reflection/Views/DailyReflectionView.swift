@@ -60,7 +60,7 @@ struct DailyReflectionView: View {
     private var titleSection: some View {
         VStack(spacing: 8) {
             Text("Daily Reflection")
-                .font(AppTypography.title)
+                .font(AppTypography.screenTitle)
                 .foregroundColor(AppColors.textPrimary)
             
             Text("Take a moment to reflect on your day")
@@ -99,8 +99,8 @@ struct DailyReflectionView: View {
                             .fill(
                                 LinearGradient(
                                     gradient: Gradient(colors: [
-                                        AppColors.anchorAccent.opacity(0.1),
-                                        AppColors.anchorLavender.opacity(0.05)
+                                        AppColors.accent.opacity(0.1),
+                                        AppColors.textTertiary.opacity(0.05)
                                     ]),
                                     startPoint: .topLeading,
                                     endPoint: .bottomTrailing
@@ -114,8 +114,8 @@ struct DailyReflectionView: View {
                     .fill(
                         LinearGradient(
                             gradient: Gradient(colors: [
-                                Color.white.opacity(0.1),
-                                Color.white.opacity(0.05)
+                                AppColors.textPrimary.opacity(0.1),
+                                AppColors.textPrimary.opacity(0.05)
                             ]),
                             startPoint: .topLeading,
                             endPoint: .bottomTrailing
@@ -128,8 +128,8 @@ struct DailyReflectionView: View {
                 .stroke(
                     LinearGradient(
                         gradient: Gradient(colors: [
-                            AppColors.anchorLavender.opacity(0.4),
-                            AppColors.anchorAccent.opacity(0.2)
+                            AppColors.textTertiary.opacity(0.4),
+                            AppColors.accent.opacity(0.2)
                         ]),
                         startPoint: .topLeading,
                         endPoint: .bottomTrailing
@@ -137,15 +137,15 @@ struct DailyReflectionView: View {
                     lineWidth: 1.5
                 )
         )
-        .shadow(color: AppColors.anchorAccent.opacity(0.2), radius: 20, x: 0, y: 10)
-        .shadow(color: Color.black.opacity(0.3), radius: 10, x: 0, y: 5)
+        .shadow(color: AppColors.accent.opacity(0.2), radius: 20, x: 0, y: 10)
+        .shadow(color: AppColors.accent.opacity(0.3), radius: 10, x: 0, y: 5)
     }
     
     // MARK: - Mood Picker
     private var moodPickerSection: some View {
         VStack(alignment: .leading, spacing: 16) {
             Text("How are you feeling?")
-                .font(AppTypography.title3)
+                .font(AppTypography.sectionHeader)
                 .foregroundColor(AppColors.textPrimary)
             
             HStack(spacing: 16) {
@@ -161,13 +161,13 @@ struct DailyReflectionView: View {
             viewModel.selectMood(mood)
         }) {
             Text(mood)
-                .font(.system(size: 40))
+                .font(AppTypography.screenTitle)
                 .frame(width: 60, height: 60)
                 .background(
                     Circle()
                         .fill(
                             viewModel.selectedMood == mood
-                                ? AppColors.anchorAccent.opacity(0.2)
+                                ? AppColors.accent.opacity(0.2)
                                 : Color.clear
                         )
                 )
@@ -175,14 +175,14 @@ struct DailyReflectionView: View {
                     Circle()
                         .stroke(
                             viewModel.selectedMood == mood
-                                ? AppColors.anchorLavender
+                                ? AppColors.textTertiary
                                 : AppColors.textSecondary.opacity(0.3),
                             lineWidth: viewModel.selectedMood == mood ? 3 : 2
                         )
                 )
                 .shadow(
                     color: viewModel.selectedMood == mood
-                        ? AppColors.anchorAccent.opacity(0.6)
+                        ? AppColors.accent.opacity(0.6)
                         : Color.clear,
                     radius: viewModel.selectedMood == mood ? 12 : 0
                 )
@@ -196,7 +196,7 @@ struct DailyReflectionView: View {
     private var reflectionTextSection: some View {
         VStack(alignment: .leading, spacing: 12) {
             Text("Reflection")
-                .font(AppTypography.title3)
+                .font(AppTypography.sectionHeader)
                 .foregroundColor(AppColors.textPrimary)
             
             ZStack(alignment: .topLeading) {
@@ -216,11 +216,11 @@ struct DailyReflectionView: View {
                     .padding(8)
                     .background(
                         RoundedRectangle(cornerRadius: AppLayout.chipCornerRadius)
-                            .fill(AppColors.anchorLavender.opacity(0.1))
+                            .fill(AppColors.textTertiary.opacity(0.1))
                     )
                     .overlay(
                         RoundedRectangle(cornerRadius: AppLayout.chipCornerRadius)
-                            .stroke(AppColors.anchorLavender.opacity(0.3), lineWidth: 1.5)
+                            .stroke(AppColors.textTertiary.opacity(0.3), lineWidth: 1.5)
                     )
             }
         }
@@ -230,7 +230,7 @@ struct DailyReflectionView: View {
     private var goalsSection: some View {
         VStack(alignment: .leading, spacing: 16) {
             Text("Today's Goals")
-                .font(AppTypography.title3)
+                .font(AppTypography.sectionHeader)
                 .foregroundColor(AppColors.textPrimary)
             
             VStack(spacing: 12) {
@@ -251,7 +251,7 @@ struct DailyReflectionView: View {
                     RoundedRectangle(cornerRadius: 6)
                         .fill(
                             viewModel.checkedGoals.contains(goal)
-                                ? AppColors.anchorAccent
+                                ? AppColors.accent
                                 : Color.clear
                         )
                         .frame(width: 24, height: 24)
@@ -259,21 +259,21 @@ struct DailyReflectionView: View {
                             RoundedRectangle(cornerRadius: 6)
                                 .stroke(
                                     viewModel.checkedGoals.contains(goal)
-                                        ? AppColors.anchorLavender
-                                        : AppColors.anchorAccent.opacity(0.5),
+                                        ? AppColors.textTertiary
+                                        : AppColors.accent.opacity(0.5),
                                     lineWidth: 2
                                 )
                         )
                         .shadow(
                             color: viewModel.checkedGoals.contains(goal)
-                                ? AppColors.anchorAccent.opacity(0.4)
+                                ? AppColors.accent.opacity(0.4)
                                 : Color.clear,
                             radius: 6
                         )
                     
                     if viewModel.checkedGoals.contains(goal) {
                         Image(systemName: "checkmark")
-                            .font(.system(size: 14, weight: .bold))
+                            .font(AppTypography.helper).fontWeight(.bold)
                             .foregroundColor(AppColors.textPrimary)
                             .scaleEffect(goalCheckmarkScales[goal] ?? 1.0)
                     }
@@ -304,11 +304,11 @@ struct DailyReflectionView: View {
             HStack {
                 if viewModel.showCheckmark {
                     Image(systemName: "checkmark.circle.fill")
-                        .font(.system(size: 20, weight: .semibold))
+                        .font(AppTypography.body).fontWeight(.semibold)
                         .scaleEffect(submitCheckmarkScale)
                 } else {
                     Text("Submit Reflection")
-                        .font(AppTypography.bodyBold)
+                        .font(AppTypography.body)
                 }
             }
             .foregroundColor(AppColors.textPrimary)
@@ -317,18 +317,18 @@ struct DailyReflectionView: View {
             .background(
                 LinearGradient(
                     gradient: Gradient(colors: [
-                        AppColors.anchorAccent,
-                        AppColors.anchorLavender
+                        AppColors.accent,
+                        AppColors.textTertiary
                     ]),
                     startPoint: .leading,
                     endPoint: .trailing
                 )
             )
             .cornerRadius(AppLayout.buttonCornerRadius)
-            .shadow(color: AppColors.anchorAccent.opacity(0.4), radius: 12, x: 0, y: 6)
+            .shadow(color: AppColors.accent.opacity(0.4), radius: 12, x: 0, y: 6)
             .overlay(
                 RoundedRectangle(cornerRadius: AppLayout.buttonCornerRadius)
-                    .stroke(AppColors.anchorLavender.opacity(0.5), lineWidth: 1)
+                    .stroke(AppColors.textTertiary.opacity(0.5), lineWidth: 1)
             )
         }
         .buttonStyle(PlainButtonStyle())
@@ -339,4 +339,3 @@ struct DailyReflectionView: View {
 #Preview {
     DailyReflectionView()
 }
-

@@ -3,6 +3,7 @@ import SwiftUI
 struct ScreenTimeOnboardingFlowView: View {
     @State private var currentStep: ScreenTimeOnboardingStep = .intro
     let onComplete: () -> Void
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
     
     enum ScreenTimeOnboardingStep {
         case intro
@@ -19,8 +20,12 @@ struct ScreenTimeOnboardingFlowView: View {
                 switch currentStep {
                 case .intro:
                     ScreenTimeIntroView(onContinue: {
-                        withAnimation(Theme.springAnimation) {
+                        if reduceMotion {
                             currentStep = .why
+                        } else {
+                            withAnimation(AppMotion.gentleSpring) {
+                                currentStep = .why
+                            }
                         }
                     })
                     .transition(.asymmetric(
@@ -30,8 +35,12 @@ struct ScreenTimeOnboardingFlowView: View {
                     
                 case .why:
                     ScreenTimeWhyView(onContinue: {
-                        withAnimation(Theme.springAnimation) {
+                        if reduceMotion {
                             currentStep = .permission
+                        } else {
+                            withAnimation(AppMotion.gentleSpring) {
+                                currentStep = .permission
+                            }
                         }
                     })
                     .transition(.asymmetric(
@@ -47,8 +56,7 @@ struct ScreenTimeOnboardingFlowView: View {
                         ))
                 }
             }
-            .animation(.easeOut(duration: 0.25), value: currentStep)
+            .animation(AppMotion.animation(AppMotion.standard, reduceMotion: reduceMotion), value: currentStep)
         }
     }
 }
-

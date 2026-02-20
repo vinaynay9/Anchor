@@ -8,7 +8,7 @@ struct ToastView: View {
         HStack(spacing: 12) {
             // Icon
             Image(systemName: iconName)
-                .font(.system(size: 20, weight: .semibold))
+                .font(AppTypography.body).fontWeight(.semibold)
                 .foregroundColor(iconColor)
             
             // Message
@@ -26,7 +26,7 @@ struct ToastView: View {
         .padding(.vertical, 16)
         .background(
             RoundedRectangle(cornerRadius: AppLayout.cardCornerRadius)
-                .fill(AppColors.anchorPrimaryDark.opacity(0.9))
+                .fill(AppColors.surfaceElevated.opacity(0.9))
                 .background(
                     // Frosted glass blur effect
                     RoundedRectangle(cornerRadius: AppLayout.cardCornerRadius)
@@ -40,7 +40,7 @@ struct ToastView: View {
                 .stroke(borderGradient, lineWidth: 2)
                 .shadow(color: borderGlowColor.opacity(0.6), radius: 8, x: 0, y: 0)
         )
-        .shadow(color: Color.black.opacity(0.3), radius: 12, x: 0, y: 4)
+        .shadow(color: AppColors.textPrimary.opacity(0.25), radius: 12, x: 0, y: 4)
     }
     
     // MARK: - Computed Properties
@@ -61,11 +61,11 @@ struct ToastView: View {
     private var iconColor: Color {
         switch toast.type {
         case .success:
-            return AppColors.anchorAccent
+            return AppColors.accent
         case .error:
             return AppColors.error
         case .info:
-            return AppColors.anchorLavender
+            return AppColors.textTertiary
         case .warning:
             return AppColors.warning
         }
@@ -77,8 +77,8 @@ struct ToastView: View {
             // Lavender → Violet gradient for success
             return LinearGradient(
                 colors: [
-                    AppColors.anchorLavender,
-                    AppColors.anchorAccent
+                    AppColors.textTertiary,
+                    AppColors.accent
                 ],
                 startPoint: .leading,
                 endPoint: .trailing
@@ -98,8 +98,8 @@ struct ToastView: View {
             // Lavender → Primary gradient for info
             return LinearGradient(
                 colors: [
-                    AppColors.anchorLavender.opacity(0.8),
-                    AppColors.anchorPrimary.opacity(0.8)
+                    AppColors.textTertiary.opacity(0.8),
+                    AppColors.primary.opacity(0.8)
                 ],
                 startPoint: .leading,
                 endPoint: .trailing
@@ -120,14 +120,13 @@ struct ToastView: View {
     private var borderGlowColor: Color {
         switch toast.type {
         case .success:
-            return AppColors.anchorAccent
+            return AppColors.accent
         case .error:
             return AppColors.error
         case .info:
-            return AppColors.anchorLavender
+            return AppColors.textTertiary
         case .warning:
             return AppColors.warning
         }
     }
 }
-

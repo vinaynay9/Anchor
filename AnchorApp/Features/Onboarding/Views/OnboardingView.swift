@@ -3,11 +3,11 @@ import Shared
 
 struct OnboardingView: View {
     @StateObject private var viewModel = OnboardingViewModel()
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @StateObject private var authViewModel = AuthViewModel()
     @StateObject private var goalsViewModel = GoalViewModel()
     @State private var currentStep: OnboardingStep = .welcome
     @State private var showGoalCreation = false
-    @State private var showFriendSelection = false
     @State private var displayName: String = ""
     @State private var birthMonth: Int = 1
     @State private var birthDay: Int = 1
@@ -21,7 +21,6 @@ struct OnboardingView: View {
         case permissions
         case goalsExplanation
         case goalCreation
-        case friendSelection
     }
     
     var body: some View {
@@ -32,14 +31,14 @@ struct OnboardingView: View {
                 switch currentStep {
                 case .welcome:
                     WelcomeOnboardingPage(onContinue: {
-                        withAnimation(Theme.springAnimation) {
+                        animate {
                             currentStep = .description
                         }
                     })
                     
                 case .description:
                     DescriptionSlidesPage(onContinue: {
-                        withAnimation(Theme.springAnimation) {
+                        animate {
                             currentStep = .signIn
                         }
                     })
@@ -48,13 +47,13 @@ struct OnboardingView: View {
                     SignInOnboardingPage(
                         authViewModel: authViewModel,
                         onSignIn: {
-                            withAnimation(Theme.springAnimation) {
+                            animate {
                                 currentStep = .profile
                             }
                         },
                         onLogin: {
                             // Handle login for existing users
-                            withAnimation(Theme.springAnimation) {
+                            animate {
                                 currentStep = .profile
                             }
                         }
@@ -76,7 +75,7 @@ struct OnboardingView: View {
                             Task {
                                 await AnalyticsIngestService.shared.sendDailyProfileIfConfigured()
                             }
-                            withAnimation(Theme.springAnimation) {
+                            animate {
                                 currentStep = .permissions
                             }
                         }
@@ -84,14 +83,14 @@ struct OnboardingView: View {
                     
                 case .permissions:
                     ScreenTimeOnboardingFlowView(onComplete: {
-                        withAnimation(Theme.springAnimation) {
+                        animate {
                             currentStep = .goalsExplanation
                         }
                     })
                     
                 case .goalsExplanation:
                     GoalsExplanationView(onContinue: {
-                        withAnimation(Theme.springAnimation) {
+                        animate {
                             currentStep = .goalCreation
                         }
                     })
@@ -100,16 +99,9 @@ struct OnboardingView: View {
                     GoalCreationOnboardingPage(
                         goalViewModel: goalsViewModel,
                         onContinue: {
-                            withAnimation(Theme.springAnimation) {
-                                currentStep = .friendSelection
+                            animate {
+                                viewModel.completeOnboarding()
                             }
-                        }
-                    )
-                    
-                case .friendSelection:
-                    FriendSelectionOnboardingPage(
-                        onComplete: {
-                            viewModel.completeOnboarding()
                         }
                     )
                 }
@@ -119,6 +111,16 @@ struct OnboardingView: View {
                 removal: .move(edge: .leading).combined(with: .opacity)
             ))
             .animation(.easeOut(duration: 0.25), value: currentStep)
+        }
+    }
+
+    private func animate(_ animation: Animation = AppMotion.gentleSpring, delay: Double = 0, _ changes: @escaping () -> Void) {
+        if reduceMotion {
+            changes()
+        } else {
+            withAnimation(animation.delay(delay)) {
+                changes()
+            }
         }
     }
 }
@@ -134,7 +136,7 @@ struct WelcomePage: View {
                 Circle()
                     .fill(
                         LinearGradient(
-                            colors: [AppColors.anchorPrimary, AppColors.anchorLavender],
+                            colors: [AppColors.primary, AppColors.textTertiary],
                             startPoint: .topLeading,
                             endPoint: .bottomTrailing
                         )
@@ -143,20 +145,21 @@ struct WelcomePage: View {
                     .blur(radius: 60)
                     .opacity(0.6)
                 
-                // App icon placeholder or logo
-                Image(systemName: "anchor.fill")
-                    .font(.system(size: 80, weight: .light))
-                    .foregroundColor(AppColors.anchorAccent)
+                // App icon/logo
+                Image("Anchor_logo")
+                    .resizable()
+                    .scaledToFit()
+                    .frame(width: 84, height: 84)
             }
             .padding(.bottom, Theme.padding * 3)
             
             VStack(spacing: Theme.spacing * 2) {
-                Text("Welcome to Anchor")
-                    .font(AppTypography.largeTitle)
+                Text("Anchor your day")
+                    .font(AppTypography.screenTitle)
                     .foregroundColor(AppColors.textPrimary)
                     .multilineTextAlignment(.center)
                 
-                Text("Your personal accountability partner for staying focused and productive")
+                Text("Lock apps. Set goals. Stay Anchored.")
                     .font(AppTypography.body)
                     .foregroundColor(AppColors.textSecondary)
                     .multilineTextAlignment(.center)
@@ -171,6 +174,8 @@ struct WelcomePage: View {
 
 // MARK: - App Blocking Page
 struct AppBlockingPage: View {
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+
     var body: some View {
         VStack(spacing: Theme.padding * 2) {
             Spacer()
@@ -182,18 +187,18 @@ struct AppBlockingPage: View {
                     .frame(width: 120, height: 120)
                 
                 Image(systemName: "lock.shield.fill")
-                    .font(.system(size: 50, weight: .light))
-                    .foregroundColor(AppColors.anchorAccent)
+                    .font(AppTypography.screenTitle).fontWeight(.light)
+                    .foregroundColor(AppColors.accent)
             }
             .padding(.bottom, Theme.padding * 3)
             
             VStack(spacing: Theme.spacing * 2) {
-                Text("Stay focused with app blocking")
-                    .font(AppTypography.largeTitle)
+                Text("Stay Anchored with app blocking")
+                    .font(AppTypography.screenTitle)
                     .foregroundColor(AppColors.textPrimary)
                     .multilineTextAlignment(.center)
                 
-                Text("Block distracting apps during your focus sessions and stay on track with your goals")
+                Text("Lock selected apps until your goals are complete.")
                     .font(AppTypography.body)
                     .foregroundColor(AppColors.textSecondary)
                     .multilineTextAlignment(.center)
@@ -204,41 +209,15 @@ struct AppBlockingPage: View {
         }
         .padding(Theme.padding * 2)
     }
-}
 
-// MARK: - Friends Accountability Page
-struct FriendsAccountabilityPage: View {
-    var body: some View {
-        VStack(spacing: Theme.padding * 2) {
-            Spacer()
-            
-            // Icon
-            ZStack {
-                RoundedRectangle(cornerRadius: 24)
-                    .fill(AppColors.secondaryBackground)
-                    .frame(width: 120, height: 120)
-                
-                Image(systemName: "person.2.fill")
-                    .font(.system(size: 50, weight: .light))
-                    .foregroundColor(AppColors.anchorAccent)
+    private func animate(_ animation: Animation = AppMotion.gentleSpring, delay: Double = 0, _ changes: @escaping () -> Void) {
+        if reduceMotion {
+            changes()
+        } else {
+            withAnimation(animation.delay(delay)) {
+                changes()
             }
-            .padding(.bottom, Theme.padding * 3)
-            
-            VStack(spacing: Theme.spacing * 2) {
-                Text("Stay accountable with friends")
-                    .font(AppTypography.largeTitle)
-                    .foregroundColor(AppColors.textPrimary)
-                    .multilineTextAlignment(.center)
-                
-                Text("Connect with friends who help you stay accountable and unlock your apps when you need them")
-                    .font(AppTypography.body)
-                    .foregroundColor(AppColors.textSecondary)
-                    .multilineTextAlignment(.center)
-                    .padding(.horizontal, Theme.padding * 2)
-            }
-            
-            Spacer()
         }
-        .padding(Theme.padding * 2)
     }
+
 }

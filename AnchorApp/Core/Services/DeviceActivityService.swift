@@ -20,6 +20,37 @@ class DeviceActivityService {
     }
     
     // MARK: - Schedule Management
+
+    /// Schedules the daily anchor window to begin at the given local time.
+    /// This is a simple, repeating schedule that starts daily and ends at 23:59.
+    func scheduleDailyAnchor(startTime: DailyAnchorTime) throws {
+        guard screenTimeService.isAuthorized() else {
+            throw DeviceActivityError.authorizationDenied
+        }
+
+        let activityName = DeviceActivityName("daily_anchor")
+        let startComponents = DateComponents(hour: startTime.hour, minute: startTime.minute)
+        let endComponents = DateComponents(hour: 23, minute: 59)
+
+        let schedule = DeviceActivitySchedule(
+            intervalStart: startComponents,
+            intervalEnd: endComponents,
+            repeats: true
+        )
+
+        do {
+            try center.startMonitoring(activityName, during: schedule)
+            LoggerService.shared.logInfo("Scheduled daily anchor at \(startTime.hour):\(startTime.minute)", category: "DeviceActivity")
+        } catch {
+            LoggerService.shared.logError("Failed to schedule daily anchor", error: error, category: "DeviceActivity")
+            throw DeviceActivityError.scheduleFailed(error)
+        }
+    }
+
+    func cancelDailyAnchor() {
+        let activityName = DeviceActivityName("daily_anchor")
+        center.stopMonitoring([activityName])
+    }
     
     /// Schedules a session to start and end at specific times.
     /// Creates separate schedules for each selected weekday since DeviceActivitySchedule only supports one weekday per schedule.
@@ -229,7 +260,15 @@ class AnchorDeviceActivityMonitor: DeviceActivityMonitor {
     /// Called when a scheduled interval starts
     override func intervalDidStart(for activity: DeviceActivityName) {
         super.intervalDidStart(for: activity)
-        
+
+        if activity.rawValue == "daily_anchor" {
+            Task {
+                await screenTimeService.applyDailyAnchor()
+                AppGroupStorage.shared.setShieldState(ShieldState(reason: .activeLock))
+            }
+            return
+        }
+
         // Extract session ID from activity name
         guard let sessionId = extractSessionId(from: activity) else {
             LoggerService.shared.logWarning("Could not extract session ID from activity \(activity.rawValue)", category: "DeviceActivity")
@@ -276,6 +315,11 @@ class AnchorDeviceActivityMonitor: DeviceActivityMonitor {
     /// Called when a scheduled interval ends
     override func intervalDidEnd(for activity: DeviceActivityName) {
         super.intervalDidEnd(for: activity)
+
+        if activity.rawValue == "daily_anchor" {
+            Task { await screenTimeService.stopBlocking() }
+            return
+        }
         
         // Extract session ID from activity name
         guard let sessionId = extractSessionId(from: activity) else {
@@ -337,4 +381,3 @@ enum DeviceActivityError: LocalizedError {
         }
     }
 }
-

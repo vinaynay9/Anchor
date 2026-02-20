@@ -7,6 +7,7 @@ struct EmptyStateView: View {
     let message: String?
     let actionTitle: String?
     let action: (() -> Void)?
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
     
     init(
         icon: String,
@@ -30,8 +31,8 @@ struct EmptyStateView: View {
                     .fill(
                         LinearGradient(
                             colors: [
-                                AppColors.anchorPrimary.opacity(0.2),
-                                AppColors.anchorAccent.opacity(0.15)
+                                AppColors.primary.opacity(0.2),
+                                AppColors.accent.opacity(0.15)
                             ],
                             startPoint: .topLeading,
                             endPoint: .bottomTrailing
@@ -40,14 +41,14 @@ struct EmptyStateView: View {
                     .frame(width: 100, height: 100)
                 
                 Image(systemName: icon)
-                    .font(.system(size: 45, weight: .light))
-                    .foregroundColor(AppColors.anchorAccent.opacity(0.7))
+                    .font(AppTypography.screenTitle).fontWeight(.light)
+                    .foregroundColor(AppColors.accent.opacity(0.7))
             }
             .padding(.bottom, Theme.spacing)
             
             // Title
             Text(title)
-                .font(AppTypography.title2)
+                .font(AppTypography.sectionHeader)
                 .foregroundColor(AppColors.textPrimary)
                 .multilineTextAlignment(.center)
             
@@ -63,8 +64,12 @@ struct EmptyStateView: View {
             // Action button
             if let actionTitle = actionTitle, let action = action {
                 Button(action: {
-                    withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
+                    if reduceMotion {
                         action()
+                    } else {
+                        withAnimation(AppMotion.gentleSpring) {
+                            action()
+                        }
                     }
                 }) {
                     Text(actionTitle)
@@ -78,4 +83,3 @@ struct EmptyStateView: View {
         .padding(Theme.padding * 3)
     }
 }
-

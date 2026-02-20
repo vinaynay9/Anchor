@@ -53,7 +53,7 @@ struct ProfileView: View {
             if showError {
                 Text("Please enter a valid name and date.")
                     .font(AnchorTheme.Typography.caption)
-                    .foregroundColor(.red)
+                    .foregroundColor(AppColors.error)
             }
 
             Spacer()

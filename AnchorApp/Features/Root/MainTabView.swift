@@ -5,9 +5,13 @@ struct MainTabView: View {
     @EnvironmentObject var coordinator: MainTabFlow
     @State private var previousTab = 0
     @State private var isAnchored = false
+    @State private var didSetInitialTab = false
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
     
     var body: some View {
         ZStack {
+            AppColors.background.ignoresSafeArea()
+
             TabView(selection: $coordinator.selectedTab) {
                 // Tab 0: Home (Active Session)
                 NavigationStack(path: $coordinator.sessionsPath) {
@@ -27,33 +31,17 @@ struct MainTabView: View {
                     Label("Home", systemImage: "house.fill")
                 }
                 .tag(0)
-                
-                // Tab 1: Insights
-                NavigationStack(path: $coordinator.insightsPath) {
-                    InsightsView()
+
+                // Tab 1: Goals
+                NavigationStack {
+                    GoalsListView()
                 }
                 .tabItem {
-                    Label("Insights", systemImage: "chart.bar.fill")
+                    Label("Goals", systemImage: "checklist")
                 }
                 .tag(1)
                 
-                // Tab 2: Friends (combines Friends + Unlock Requests)
-                NavigationStack(path: $coordinator.friendsPath) {
-                    FriendsTabView()
-                        .navigationDestination(for: Friend.self) { friend in
-                            // Friend detail view would go here
-                            Text("Friend Detail: \(friend.id.uuidString)")
-                        }
-                        .navigationDestination(for: UnlockRequest.self) { request in
-                            UnlockRequestDetailView(request: request)
-                        }
-                }
-                .tabItem {
-                    Label("Friends", systemImage: "person.2.fill")
-                }
-                .tag(2)
-                
-                // Tab 3: Settings
+                // Tab 2: Settings
                 NavigationStack(path: $coordinator.settingsPath) {
                     SettingsView()
                         .navigationDestination(for: String.self) { destination in
@@ -61,6 +49,8 @@ struct MainTabView: View {
                                 ScreenTimePermissionView()
                             } else if destination == "notificationSettings" {
                                 NotificationSettingsView()
+                            } else if destination == "inviteFriends" {
+                                InviteFriendsView()
                             } else {
                                 EmptyView()
                             }
@@ -69,18 +59,11 @@ struct MainTabView: View {
                 .tabItem {
                     Label("Settings", systemImage: "gearshape.fill")
                 }
-                .tag(3)
+                .tag(2)
             }
-            .disabled(isAnchored)
-            .overlay(
-                AppColors.backgroundAnchored
-                    .opacity(isAnchored ? 0.25 : 0.0)
-                    .ignoresSafeArea()
-            )
+            .tint(AppColors.accent)
             .sheet(item: $coordinator.presentedSheet) { sheet in
                 switch sheet {
-                case .addFriend:
-                    AddFriendSheet(viewModel: FriendsViewModel())
                 case .createSession:
                     SessionSetupView(viewModel: SessionViewModel())
                 case .selectApps:
@@ -97,7 +80,7 @@ struct MainTabView: View {
             refreshAnchoredState()
         }
         .onReceive(NotificationCenter.default.publisher(for: .appGroupDidUpdate)) { notification in
-            if let key = notification.object as? String, key == AppGroupStorageKey.sharedSessionState.rawValue {
+            if let key = notification.object as? String, key == AppGroupStorageKey.shieldState.rawValue {
                 refreshAnchoredState()
             }
         }
@@ -107,26 +90,26 @@ struct MainTabView: View {
                 previousTab = newTab
             }
         }
-        .animation(.easeInOut(duration: 0.2), value: isAnchored)
+        .motion(AppMotion.standard, reduceMotion: reduceMotion, value: isAnchored)
     }
     
     private var anchoredStatusPill: some View {
         VStack {
             HStack(spacing: 8) {
                 Image(systemName: "lock.fill")
-                    .font(.system(size: 12, weight: .semibold))
+                    .font(AppTypography.caption).fontWeight(.semibold)
                 Text("Anchored")
-                    .font(AppTypography.captionBold)
+                    .font(AppTypography.caption)
             }
             .foregroundColor(AppColors.onPrimary)
             .padding(.vertical, 6)
             .padding(.horizontal, 12)
             .background(
                 Capsule()
-                    .fill(AppColors.primaryAnchored.opacity(0.9))
+                    .fill(AppColors.primary.opacity(0.9))
                     .overlay(
                         Capsule()
-                            .stroke(AppColors.accentFocus.opacity(0.4), lineWidth: 1)
+                            .stroke(AppColors.border.opacity(0.4), lineWidth: 1)
                     )
             )
             .padding(.top, 12)
@@ -138,7 +121,14 @@ struct MainTabView: View {
     }
     
     private func refreshAnchoredState() {
-        let sharedState = AppGroupStorage.shared.getSessionState()
-        isAnchored = sharedState?.isActive ?? false
+        let shieldState = AppGroupStorage.shared.getShieldState()
+        isAnchored = shieldState?.isBlocking ?? false
+
+        if !didSetInitialTab {
+            coordinator.selectedTab = isAnchored ? 1 : 0
+            didSetInitialTab = true
+        } else if isAnchored {
+            coordinator.selectedTab = 1
+        }
     }
 }

@@ -122,6 +122,21 @@ Resources:
             Path: /metrics/daily
             Method: POST
 
+  InviteStatsFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: src/invite_stats
+      Handler: index.handler
+      Timeout: 10
+      MemorySize: 128
+      Events:
+        InviteStatsRoute:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref V0HttpApi
+            Path: /invite/stats
+            Method: GET
+
   V0RollupWeekly:
     Type: AWS::Serverless::Function
     Properties:
