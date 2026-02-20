@@ -34,8 +34,10 @@ class NetworkMonitor: ObservableObject {
         
         // Set initial state
         DispatchQueue.main.async { [weak self] in
-            self?.isConnected = monitor.currentPath.status == .satisfied
-            self?.connectionType = self?.getConnectionType(from: monitor.currentPath) ?? .none
+            guard let self = self else { return }
+            let currentPath = self.monitor.currentPath
+            self.isConnected = currentPath.status == .satisfied
+            self.connectionType = self.getConnectionType(from: currentPath)
         }
     }
     

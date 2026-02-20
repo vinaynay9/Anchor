@@ -63,13 +63,13 @@ class SessionViewModel: ObservableObject {
         errorMessage = nil
         
         // Check Screen Time authorization
-        guard screenTimeService.isAuthorized() else {
+        if !screenTimeService.isAuthorized() {
             // Request authorization if not already granted
             do {
                 try await screenTimeService.requestAuthorization()
                 
                 // Verify authorization was granted
-                guard screenTimeService.isAuthorized() else {
+                if !screenTimeService.isAuthorized() {
                     self.errorMessage = "Screen Time authorization is required to start a session."
                     self.isLoading = false
                     return
@@ -114,4 +114,3 @@ class SessionViewModel: ObservableObject {
         }
     }
 }
-

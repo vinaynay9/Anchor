@@ -31,7 +31,7 @@ struct SessionTimelineView: View {
                 .onAppear {
                     // Animate new events with fade + slide
                     if !animatedEventIds.contains(event.id) {
-                        withAnimation(.spring(response: 0.4, dampingFraction: 0.8).delay(Double(index) * 0.1)) {
+                        _ = withAnimation(.spring(response: 0.4, dampingFraction: 0.8).delay(Double(index) * 0.1)) {
                             animatedEventIds.insert(event.id)
                         }
                         
@@ -219,4 +219,3 @@ struct TimelineEventRow: View {
         }
     }
 }
-

@@ -27,7 +27,9 @@ class ActiveSessionMockViewModel: ObservableObject {
                 if self.remainingSeconds > 0 {
                     self.remainingSeconds -= 1
                 } else {
-                    self.stopTimer()
+                    Task { @MainActor in
+                        self.stopTimer()
+                    }
                 }
             }
             .store(in: &cancellables)
@@ -58,8 +60,5 @@ class ActiveSessionMockViewModel: ObservableObject {
         // Mock action - in real implementation, this would navigate to proof capture
     }
     
-    deinit {
-        stopTimer()
-    }
+    // No deinit work needed for mock view model
 }
-

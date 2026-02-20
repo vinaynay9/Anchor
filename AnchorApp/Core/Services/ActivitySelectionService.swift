@@ -6,7 +6,7 @@ import ManagedSettings
 protocol ActivitySelectionServiceProtocol {
     func saveSelection(_ selection: FamilyActivitySelection) throws
     func loadSelection() -> FamilyActivitySelection?
-    func loadApplicationTokens() -> [ApplicationToken]
+    func loadApplicationTokens() -> [ManagedSettings.ApplicationToken]
     func loadCategoryTokens() -> Set<ActivityCategoryToken>
     func clearSelection()
 }
@@ -40,7 +40,7 @@ class ActivitySelectionService: ActivitySelectionServiceProtocol {
     
     /// Loads application tokens from the stored FamilyActivitySelection.
     /// Returns an empty array if no selection is stored.
-    func loadApplicationTokens() -> [ApplicationToken] {
+    func loadApplicationTokens() -> [ManagedSettings.ApplicationToken] {
         guard let selection = loadSelection() else {
             return []
         }

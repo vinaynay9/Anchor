@@ -20,8 +20,9 @@ enum AnchorAPIError: Error {
     /// Unknown or unhandled error
     case unknown
 
-    /// Missing backend configuration (e.g., anon key)
+    /// Missing backend configuration (legacy callers may map to this)
     case configurationMissing
+
 }
 
 class APIClient {
@@ -36,9 +37,6 @@ class APIClient {
     }
     
     func request<T: Decodable>(_ endpoint: APIEndpoint, responseType: T.Type) async throws -> T {
-        guard !Secrets.supabaseAnonKey.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else {
-            throw AnchorAPIError.configurationMissing
-        }
         let url: URL
         if endpoint.path.contains("?") {
             // Handle query strings in path
@@ -106,9 +104,6 @@ class APIClient {
     }
     
     func request(_ endpoint: APIEndpoint) async throws {
-        guard !Secrets.supabaseAnonKey.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else {
-            throw AnchorAPIError.configurationMissing
-        }
         let url: URL
         if endpoint.path.contains("?") {
             // Handle query strings in path

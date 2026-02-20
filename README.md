@@ -1,15 +1,12 @@
 # Anchor
 
-Anchor is a native iOS app built with Swift and SwiftUI that helps users stay accountable to their goals by blocking distracting apps using Apple's Screen Time APIs. The app includes social accountability features: friends, photo proof of activities, and friend-approved unlocks.
+Anchor is a native iOS app built with Swift and SwiftUI that helps users stay accountable to their goals by blocking distracting apps using Apple's Screen Time APIs.
 
 ## Features
 
 - **Screen Time Integration**: Uses Apple's FamilyControls and ManagedSettings to block selected apps during focus sessions
 - **Custom Shield Screen**: Displays a custom UI when blocked apps are opened
-- **Social Accountability**: Add friends and request unlocks with photo proof
-- **Friend-Approved Unlocks**: Friends can approve or deny unlock requests
-- **Photo Proof**: Capture and share proof of completed activities
-- **Authentication**: Supports Apple Sign-In and Google Sign-In
+- **Authentication**: Supports Apple Sign-In
 
 ## Architecture
 
@@ -18,7 +15,7 @@ The app consists of two iOS targets:
 1. **AnchorApp**: Main iOS application
    - SwiftUI-based user interface
    - MVVM architecture
-   - Handles authentication, friend management, session configuration, and backend communication
+   - Handles authentication, session configuration, and backend communication
 
 2. **AnchorShieldExtension**: Screen Time shield extension
    - Custom shield UI shown when blocked apps are opened
@@ -50,9 +47,24 @@ Anchor/
 1. Clone the repository
 2. Open the project in Xcode
 3. Configure the App Group identifier in `AnchorApp/Config/AppConfig.swift`
-4. Set up your backend (Supabase or similar) and update API endpoints
-5. Configure authentication providers (Apple Sign-In, Google Sign-In)
-6. Build and run
+4. Set up your backend and update API endpoints
+5. Build and run
+
+## Secrets
+
+- Secrets are stored only in `AnchorApp/Config/Secrets.swift` (git-ignored).
+- Do not store AWS access keys in the app. Use Cognito/temporary credentials or a backend.
+- `Secrets.swift` stores only non-secret bootstrap values (API base URL and remote config path).
+
+## Local Setup (Required)
+
+1. Ensure `AnchorApp/Config/Secrets.swift` exists (git-ignored)
+2. Set `apiBaseURL` and `remoteConfigPath` in `AnchorApp/Config/Secrets.swift`
+
+## Security Notes
+
+- Never commit `AnchorApp/Config/Secrets.swift`.
+- Never put AWS access keys in the iOS app.
 
 ## Configuration
 
@@ -64,9 +76,26 @@ The app uses an App Group to share data between the main app and shield extensio
 
 ### Backend
 
-Update the backend configuration in `AnchorApp/Config/AppConfig.swift`:
-- `apiBaseURL`: Your Supabase or backend URL
-- Create `Secrets.swift` from `Secrets.example.swift` and add your API keys
+Update the backend configuration in `AnchorApp/Config/AppConfig.swift` as needed.
+
+### Remote Config
+
+The app calls:
+`GET {apiBaseURL}{remoteConfigPath}` (default: `/config`)
+
+The backend (Lambda or equivalent) reads AWS Secrets Manager and returns non-secret configuration required by the app. Secrets never ship in the app bundle.
+The endpoint is protected with a Cognito User Pool JWT; the app authenticates via Cognito Hosted UI and sends `Authorization: Bearer <id_token>`.
+
+Example JSON:
+```json
+{
+  "googleClientID": "...apps.googleusercontent.com",
+  "googleReverseClientID": "com.googleusercontent.apps....",
+  "awsRegion": "us-east-1",
+  "cognitoIdentityPoolId": "us-east-1:...",
+  "updatedAtISO": "2026-02-17T00:00:00Z"
+}
+```
 
 ### Screen Time Permissions
 
@@ -95,6 +124,10 @@ See `docs/diagrams/` for architecture diagrams:
 - `screen-time-flow.md`: Screen Time integration flows
 - `friend-unlock-sequence.md`: Unlock request flow
 
+## Anchor V0 Analytics — Current DynamoDB Schema (Implemented)
+
+The analytics backend schema is documented in `infra/aws-v0/README.md`. This reflects the **current deployed** tables and field conventions (flattened daily metrics, weekly rollups, and global aggregates).
+
 ## License
 
 [Add your license here]
@@ -102,4 +135,3 @@ See `docs/diagrams/` for architecture diagrams:
 ## Contributing
 
 [Add contributing guidelines here]
-

@@ -49,10 +49,7 @@ struct ActiveSessionView: View {
                 viewModel.loadActiveSession()
             }
             Task {
-                if let updatedSession = try? await SessionService.shared.getActiveSession() {
-                    // Update view model's active session if needed
-                    // Note: This is a workaround - ideally SessionViewModel would observe session changes
-                }
+                _ = try? await SessionService.shared.getActiveSession()
             }
         }
     }

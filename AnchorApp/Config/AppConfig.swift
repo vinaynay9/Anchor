@@ -9,14 +9,26 @@ struct AppConfig {
     static let appGroupIdentifier = AppGroupStorage.appGroupIdentifier
     
     // MARK: - Backend
-    static let apiBaseURL = Secrets.supabaseURL
+    static let apiBaseURL = Secrets.apiBaseURL
     static let apiVersion = "v1"
+    static let analyticsIngestApiKey = ProcessInfo.processInfo.environment["ANCHOR_INGEST_API_KEY"] ?? ""
+
+    static var analyticsIngestURL: URL? {
+        let trimmed = apiBaseURL.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !trimmed.isEmpty,
+              trimmed != "REPLACE_ME",
+              trimmed != "https://REPLACE_ME" else {
+            return nil
+        }
+        return URL(string: "\(trimmed)/v0/metrics/daily")
+    }
     
     // MARK: - API Endpoints
     static var baseURL: URL {
         let trimmed = apiBaseURL.trimmingCharacters(in: .whitespacesAndNewlines)
         let fallback = "http://localhost"
-        return URL(string: "\(trimmed.isEmpty ? fallback : trimmed)/rest/\(apiVersion)")!
+        let base = (trimmed.isEmpty || trimmed == "REPLACE_ME" || trimmed == "https://REPLACE_ME") ? fallback : trimmed
+        return URL(string: "\(base)/rest/\(apiVersion)")!
     }
     
     // MARK: - UserDefaults Keys

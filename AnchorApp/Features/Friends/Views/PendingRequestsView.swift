@@ -6,13 +6,13 @@ struct PendingRequestsView: View {
     
     var body: some View {
         List {
-            ForEach(viewModel.pendingRequests) { request in
+            ForEach(viewModel.friendRequests) { request in
                 PendingRequestRowView(request: request, viewModel: viewModel)
             }
         }
         .navigationTitle("Pending Requests")
         .onAppear {
-            viewModel.loadPendingRequests()
+            viewModel.loadFriendRequests()
         }
     }
 }
@@ -31,11 +31,10 @@ struct PendingRequestRowView: View {
             Spacer()
             
             Button("Accept") {
-                viewModel.acceptFriendRequest(requestId: request.id)
+                viewModel.acceptFriendRequest(request)
             }
             .buttonStyle(PrimaryButtonStyle())
             .frame(width: 80)
         }
     }
 }
-

@@ -74,7 +74,7 @@ struct UnlockRequestSubmitView: View {
         .navigationBarTitleDisplayMode(.inline)
         .sheet(isPresented: $showPhotoCapture) {
             NavigationStack {
-                ProofCaptureView(sessionId: sessionId)
+                ProofCaptureView(sessionId: sessionId?.uuidString ?? "")
             }
         }
         .onAppear {

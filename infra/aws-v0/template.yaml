@@ -1,0 +1,297 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Transform: AWS::Serverless-2016-10-31
+Description: Anchor V0 analytics backend (HTTP API + DynamoDB + scheduled rollup)
+
+Parameters:
+  Region:
+    Type: String
+    Default: us-east-1
+  SecretId:
+    Type: String
+    Default: anchor/v0/app-config
+
+Globals:
+  Function:
+    Runtime: nodejs20.x
+    Timeout: 15
+    MemorySize: 256
+    Environment:
+      Variables:
+        ANCHOR_AWS_REGION: !Ref Region
+
+Resources:
+  UsersTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: anchor_v0_users
+      BillingMode: PAY_PER_REQUEST
+      AttributeDefinitions:
+        - AttributeName: user_id
+          AttributeType: S
+      KeySchema:
+        - AttributeName: user_id
+          KeyType: HASH
+
+  DailyMetricsTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: anchor_v0_daily_metrics
+      BillingMode: PAY_PER_REQUEST
+      AttributeDefinitions:
+        - AttributeName: user_id
+          AttributeType: S
+        - AttributeName: date
+          AttributeType: S
+      KeySchema:
+        - AttributeName: user_id
+          KeyType: HASH
+        - AttributeName: date
+          KeyType: RANGE
+
+  WeeklyMetricsTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: anchor_v0_weekly_metrics
+      BillingMode: PAY_PER_REQUEST
+      AttributeDefinitions:
+        - AttributeName: user_id
+          AttributeType: S
+        - AttributeName: week_start
+          AttributeType: S
+      KeySchema:
+        - AttributeName: user_id
+          KeyType: HASH
+        - AttributeName: week_start
+          KeyType: RANGE
+
+  GlobalMetricsTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: anchor_v0_global_metrics
+      BillingMode: PAY_PER_REQUEST
+      AttributeDefinitions:
+        - AttributeName: metric_name
+          AttributeType: S
+        - AttributeName: period
+          AttributeType: S
+      KeySchema:
+        - AttributeName: metric_name
+          KeyType: HASH
+        - AttributeName: period
+          KeyType: RANGE
+
+  GlobalMetricsTableNew:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: anchor_v0_global_metrics_new
+      BillingMode: PAY_PER_REQUEST
+      AttributeDefinitions:
+        - AttributeName: metric_name
+          AttributeType: S
+        - AttributeName: period
+          AttributeType: S
+      KeySchema:
+        - AttributeName: metric_name
+          KeyType: HASH
+        - AttributeName: period
+          KeyType: RANGE
+
+  V0HttpApi:
+    Type: AWS::Serverless::HttpApi
+    Properties:
+      StageName: v0
+      DefaultRouteSettings:
+        ThrottlingRateLimit: 5
+        ThrottlingBurstLimit: 10
+
+  V0IngestDailyMetrics:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: src/ingest_daily_metrics
+      Handler: index.handler
+      Environment:
+        Variables:
+          USERS_TABLE: !Ref UsersTable
+          DAILY_TABLE: !Ref DailyMetricsTable
+          SECRET_ID: !Ref SecretId
+      Policies:
+        - Statement:
+            - Effect: Allow
+              Action:
+                - dynamodb:PutItem
+                - dynamodb:UpdateItem
+                - dynamodb:GetItem
+                - dynamodb:BatchWriteItem
+              Resource:
+                - !GetAtt UsersTable.Arn
+                - !GetAtt DailyMetricsTable.Arn
+            - Effect: Allow
+              Action:
+                - secretsmanager:GetSecretValue
+                - secretsmanager:DescribeSecret
+              Resource: !Sub "arn:aws:secretsmanager:${AWS::Region}:${AWS::AccountId}:secret:${SecretId}*"
+      Events:
+        DailyIngest:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref V0HttpApi
+            Path: /metrics/daily
+            Method: POST
+
+  V0RollupWeekly:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: src/rollup_weekly
+      Handler: index.handler
+      Environment:
+        Variables:
+          USERS_TABLE: !Ref UsersTable
+          DAILY_TABLE: !Ref DailyMetricsTable
+          WEEKLY_TABLE: !Ref WeeklyMetricsTable
+          GLOBAL_TABLE: !Ref GlobalMetricsTable
+          GLOBAL_TABLE_NEW: !Ref GlobalMetricsTableNew
+          SECRET_ID: !Ref SecretId
+      Policies:
+        - Statement:
+            - Effect: Allow
+              Action:
+                - dynamodb:Query
+                - dynamodb:Scan
+              Resource:
+                - !GetAtt UsersTable.Arn
+                - !GetAtt DailyMetricsTable.Arn
+            - Effect: Allow
+              Action:
+                - dynamodb:GetItem
+                - dynamodb:PutItem
+                - dynamodb:UpdateItem
+              Resource:
+                - !GetAtt UsersTable.Arn
+                - !GetAtt WeeklyMetricsTable.Arn
+                - !GetAtt GlobalMetricsTable.Arn
+            - Effect: Allow
+              Action:
+                - dynamodb:Scan
+              Resource:
+                - !GetAtt GlobalMetricsTableNew.Arn
+            - Effect: Allow
+              Action:
+                - secretsmanager:GetSecretValue
+                - secretsmanager:DescribeSecret
+              Resource: !Sub "arn:aws:secretsmanager:${AWS::Region}:${AWS::AccountId}:secret:${SecretId}*"
+      Events:
+        WeeklyRollup:
+          Type: Schedule
+          Properties:
+            Schedule: cron(0 5 ? * MON *)
+
+  IngestErrorsAlarm:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      AlarmName: anchor-v0-analytics-ingest-errors
+      Namespace: AWS/Lambda
+      MetricName: Errors
+      Dimensions:
+        - Name: FunctionName
+          Value: !Ref V0IngestDailyMetrics
+      Statistic: Sum
+      Period: 300
+      EvaluationPeriods: 1
+      Threshold: 0
+      ComparisonOperator: GreaterThanThreshold
+      TreatMissingData: notBreaching
+
+  RollupErrorsAlarm:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      AlarmName: anchor-v0-analytics-rollup-errors
+      Namespace: AWS/Lambda
+      MetricName: Errors
+      Dimensions:
+        - Name: FunctionName
+          Value: !Ref V0RollupWeekly
+      Statistic: Sum
+      Period: 300
+      EvaluationPeriods: 1
+      Threshold: 0
+      ComparisonOperator: GreaterThanThreshold
+      TreatMissingData: notBreaching
+
+  Api5xxAlarm:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      AlarmName: anchor-v0-analytics-api-5xx
+      Namespace: AWS/ApiGateway
+      MetricName: 5XXError
+      Dimensions:
+        - Name: ApiId
+          Value: !Ref V0HttpApi
+        - Name: Stage
+          Value: v0
+      Statistic: Sum
+      Period: 300
+      EvaluationPeriods: 1
+      Threshold: 0
+      ComparisonOperator: GreaterThanThreshold
+      TreatMissingData: notBreaching
+
+  UsersTableThrottleAlarm:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      AlarmName: anchor-v0-analytics-users-throttles
+      Namespace: AWS/DynamoDB
+      MetricName: ThrottledRequests
+      Dimensions:
+        - Name: TableName
+          Value: !Ref UsersTable
+      Statistic: Sum
+      Period: 300
+      EvaluationPeriods: 1
+      Threshold: 0
+      ComparisonOperator: GreaterThanThreshold
+      TreatMissingData: notBreaching
+
+  DailyTableThrottleAlarm:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      AlarmName: anchor-v0-analytics-daily-throttles
+      Namespace: AWS/DynamoDB
+      MetricName: ThrottledRequests
+      Dimensions:
+        - Name: TableName
+          Value: !Ref DailyMetricsTable
+      Statistic: Sum
+      Period: 300
+      EvaluationPeriods: 1
+      Threshold: 0
+      ComparisonOperator: GreaterThanThreshold
+      TreatMissingData: notBreaching
+
+Outputs:
+  HttpApiUrl:
+    Description: HTTP API base URL
+    Value: !Sub "https://${V0HttpApi}.execute-api.${AWS::Region}.amazonaws.com/v0"
+  UsersTableName:
+    Description: Users table name
+    Value: !Ref UsersTable
+  DailyMetricsTableName:
+    Description: Daily metrics table name
+    Value: !Ref DailyMetricsTable
+  WeeklyMetricsTableName:
+    Description: Weekly metrics table name
+    Value: !Ref WeeklyMetricsTable
+  GlobalMetricsTableName:
+    Description: Global metrics table name
+    Value: !Ref GlobalMetricsTable
+  IngestDailyMetricsFunctionName:
+    Description: Ingest daily metrics function name
+    Value: !Ref V0IngestDailyMetrics
+  RollupWeeklyFunctionName:
+    Description: Rollup weekly function name
+    Value: !Ref V0RollupWeekly
+  RollupWeeklyRuleName:
+    Description: EventBridge rule name for weekly rollup
+    Value: !Ref V0RollupWeeklyWeeklyRollup
+  SecretId:
+    Description: Secret ID for config
+    Value: !Ref SecretId

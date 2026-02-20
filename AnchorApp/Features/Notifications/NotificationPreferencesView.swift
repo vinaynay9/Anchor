@@ -64,7 +64,7 @@ struct NotificationPreferencesView: View {
         }
         .onAppear {
             withAnimation(.spring(response: 0.6, dampingFraction: 0.8).delay(0.1)) {
-                animatedSections.insert("unlock")
+                _ = animatedSections.insert("unlock")
             }
         }
     }
@@ -91,7 +91,7 @@ struct NotificationPreferencesView: View {
         }
         .onAppear {
             withAnimation(.spring(response: 0.6, dampingFraction: 0.8).delay(0.2)) {
-                animatedSections.insert("session")
+                _ = animatedSections.insert("session")
             }
         }
     }
@@ -118,7 +118,7 @@ struct NotificationPreferencesView: View {
         }
         .onAppear {
             withAnimation(.spring(response: 0.6, dampingFraction: 0.8).delay(0.3)) {
-                animatedSections.insert("reports")
+                _ = animatedSections.insert("reports")
             }
         }
     }

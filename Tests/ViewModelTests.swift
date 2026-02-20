@@ -202,20 +202,11 @@ final class ViewModelTests: XCTestCase {
 final class MockAuthService: AuthServiceProtocol {
     var currentUserResult: User?
     var signInAppleResult: User?
-    var signInGoogleResult: User?
     var shouldThrowError: Error?
     
     func signInWithApple() async throws -> User {
         if let error = shouldThrowError { throw error }
         guard let result = signInAppleResult else {
-            throw AuthError.notAuthenticated
-        }
-        return result
-    }
-    
-    func signInWithGoogle() async throws -> User {
-        if let error = shouldThrowError { throw error }
-        guard let result = signInGoogleResult else {
             throw AuthError.notAuthenticated
         }
         return result
@@ -231,4 +222,3 @@ final class MockAuthService: AuthServiceProtocol {
         return currentUserResult
     }
 }
-

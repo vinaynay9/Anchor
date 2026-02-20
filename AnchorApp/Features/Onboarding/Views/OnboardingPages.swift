@@ -187,39 +187,14 @@ struct SignInOnboardingPage: View {
                 // Apple Sign In
                 Button(action: {
                     Task {
-                        do {
-                            _ = try await authViewModel.signInWithApple()
-                            onSignIn()
-                        } catch {
-                            // Error handled by viewModel
-                        }
+                        authViewModel.signInWithApple()
+                        onSignIn()
                     }
                 }) {
                     HStack {
                         Image(systemName: "applelogo")
                             .font(.system(size: 18))
                         Text("Continue with Apple")
-                            .frame(maxWidth: .infinity)
-                    }
-                }
-                .buttonStyle(SecondaryButtonStyle())
-                .disabled(authViewModel.isLoading)
-                
-                // Google Sign In
-                Button(action: {
-                    Task {
-                        do {
-                            _ = try await authViewModel.signInWithGoogle()
-                            onSignIn()
-                        } catch {
-                            // Error handled by viewModel
-                        }
-                    }
-                }) {
-                    HStack {
-                        Image(systemName: "globe")
-                            .font(.system(size: 18))
-                        Text("Continue with Google")
                             .frame(maxWidth: .infinity)
                     }
                 }
@@ -245,6 +220,78 @@ struct SignInOnboardingPage: View {
             }
             
             Spacer()
+        }
+    }
+}
+
+// MARK: - Profile Page
+struct ProfileOnboardingPage: View {
+    @Binding var displayName: String
+    @Binding var birthMonth: Int
+    @Binding var birthDay: Int
+    @Binding var timezone: String
+    let onContinue: () -> Void
+
+    private let months = Array(1...12)
+    private let days = Array(1...31)
+
+    private var isValid: Bool {
+        let name = displayName.trimmingCharacters(in: .whitespacesAndNewlines)
+        return !name.isEmpty && name.count <= 64
+    }
+
+    var body: some View {
+        VStack(spacing: Theme.spacing4) {
+            Spacer()
+
+            VStack(spacing: Theme.spacing2) {
+                Text("Your Profile")
+                    .font(AppTypography.largeTitle)
+                    .foregroundColor(AppColors.textPrimary)
+
+                Text("This helps Anchor personalize your experience")
+                    .font(AppTypography.body)
+                    .foregroundColor(AppColors.textSecondary)
+                    .multilineTextAlignment(.center)
+                    .padding(.horizontal, Theme.spacing3)
+            }
+
+            VStack(spacing: Theme.spacing2) {
+                TextField("Display name", text: $displayName)
+                    .textFieldStyle(AppTextFieldStyle())
+
+                HStack(spacing: Theme.spacing) {
+                    Picker("Month", selection: $birthMonth) {
+                        ForEach(months, id: \.self) { month in
+                            Text("\(month)").tag(month)
+                        }
+                    }
+                    .pickerStyle(.menu)
+
+                    Picker("Day", selection: $birthDay) {
+                        ForEach(days, id: \.self) { day in
+                            Text("\(day)").tag(day)
+                        }
+                    }
+                    .pickerStyle(.menu)
+                }
+                .padding(.horizontal, Theme.spacing2)
+
+                TextField("Timezone", text: $timezone)
+                    .textFieldStyle(AppTextFieldStyle())
+            }
+            .padding(.horizontal, Theme.spacing3)
+
+            Spacer()
+
+            Button(action: onContinue) {
+                Text("Continue")
+                    .frame(maxWidth: .infinity)
+            }
+            .buttonStyle(PrimaryButtonStyle())
+            .disabled(!isValid)
+            .padding(.horizontal, Theme.spacing3)
+            .padding(.bottom, Theme.spacing3)
         }
     }
 }
@@ -298,8 +345,10 @@ struct PermissionsExplanationPage: View {
                 .padding(.horizontal, Theme.spacing2)
                 
                 Button(action: {
-                    viewModel.requestPermissions()
-                    onContinue()
+                    Task {
+                        await viewModel.requestScreenTimePermission()
+                        onContinue()
+                    }
                 }) {
                     Text("Grant Permissions")
                         .frame(maxWidth: .infinity)

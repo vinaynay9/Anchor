@@ -45,8 +45,6 @@ final class LoggerService {
         isVerboseLoggingEnabled = savedValue
         verboseLoggingSubject = CurrentValueSubject<Bool, Never>(savedValue)
         
-        // Create OSLog instance
-        let osLog = OSLog(subsystem: subsystem, category: category)
         logInfo("LoggerService initialized", category: "App")
     }
     
@@ -214,4 +212,3 @@ final class LoggerService {
 // MARK: - Combine Support
 
 import Combine
-

@@ -55,7 +55,7 @@ class ToastManager: ObservableObject {
         dismissTask?.cancel()
         
         // If a toast is currently showing, queue this one
-        if isShowing, let current = currentToast {
+        if isShowing, currentToast != nil {
             toastQueue.append(toast)
             return
         }
@@ -109,4 +109,3 @@ class ToastManager: ObservableObject {
         }
     }
 }
-

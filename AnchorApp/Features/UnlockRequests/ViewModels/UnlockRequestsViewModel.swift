@@ -16,9 +16,7 @@ class UnlockRequestsViewModel: ObservableObject {
         setupNotificationObserver()
     }
     
-    deinit {
-        removeNotificationObserver()
-    }
+    // Note: Notification observer cleanup is handled on lifecycle resets.
     
     func loadPendingRequests() {
         guard !isLoading else { return }
@@ -49,7 +47,7 @@ class UnlockRequestsViewModel: ObservableObject {
                 // Use new method that accepts UnlockRequest and writes bundle ID to AppGroupStorage
                 _ = try await unlockRequestService.approveUnlockRequest(request)
                 // Reload requests to reflect updated state from backend
-                await self.loadPendingRequests()
+                self.loadPendingRequests()
                 // Callback for UI feedback (notification already sent by service)
                 self.onUnlockRequestApproved(requestId: request.id.uuidString)
             } catch {
@@ -70,7 +68,7 @@ class UnlockRequestsViewModel: ObservableObject {
                 // Use new method that accepts UnlockRequest
                 _ = try await unlockRequestService.denyUnlockRequest(request)
                 // Reload requests to reflect updated state from backend
-                await self.loadPendingRequests()
+                self.loadPendingRequests()
                 // Callback for UI feedback (notification already sent by service)
                 self.onUnlockRequestDenied(requestId: request.id.uuidString)
             } catch {
@@ -110,7 +108,7 @@ class UnlockRequestsViewModel: ObservableObject {
         ) { [weak self] _ in
             // Reload requests when status changes to reflect real backend state
             Task { @MainActor in
-                await self?.loadPendingRequests()
+                self?.loadPendingRequests()
             }
         }
     }
@@ -122,4 +120,3 @@ class UnlockRequestsViewModel: ObservableObject {
         }
     }
 }
-

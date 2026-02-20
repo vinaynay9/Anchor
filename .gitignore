@@ -91,6 +91,9 @@ iOSInjectionProject/
 
 # Secrets and API Keys
 Secrets.swift
+AnchorApp/Config/Secrets.swift
+Google_Secret_Client.plist
+**/GoogleService-Info.plist
 *.env
 .env.local
 
@@ -131,4 +134,3 @@ Temporary Items
 # Temporary files
 *.tmp
 *.temp
-

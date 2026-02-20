@@ -52,15 +52,10 @@ class InsightsViewModel: ObservableObject {
         isLoading = true
         errorMessage = nil
         
-        do {
-            if selectedTab == .daily {
-                await loadDailyData()
-            } else {
-                await loadWeeklyData()
-            }
-        } catch {
-            errorMessage = error.localizedDescription
-            Logger.error("InsightsViewModel: Failed to load data: \(error.localizedDescription)", category: "Insights")
+        if selectedTab == .daily {
+            await loadDailyData()
+        } else {
+            await loadWeeklyData()
         }
         
         isLoading = false
@@ -161,4 +156,3 @@ class InsightsViewModel: ObservableObject {
         return streak
     }
 }
-

@@ -96,7 +96,6 @@ extension APIEndpoint {
 enum APIEndpoint: Endpoint {
     // Auth
     case signInApple(token: String)
-    case signInGoogle(token: String)
     case signOut
     case getCurrentUser
     case updateCurrentUser(username: String?, displayName: String?)
@@ -137,7 +136,6 @@ enum APIEndpoint: Endpoint {
         switch self {
         // Auth
         case .signInApple: return "/auth/apple"
-        case .signInGoogle: return "/auth/google"
         case .signOut: return "/auth/signout"
         case .getCurrentUser: return "/user/me"
         case .updateCurrentUser: return "/user/me"
@@ -187,7 +185,7 @@ enum APIEndpoint: Endpoint {
             return .get
         
         // POST
-        case .signInApple, .signInGoogle, .signOut, .addFriend, .startSession, .endSession,
+        case .signInApple, .signOut, .addFriend, .startSession, .endSession,
              .createUnlockRequest, .uploadProof, .registerDeviceToken,
              .acceptFriendRequest, .rejectFriendRequest,
              .approveUnlockRequest, .rejectUnlockRequest, .cancelUnlockRequest:
@@ -207,8 +205,6 @@ enum APIEndpoint: Endpoint {
         switch self {
         // Auth
         case .signInApple(let token):
-            return try? JSONEncoder().encode(["token": token])
-        case .signInGoogle(let token):
             return try? JSONEncoder().encode(["token": token])
         case .updateCurrentUser(let username, let displayName):
             var dict: [String: Any] = [:]
@@ -251,4 +247,3 @@ enum APIEndpoint: Endpoint {
         }
     }
 }
-

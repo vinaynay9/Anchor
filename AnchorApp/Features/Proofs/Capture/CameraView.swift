@@ -185,12 +185,12 @@ class CameraViewController: UIViewController {
     /// - The captured image is delivered via `AVCapturePhotoCaptureDelegate` callback.
     func capturePhoto() {
         guard let photoOutput = photoOutput else { return }
-        
-        let settings = AVCapturePhotoSettings()
+        let settings: AVCapturePhotoSettings
         if photoOutput.availablePhotoCodecTypes.contains(.hevc) {
-            settings.format = [AVVideoCodecKey: AVVideoCodecType.hevc]
+            settings = AVCapturePhotoSettings(format: [AVVideoCodecKey: AVVideoCodecType.hevc])
+        } else {
+            settings = AVCapturePhotoSettings()
         }
-        
         photoOutput.capturePhoto(with: settings, delegate: self)
     }
     
@@ -253,4 +253,3 @@ extension CameraViewController: AVCapturePhotoCaptureDelegate {
         delegate?.cameraViewController(self, didCaptureImage: image)
     }
 }
-

@@ -31,11 +31,11 @@ class AuthFlow: Coordinator, SheetPresenting {
     var rootView: some View {
         AuthRootView()
             .environmentObject(authViewModel)
-            .onChange(of: authViewModel.currentUser) { oldValue, newValue in
-                if newValue != nil && !authViewModel.needsUsernameSetup {
-                    handleAuthenticationSuccess()
+            .onChange(of: authViewModel.currentUser) { [weak self] newValue in
+                guard let self = self else { return }
+                if newValue != nil && !self.authViewModel.needsUsernameSetup {
+                    self.handleAuthenticationSuccess()
                 }
             }
     }
 }
-

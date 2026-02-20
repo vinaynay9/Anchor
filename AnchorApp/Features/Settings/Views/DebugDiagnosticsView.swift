@@ -40,7 +40,7 @@ struct DebugDiagnosticsView: View {
                 Image(systemName: "exclamationmark.triangle.fill")
                     .foregroundColor(AppColors.warning)
                 Text("Debug Mode")
-                    .font(AppTypography.headline)
+                    .font(AppTypography.title3)
                     .foregroundColor(AppColors.textPrimary)
             }
             
@@ -123,7 +123,7 @@ struct DebugDiagnosticsView: View {
     private var logsSection: some View {
         VStack(alignment: .leading, spacing: Theme.spacing) {
             Text("Recent Logs")
-                .font(AppTypography.headline)
+                .font(AppTypography.title3)
                 .foregroundColor(AppColors.textPrimary)
                 .padding(.horizontal, Theme.spacing2)
             
@@ -218,4 +218,3 @@ private struct LogEntryView: View {
         DebugDiagnosticsView()
     }
 }
-

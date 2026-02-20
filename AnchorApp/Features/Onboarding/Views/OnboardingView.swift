@@ -1,4 +1,5 @@
 import SwiftUI
+import Shared
 
 struct OnboardingView: View {
     @StateObject private var viewModel = OnboardingViewModel()
@@ -7,11 +8,16 @@ struct OnboardingView: View {
     @State private var currentStep: OnboardingStep = .welcome
     @State private var showGoalCreation = false
     @State private var showFriendSelection = false
+    @State private var displayName: String = ""
+    @State private var birthMonth: Int = 1
+    @State private var birthDay: Int = 1
+    @State private var timezone: String = TimeZone.current.identifier
     
     enum OnboardingStep {
         case welcome
         case description
         case signIn
+        case profile
         case permissions
         case goalsExplanation
         case goalCreation
@@ -43,11 +49,33 @@ struct OnboardingView: View {
                         authViewModel: authViewModel,
                         onSignIn: {
                             withAnimation(Theme.springAnimation) {
-                                currentStep = .permissions
+                                currentStep = .profile
                             }
                         },
                         onLogin: {
                             // Handle login for existing users
+                            withAnimation(Theme.springAnimation) {
+                                currentStep = .profile
+                            }
+                        }
+                    )
+
+                case .profile:
+                    ProfileOnboardingPage(
+                        displayName: $displayName,
+                        birthMonth: $birthMonth,
+                        birthDay: $birthDay,
+                        timezone: $timezone,
+                        onContinue: {
+                            AppGroupStorage.shared.setProfile(
+                                displayName: displayName,
+                                birthMonth: birthMonth,
+                                birthDay: birthDay,
+                                timezone: timezone
+                            )
+                            Task {
+                                await AnalyticsIngestService.shared.sendDailyProfileIfConfigured()
+                            }
                             withAnimation(Theme.springAnimation) {
                                 currentStep = .permissions
                             }

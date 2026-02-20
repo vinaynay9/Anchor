@@ -16,6 +16,7 @@ class SettingsViewModel: ObservableObject {
     @Published var emergencyDurationMinutes: Int = 30
     @Published var isProcessingEmergencyUnanchor = false
     @Published var dailyAnchorTime: Date
+    @Published var isCognitoSignedIn: Bool = false
     
     private let anchorScheduleService = AnchorScheduleService.shared
     private let friendService: FriendServiceProtocol
@@ -55,6 +56,7 @@ class SettingsViewModel: ObservableObject {
         components.hour = schedule.hour
         components.minute = schedule.minute
         dailyAnchorTime = Calendar.current.date(from: components) ?? Date()
+        isCognitoSignedIn = CognitoAuthService.shared.isSignedIn
     }
     
     // Simulated actions
@@ -160,6 +162,32 @@ class SettingsViewModel: ObservableObject {
     func deleteAccount() {
         // TODO: Implement account deletion
         print("Delete Account tapped")
+    }
+
+    func refreshCognitoStatus() {
+        isCognitoSignedIn = CognitoAuthService.shared.isSignedIn
+    }
+
+    func signInForRemoteConfig() {
+        Task {
+            do {
+                try await CognitoAuthService.shared.signIn()
+                await RemoteConfigService.shared.refresh()
+                await MainActor.run {
+                    self.isCognitoSignedIn = true
+                }
+            } catch {
+                await MainActor.run {
+                    self.isCognitoSignedIn = false
+                }
+                print("Cognito sign-in failed: \(error)")
+            }
+        }
+    }
+
+    func signOutCognito() {
+        CognitoAuthService.shared.signOutLocal()
+        isCognitoSignedIn = false
     }
     
     // Get app version

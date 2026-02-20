@@ -265,8 +265,8 @@ class AppCoordinator: ObservableObject {
             }
             
         case .screenTimeOnboarding:
-            ScreenTimeOnboardingFlowView(onComplete: {
-                handleScreenTimeOnboardingComplete()
+            ScreenTimeOnboardingFlowView(onComplete: { [weak self] in
+                self?.handleScreenTimeOnboardingComplete()
             })
             .withGlobalToasts()
             
@@ -284,4 +284,3 @@ class AppCoordinator: ObservableObject {
         }
     }
 }
-

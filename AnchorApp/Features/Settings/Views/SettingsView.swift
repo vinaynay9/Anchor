@@ -253,6 +253,23 @@ struct SettingsView: View {
             
             VStack(spacing: 0) {
                 SettingsRowView(
+                    icon: "cloud",
+                    title: viewModel.isCognitoSignedIn ? "Remote Config Connected" : "Connect Remote Config",
+                    subtitle: viewModel.isCognitoSignedIn ? "Signed in to Cognito" : "Sign in to fetch remote config",
+                    action: {
+                        if viewModel.isCognitoSignedIn {
+                            viewModel.signOutCognito()
+                        } else {
+                            viewModel.signInForRemoteConfig()
+                        }
+                    }
+                )
+                
+                Divider()
+                    .background(AppColors.textSecondary.opacity(0.2))
+                    .padding(.leading, 50)
+                
+                SettingsRowView(
                     icon: "rectangle.portrait.and.arrow.right",
                     title: "Sign Out",
                     action: {
@@ -275,6 +292,9 @@ struct SettingsView: View {
             }
             .background(AppColors.secondaryBackground)
             .cornerRadius(Theme.cornerRadiusMedium)
+        }
+        .onAppear {
+            viewModel.refreshCognitoStatus()
         }
     }
 }

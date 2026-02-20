@@ -231,41 +231,37 @@ class ScreenTimeService: ScreenTimeServiceProtocol {
         
         // Safely update by stopping current blocking and restarting
         // This prevents flickering by doing it atomically
-        do {
-            // Load updated application tokens and categories
-            let tokens = activitySelectionService.loadApplicationTokens()
-            let selection = activitySelectionService.loadSelection()
-            let categoryTokens = selection?.categoryTokens ?? Set<ActivityCategoryToken>()
+        
+        // Load updated application tokens and categories
+        let tokens = activitySelectionService.loadApplicationTokens()
+        let selection = activitySelectionService.loadSelection()
+        let categoryTokens = selection?.categoryTokens ?? Set<ActivityCategoryToken>()
+        
+        // Use session-specific categories if provided
+        let categoriesToBlock = session.selectedCategories ?? []
+        
+        LoggerService.shared.logInfo("Updating blocking with \(tokens.count) apps, \(categoryTokens.count) category tokens", category: "ScreenTime")
+        
+        // Apply updated restrictions
+        if !tokens.isEmpty || !categoryTokens.isEmpty {
+            activateShields(
+                for: tokens,
+                categories: categoriesToBlock.isEmpty ? nil : categoriesToBlock,
+                categoryTokens: categoryTokens.isEmpty ? nil : categoryTokens
+            )
+        } else if let sessionSelection = loadSelection(for: session.id) {
+            // Fall back to session-specific selection
+            let selectionTokens = Array(sessionSelection.applicationTokens)
+            let sessionCategoryTokens = sessionSelection.categoryTokens
             
-            // Use session-specific categories if provided
-            let categoriesToBlock = session.selectedCategories ?? []
-            
-            LoggerService.shared.logInfo("Updating blocking with \(tokens.count) apps, \(categoryTokens.count) category tokens", category: "ScreenTime")
-            
-            // Apply updated restrictions
-            if !tokens.isEmpty || !categoryTokens.isEmpty {
-                activateShields(
-                    for: tokens,
-                    categories: categoriesToBlock.isEmpty ? nil : categoriesToBlock,
-                    categoryTokens: categoryTokens.isEmpty ? nil : categoryTokens
-                )
-            } else if let sessionSelection = loadSelection(for: session.id) {
-                // Fall back to session-specific selection
-                let selectionTokens = Array(sessionSelection.applicationTokens)
-                let sessionCategoryTokens = sessionSelection.categoryTokens
-                
-                activateShields(
-                    for: selectionTokens,
-                    categories: session.selectedCategories,
-                    categoryTokens: sessionCategoryTokens.isEmpty ? nil : sessionCategoryTokens
-                )
-            }
-            
-            LoggerService.shared.logInfo("Blocking updated successfully", category: "ScreenTime")
-        } catch {
-            LoggerService.shared.logError("Failed to update blocking", error: error, category: "ScreenTime")
-            throw error
+            activateShields(
+                for: selectionTokens,
+                categories: session.selectedCategories,
+                categoryTokens: sessionCategoryTokens.isEmpty ? nil : sessionCategoryTokens
+            )
         }
+        
+        LoggerService.shared.logInfo("Blocking updated successfully", category: "ScreenTime")
     }
     
     func stopBlocking() async {
@@ -327,6 +323,8 @@ class ScreenTimeService: ScreenTimeServiceProtocol {
         return selection
     }
     
+    // MARK: - ManagedSettings Helpers
+
     // MARK: - Shield Activation/Deactivation
     func activateShields(for selection: FamilyActivitySelection, sessionId: UUID) throws {
         guard isAuthorized() else {
@@ -348,16 +346,16 @@ class ScreenTimeService: ScreenTimeServiceProtocol {
         
         // Apply restrictions using ManagedSettings
         store.shield.applications = Set(tokensToUse)
-        store.shield.webDomains = selection.webDomainTokens.isEmpty ? nil : .specific(selection.webDomainTokens)
+        store.shield.webDomains = selection.webDomainTokens.isEmpty ? nil : selection.webDomainTokens
         
         // Note: Session state is managed by SessionService, not here
         // SessionService writes SharedSessionState to App Group storage
     }
     
     /// Activates shields for the given application tokens
-    func activateShields(for tokens: [ApplicationToken]) {
+    func activateShields(for tokens: [ManagedSettings.ApplicationToken]) {
         LoggerService.shared.logInfo("Activating shields for \(tokens.count) apps", category: "ScreenTime")
-        store.shield.applications = .init(tokens)
+        store.shield.applications = Set(tokens)
         store.shield.applicationCategories = .all()
         store.shield.webDomains = nil
     }
@@ -368,7 +366,7 @@ class ScreenTimeService: ScreenTimeServiceProtocol {
     ///   - categories: App categories to block (if nil, uses categoryTokens or .all())
     ///   - categoryTokens: ActivityCategoryToken set from FamilyActivitySelection (if nil, uses categories or .all())
     func activateShields(
-        for tokens: [ApplicationToken],
+        for tokens: [ManagedSettings.ApplicationToken],
         categories: [AppCategory]?,
         categoryTokens: Set<ActivityCategoryToken>?
     ) {

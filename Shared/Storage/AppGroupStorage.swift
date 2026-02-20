@@ -178,10 +178,45 @@ public enum AppGroupStorageKey: String {
     /// **Purpose:** Date associated with the current analytics day ID.
     case analyticsDayIdDate = "analyticsDayIdDate"
 
+    /// **Key:** `"analyticsUserId"`
+    /// **Type:** String (UUID)
+    /// **Purpose:** Stable per-install analytics user identifier.
+    case analyticsUserId = "analyticsUserId"
+
+    /// **Key:** `"profileDisplayName"`
+    /// **Type:** String
+    /// **Purpose:** Local profile display name collected during onboarding.
+    case profileDisplayName = "profileDisplayName"
+
+    /// **Key:** `"profileBirthMonth"`
+    /// **Type:** Int
+    /// **Purpose:** Local profile birth month (1..12).
+    case profileBirthMonth = "profileBirthMonth"
+
+    /// **Key:** `"profileBirthDay"`
+    /// **Type:** Int
+    /// **Purpose:** Local profile birth day (1..31).
+    case profileBirthDay = "profileBirthDay"
+
+    /// **Key:** `"profileTimezone"`
+    /// **Type:** String
+    /// **Purpose:** Local profile timezone identifier.
+    case profileTimezone = "profileTimezone"
+
+    /// **Key:** `"profileComplete"`
+    /// **Type:** Bool
+    /// **Purpose:** Whether required profile fields have been collected.
+    case profileComplete = "profileComplete"
+
     /// **Key:** `"lastAppOpenAt"`
     /// **Type:** Date (stored as TimeInterval)
     /// **Purpose:** Timestamp of the most recent app_opened event (dedup).
     case lastAppOpenAt = "lastAppOpenAt"
+    
+    /// **Key:** `"remote_app_config"`
+    /// **Type:** JSON-encoded `RemoteAppConfig`
+    /// **Purpose:** Stores the latest remote config fetched from backend.
+    case remoteAppConfig = "remote_app_config"
 
     /// **Key:** `"lockPlans"`
     /// **Type:** JSON-encoded `[LockPlan]`
@@ -802,6 +837,17 @@ public final class AppGroupStorage {
         return salt
     }
 
+    public func getOrCreateAnalyticsUserId() -> String {
+        if let existingId = defaults?.string(forKey: AppGroupStorageKey.analyticsUserId.rawValue),
+           !existingId.isEmpty {
+            return existingId
+        }
+        let newId = UUID().uuidString
+        defaults?.set(newId, forKey: AppGroupStorageKey.analyticsUserId.rawValue)
+        notifyUpdate(forKey: .analyticsUserId)
+        return newId
+    }
+
     public func getAnalyticsDayId(for date: Date = Date()) -> String {
         let formatter = DateFormatter()
         formatter.dateFormat = "yyyy-MM-dd"
@@ -819,6 +865,44 @@ public final class AppGroupStorage {
         return newId
     }
 
+    // MARK: - Profile
+
+    public func setProfile(displayName: String, birthMonth: Int, birthDay: Int, timezone: String) {
+        defaults?.set(displayName, forKey: AppGroupStorageKey.profileDisplayName.rawValue)
+        defaults?.set(birthMonth, forKey: AppGroupStorageKey.profileBirthMonth.rawValue)
+        defaults?.set(birthDay, forKey: AppGroupStorageKey.profileBirthDay.rawValue)
+        defaults?.set(timezone, forKey: AppGroupStorageKey.profileTimezone.rawValue)
+        defaults?.set(true, forKey: AppGroupStorageKey.profileComplete.rawValue)
+        notifyUpdate(forKey: .profileDisplayName)
+        notifyUpdate(forKey: .profileBirthMonth)
+        notifyUpdate(forKey: .profileBirthDay)
+        notifyUpdate(forKey: .profileTimezone)
+        notifyUpdate(forKey: .profileComplete)
+    }
+
+    public func getProfile() -> (displayName: String, birthMonth: Int, birthDay: Int, timezone: String)? {
+        guard let displayName = defaults?.string(forKey: AppGroupStorageKey.profileDisplayName.rawValue),
+              !displayName.isEmpty else {
+            return nil
+        }
+        let birthMonth = defaults?.integer(forKey: AppGroupStorageKey.profileBirthMonth.rawValue) ?? 0
+        let birthDay = defaults?.integer(forKey: AppGroupStorageKey.profileBirthDay.rawValue) ?? 0
+        guard birthMonth >= 1, birthMonth <= 12, birthDay >= 1, birthDay <= 31 else {
+            return nil
+        }
+        let timezone = defaults?.string(forKey: AppGroupStorageKey.profileTimezone.rawValue) ?? TimeZone.current.identifier
+        return (displayName, birthMonth, birthDay, timezone)
+    }
+
+    public func isProfileComplete() -> Bool {
+        defaults?.bool(forKey: AppGroupStorageKey.profileComplete.rawValue) ?? false
+    }
+
+    public func setProfileComplete(_ complete: Bool) {
+        defaults?.set(complete, forKey: AppGroupStorageKey.profileComplete.rawValue)
+        notifyUpdate(forKey: .profileComplete)
+    }
+
     public func setLastAppOpenAt(_ date: Date?) {
         if let date = date {
             defaults?.set(date.timeIntervalSince1970, forKey: AppGroupStorageKey.lastAppOpenAt.rawValue)
@@ -832,6 +916,26 @@ public final class AppGroupStorage {
         let timestamp = defaults?.double(forKey: AppGroupStorageKey.lastAppOpenAt.rawValue) ?? 0
         guard timestamp > 0 else { return nil }
         return Date(timeIntervalSince1970: timestamp)
+    }
+    
+    // MARK: - Remote App Config
+    
+    public func getRemoteAppConfig() -> RemoteAppConfig? {
+        guard let defaults = defaults,
+              let data = defaults.data(forKey: AppGroupStorageKey.remoteAppConfig.rawValue) else {
+            return nil
+        }
+        return try? JSONDecoder().decode(RemoteAppConfig.self, from: data)
+    }
+    
+    public func setRemoteAppConfig(_ config: RemoteAppConfig?) {
+        guard let defaults = defaults else { return }
+        if let config = config, let data = try? JSONEncoder().encode(config) {
+            defaults.set(data, forKey: AppGroupStorageKey.remoteAppConfig.rawValue)
+        } else {
+            defaults.removeObject(forKey: AppGroupStorageKey.remoteAppConfig.rawValue)
+        }
+        notifyUpdate(forKey: .remoteAppConfig)
     }
 
     // MARK: - Lock Plans
@@ -976,4 +1080,3 @@ public final class AppGroupStorage {
         defaults.removeObject(forKey: key)
     }
 }
-

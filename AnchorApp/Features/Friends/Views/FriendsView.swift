@@ -1,4 +1,5 @@
 import SwiftUI
+import Shared
 
 struct FriendsView: View {
     @EnvironmentObject var coordinator: MainTabFlow
@@ -128,8 +129,24 @@ struct FriendsView: View {
 }
 
 struct FriendCardView: View {
-    let friend: FriendMockModel
+    let friend: Friend
     let onRemove: () -> Void
+    
+    private var displayName: String {
+        friend.friend?.displayName ?? friend.friend?.username ?? "Unknown"
+    }
+    
+    private var username: String {
+        friend.friend?.username ?? ""
+    }
+    
+    private var initials: String {
+        let components = displayName.split(separator: " ")
+        if components.count >= 2 {
+            return String(components[0].prefix(1) + components[1].prefix(1)).uppercased()
+        }
+        return String(displayName.prefix(2)).uppercased()
+    }
     
     var body: some View {
         HStack(spacing: Theme.padding) {
@@ -152,18 +169,18 @@ struct FriendCardView: View {
                             .stroke(AppColors.anchorLavender.opacity(0.6), lineWidth: 2)
                     )
                 
-                Text(friend.initials)
+                Text(initials)
                     .font(AppTypography.title3)
                     .foregroundColor(AppColors.textPrimary)
             }
             
             // Friend Info
             VStack(alignment: .leading, spacing: 4) {
-                Text(friend.displayName)
+                Text(displayName)
                     .font(AppTypography.bodyBold)
                     .foregroundColor(AppColors.textPrimary)
                 
-                Text(friend.username)
+                Text(username)
                     .font(AppTypography.caption)
                     .foregroundColor(AppColors.textSecondary)
             }
@@ -218,4 +235,3 @@ struct FriendCardView: View {
         )
     }
 }
-

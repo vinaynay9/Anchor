@@ -61,7 +61,7 @@ class ProofCaptureViewModel: ObservableObject {
             }
             
             do {
-                let proof = try await proofService.uploadProof(imageData: imageData, sessionId: sessionId)
+                _ = try await proofService.uploadProof(imageData: imageData, sessionId: sessionId)
                 
                 await MainActor.run {
                     progressCancellable?.cancel()
@@ -89,4 +89,3 @@ class ProofCaptureViewModel: ObservableObject {
         errorMessage = nil
     }
 }
-

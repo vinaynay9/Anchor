@@ -8,7 +8,7 @@ import DeviceActivity
 #endif
 
 // Lightweight local token used for usage reporting decoupled from FamilyControls
-public struct ApplicationToken: Hashable {
+public struct UsageApplicationToken: Hashable {
     public let rawValue: String
     public init(rawValue: String) { self.rawValue = rawValue }
 }
@@ -91,8 +91,9 @@ class UsageReportService {
         
         // Get selected application tokens
         let tokens = activitySelectionService.loadApplicationTokens()
+        let usageTokens = tokens.map { UsageApplicationToken(rawValue: String($0.hashValue)) }
         
-        guard !tokens.isEmpty else {
+        guard !usageTokens.isEmpty else {
             Logger.warning("UsageReportService: No app tokens available, returning empty report", category: "UsageReport")
             return []
         }
@@ -114,11 +115,11 @@ class UsageReportService {
         do {
             let events = try await eventStore.queryEvents(
                 for: dateInterval,
-                filter: ActivityFilter(applicationTokens: Set(tokens))
+                filter: ActivityFilter(applicationTokens: Set(usageTokens))
             )
             
             // Group events by application token and calculate total minutes
-            var usageByToken: [ApplicationToken: TimeInterval] = [:]
+            var usageByToken: [UsageApplicationToken: TimeInterval] = [:]
             
             for event in events {
                 let duration = event.totalActivityDuration
@@ -136,7 +137,7 @@ class UsageReportService {
             for (token, duration) in usageByToken {
                 let minutes = Int(duration / 60)
                 
-                // Note: ApplicationToken is privacy-preserving and doesn't expose app names directly
+                // Note: UsageApplicationToken is privacy-preserving and doesn't expose app names directly
                 // In a production app, you'd need to:
                 // 1. Maintain a mapping of tokens to app names when user selects apps
                 // 2. Use DeviceActivityReport extension for more detailed reporting
@@ -177,8 +178,9 @@ class UsageReportService {
         
         // Get selected application tokens
         let tokens = activitySelectionService.loadApplicationTokens()
+        let usageTokens = tokens.map { UsageApplicationToken(rawValue: String($0.hashValue)) }
         
-        guard !tokens.isEmpty else {
+        guard !usageTokens.isEmpty else {
             Logger.warning("UsageReportService: No app tokens available, returning empty report", category: "UsageReport")
             return []
         }
@@ -201,7 +203,7 @@ class UsageReportService {
         do {
             let events = try await eventStore.queryEvents(
                 for: dateInterval,
-                filter: ActivityFilter(applicationTokens: Set(tokens))
+                filter: ActivityFilter(applicationTokens: Set(usageTokens))
             )
             
             // Group events by day
@@ -275,7 +277,7 @@ class UsageReportService {
     /// In a real implementation, this would use actual app category data
     private func categorizeUsage(minutes: Int) -> String {
         // Simple heuristic: categorize based on usage patterns
-        // In production, you'd maintain a mapping from ApplicationToken to AppCategory
+        // In production, you'd maintain a mapping from UsageApplicationToken to AppCategory
         if minutes > 120 {
             return "High Usage"
         } else if minutes > 60 {
@@ -291,11 +293,11 @@ class UsageReportService {
 // MARK: - Local stubs for DeviceActivity event querying (compile-time fallback)
 
 struct ActivityFilter {
-    let applicationTokens: Set<ApplicationToken>
+    let applicationTokens: Set<UsageApplicationToken>
 }
 
 struct ActivityEvent {
-    let applicationToken: ApplicationToken
+    let applicationToken: UsageApplicationToken
     let totalActivityDuration: TimeInterval
     let dateInterval: DateInterval
 }

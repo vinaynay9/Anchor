@@ -262,7 +262,7 @@ struct InsightsView: View {
             }
             .chartXAxis {
                 AxisMarks(values: .stride(by: .day)) { value in
-                    AxisValueLabel(format: .dateTime.weekday(.abbreviated)) {
+                    AxisValueLabel {
                         Text(value.as(Date.self)?.formatted(.dateTime.weekday(.abbreviated)) ?? "")
                             .font(AppTypography.caption)
                             .foregroundColor(AppColors.textSecondary)
@@ -370,4 +370,3 @@ struct InsightsView: View {
         .padding(Theme.padding * 2)
     }
 }
-

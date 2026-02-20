@@ -307,7 +307,7 @@ class PersistenceService {
     }
     
     private func cleanupOldProofs() {
-        guard let dir = proofsDirectory else { return }
+        guard proofsDirectory != nil else { return }
         let cutoffDate = Date().addingTimeInterval(-7 * 24 * 60 * 60) // 7 days ago
         
         let pendingProofs = loadPendingProofs()
@@ -365,4 +365,3 @@ enum PersistenceError: LocalizedError {
         }
     }
 }
-

@@ -18,8 +18,7 @@ import Shared
 /// </array>
 /// ```
 ///
-/// This should be added alongside any existing URL schemes (e.g., Google Sign-In).
-/// Do NOT remove existing URL scheme entries.
+/// Add alongside any other URL schemes your app uses.
 
 // MARK: - Deep Link Types
 /// Represents the different types of deep links that Anchor can handle
@@ -97,4 +96,3 @@ public class DeepLinkHandler: ObservableObject {
         pendingDeepLink = nil
     }
 }
-

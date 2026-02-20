@@ -79,10 +79,11 @@ enum ImageProcessingUtility {
             return image.jpegData(compressionQuality: compressionQuality)
         }
         
+        let qualityKey = CIImageRepresentationOption(rawValue: kCGImageDestinationLossyCompressionQuality as String)
         guard let jpegData = context.jpegRepresentation(
             of: ciImage,
             colorSpace: colorSpace,
-            options: [.compressionQuality: compressionQuality]
+            options: [qualityKey: compressionQuality]
         ) else {
             // Fallback to standard JPEG conversion if Core Image fails
             return image.jpegData(compressionQuality: compressionQuality)
@@ -91,4 +92,3 @@ enum ImageProcessingUtility {
         return jpegData
     }
 }
-

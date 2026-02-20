@@ -1,9 +1,6 @@
 import SwiftUI
 import UIKit
 import UserNotifications
-#if canImport(GoogleSignIn)
-import GoogleSignIn
-#endif
 import Shared
 
 // MARK: - App Delegate for APNs
@@ -75,6 +72,10 @@ class AppDelegate: NSObject, UIApplicationDelegate {
         // Cleanup old cached data on app launch
         PersistenceService.shared.cleanupOldData()
 
+        Task {
+            await RemoteConfigService.shared.refresh()
+        }
+
         logAppOpened(source: "launch")
         
         return true
@@ -118,13 +119,8 @@ class AppDelegate: NSObject, UIApplicationDelegate {
         }
     }
     
-    // MARK: - URL Handling (Google Sign-In + Deep Links)
+    // MARK: - URL Handling (Deep Links)
     func application(_ app: UIApplication, open url: URL, options: [UIApplication.OpenURLOptionsKey : Any] = [:]) -> Bool {
-        // Handle Google Sign-In URLs first
-        if GIDSignIn.sharedInstance.handle(url) {
-            return true
-        }
-        
         // Handle Anchor deep links
         Task { @MainActor in
             _ = DeepLinkHandler.shared.handleURL(url)

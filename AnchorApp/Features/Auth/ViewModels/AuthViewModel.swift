@@ -67,52 +67,8 @@ class AuthViewModel: ObservableObject {
         }
     }
     
-    func signInWithGoogle() {
-        isLoading = true
-        errorMessage = nil
-        
-        Task {
-            do {
-                let user = try await authService.signInWithGoogle()
-                await MainActor.run {
-                    self.currentUser = user
-                    self.needsUsernameSetup = user.username.isEmpty
-                    self.isLoading = false
-                    self.errorMessage = nil
-                }
-            } catch let error as AuthError {
-                await MainActor.run {
-                    self.currentUser = nil
-                    self.needsUsernameSetup = false
-                    self.isLoading = false
-                    
-                    switch error {
-                    case .cancelled:
-                        // User cancelled - don't show error message
-                        self.errorMessage = nil
-                    case .networkError:
-                        self.errorMessage = "Network error. Please check your connection and try again."
-                    case .invalidToken:
-                        self.errorMessage = "Authentication failed. Please try again."
-                    case .notAuthenticated:
-                        self.errorMessage = "Authentication failed. Please sign in again."
-                    case .failed(let underlyingError):
-                        self.errorMessage = "Sign in failed: \(underlyingError.localizedDescription)"
-                    }
-                }
-            } catch {
-                await MainActor.run {
-                    self.currentUser = nil
-                    self.needsUsernameSetup = false
-                    self.isLoading = false
-                    self.errorMessage = "An unexpected error occurred. Please try again."
-                }
-            }
-        }
-    }
-    
     func completeUsernameSetup(_ username: String) {
-        guard let currentUser = currentUser else {
+        guard currentUser != nil else {
             errorMessage = "No user found"
             return
         }
@@ -137,4 +93,3 @@ class AuthViewModel: ObservableObject {
         }
     }
 }
-

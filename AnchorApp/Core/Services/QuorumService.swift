@@ -5,9 +5,9 @@ import Shared
 // QuorumService is NEW. It replaces single-partner unlock with 51% group unlock logic.
 
 protocol QuorumServiceProtocol {
-    func loadQuorumState(sessionId: UUID) -> QuorumState?
-    func initializeQuorum(sessionId: UUID, participantIds: [UUID]) -> QuorumState
-    func recordVote(sessionId: UUID, voterId: UUID, approve: Bool) -> QuorumState
+    func loadQuorumState(sessionId: UUID) -> Shared.QuorumState?
+    func initializeQuorum(sessionId: UUID, participantIds: [UUID]) -> Shared.QuorumState
+    func recordVote(sessionId: UUID, voterId: UUID, approve: Bool) -> Shared.QuorumState
 }
 
 final class QuorumService: QuorumServiceProtocol {
@@ -20,13 +20,13 @@ final class QuorumService: QuorumServiceProtocol {
         self.sessionService = sessionService
     }
     
-    func loadQuorumState(sessionId: UUID) -> QuorumState? {
+    func loadQuorumState(sessionId: UUID) -> Shared.QuorumState? {
         appGroupStorage.getQuorumState(sessionId: sessionId)
     }
     
-    func initializeQuorum(sessionId: UUID, participantIds: [UUID]) -> QuorumState {
+    func initializeQuorum(sessionId: UUID, participantIds: [UUID]) -> Shared.QuorumState {
         let required = max(1, Int(ceil(Double(participantIds.count) * 0.51)))
-        let state = QuorumState(
+        let state = Shared.QuorumState(
             participantIds: participantIds,
             approvedIds: [],
             deniedIds: [],
@@ -43,7 +43,7 @@ final class QuorumService: QuorumServiceProtocol {
         return state
     }
     
-    func recordVote(sessionId: UUID, voterId: UUID, approve: Bool) -> QuorumState {
+    func recordVote(sessionId: UUID, voterId: UUID, approve: Bool) -> Shared.QuorumState {
         var state = loadQuorumState(sessionId: sessionId) ?? initializeQuorum(sessionId: sessionId, participantIds: [])
         
         if approve {
@@ -54,7 +54,7 @@ final class QuorumService: QuorumServiceProtocol {
             state.approvedIds.remove(voterId)
         }
         
-        let updated = QuorumState(
+        let updated = Shared.QuorumState(
             participantIds: state.participantIds,
             approvedIds: state.approvedIds,
             deniedIds: state.deniedIds,

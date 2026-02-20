@@ -134,13 +134,13 @@ class SessionService: SessionServiceProtocol {
         let sessionId = UUID()
         
         // If plan is group + quorum, initialize quorum state
-        var quorumState: QuorumState?
+        var quorumState: Shared.QuorumState?
         if plan.mode == .group, plan.unlockPolicy == .quorum {
             let participantIds = friendIds.compactMap { UUID(uuidString: $0) }
             quorumState = quorumService.initializeQuorum(sessionId: sessionId, participantIds: participantIds)
         }
         
-        let session = try await startSession(
+        let session = try await startSessionInternal(
             durationMinutes: durationMinutes,
             friendIds: friendIds,
             categories: categories,
@@ -161,7 +161,7 @@ class SessionService: SessionServiceProtocol {
             unlockPolicy: .selfUnlock,
             goalRequirement: .none
         )
-        return try await startSession(
+        return try await startSessionInternal(
             durationMinutes: durationMinutes,
             friendIds: friendIds,
             categories: categories,
@@ -172,13 +172,13 @@ class SessionService: SessionServiceProtocol {
         )
     }
     
-    private func startSession(
+    private func startSessionInternal(
         durationMinutes: Int,
         friendIds: [String],
         categories: [AppCategory]?,
         schedule: LockSessionSchedule?,
         plan: LockPlan,
-        quorumState: QuorumState?,
+        quorumState: Shared.QuorumState?,
         sessionId: UUID
     ) async throws -> LockSession {
         LoggerService.shared.logInfo("Starting session: duration=\(durationMinutes)min, friends=\(friendIds.count), categories=\(categories?.count ?? 0)", category: "Session")
@@ -613,3 +613,4 @@ class SessionService: SessionServiceProtocol {
         }
     }
 }
+
