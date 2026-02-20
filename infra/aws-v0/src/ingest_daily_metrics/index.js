@@ -52,7 +52,7 @@ const METRIC_KEYS = [
   "news_minutes",
   "sports_minutes",
   "goals_completed",
-  "shield_opens",
+  "shield_hits",
   "session_count",
   "session_total_minutes",
 ];
@@ -110,9 +110,6 @@ function validateAndNormalize(body) {
     if (typeof body.date !== "string" || !/^\d{4}-\d{2}-\d{2}$/.test(body.date)) {
       details.push("date must be YYYY-MM-DD");
     }
-    if (!Number.isInteger(body.reset_time_minutes) || body.reset_time_minutes < 0 || body.reset_time_minutes > 1439) {
-      details.push("reset_time_minutes must be an integer 0..1439");
-    }
     if (!isPlainObject(body.metrics)) {
       details.push("metrics must be an object");
     }
@@ -124,8 +121,12 @@ function validateAndNormalize(body) {
 
   const normalizeMetrics = (metrics) => {
     const out = {};
+    const normalizedMetrics = isPlainObject(metrics) ? { ...metrics } : {};
+    if (normalizedMetrics.shield_hits === undefined && normalizedMetrics.shield_opens !== undefined) {
+      normalizedMetrics.shield_hits = normalizedMetrics.shield_opens;
+    }
     for (const key of METRIC_KEYS) {
-      const value = metrics ? metrics[key] : undefined;
+      const value = normalizedMetrics ? normalizedMetrics[key] : undefined;
       if (value === undefined || value === null) {
         out[key] = 0;
         continue;
@@ -151,15 +152,23 @@ function validateAndNormalize(body) {
       if (typeof item.date !== "string" || !/^\d{4}-\d{2}-\d{2}$/.test(item.date)) {
         details.push("each item date must be YYYY-MM-DD");
       }
-      if (!Number.isInteger(item.reset_time_minutes) || item.reset_time_minutes < 0 || item.reset_time_minutes > 1439) {
-        details.push("each item reset_time_minutes must be 0..1439");
+      const resetMinutes =
+        Number.isInteger(item.daily_reset_session_start_time) ? item.daily_reset_session_start_time : item.reset_time_minutes;
+      if (!Number.isInteger(resetMinutes) || resetMinutes < 0 || resetMinutes > 1439) {
+        details.push("each item daily_reset_session_start_time must be 0..1439");
+      }
+      if (item.daily_session_start_time !== undefined &&
+          (typeof item.daily_session_start_time !== "string" ||
+           !/^([01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d$/.test(item.daily_session_start_time))) {
+        details.push("each item daily_session_start_time must be HH:MM:SS");
       }
       if (!isPlainObject(item.metrics)) {
         details.push("each item metrics must be an object");
       }
       const normalized = {
         date: item.date,
-        reset_time_minutes: item.reset_time_minutes,
+        daily_reset_session_start_time: resetMinutes,
+        daily_session_start_time: item.daily_session_start_time,
         metrics: normalizeMetrics(item.metrics),
       };
       items.push(normalized);
@@ -176,11 +185,23 @@ function validateAndNormalize(body) {
     };
   }
 
+  const resetMinutes =
+    Number.isInteger(body.daily_reset_session_start_time) ? body.daily_reset_session_start_time : body.reset_time_minutes;
+  if (!Number.isInteger(resetMinutes) || resetMinutes < 0 || resetMinutes > 1439) {
+    details.push("daily_reset_session_start_time must be an integer 0..1439");
+  }
+  if (body.daily_session_start_time !== undefined &&
+      (typeof body.daily_session_start_time !== "string" ||
+       !/^([01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d$/.test(body.daily_session_start_time))) {
+    details.push("daily_session_start_time must be HH:MM:SS");
+  }
+
   const normalized = {
     user_id: userId,
     date: body.date,
     timezone,
-    reset_time_minutes: body.reset_time_minutes,
+    daily_reset_session_start_time: resetMinutes,
+    daily_session_start_time: body.daily_session_start_time,
     metrics: normalizeMetrics(body.metrics),
     profile,
   };
@@ -268,22 +289,27 @@ async function upsertUser(userId, timezone, profile) {
 async function upsertDaily(userId, item) {
   const now = new Date().toISOString();
   const metrics = item.metrics || {};
+  let updateExpression =
+    "SET #tz = :tz, daily_reset_session_start_time = :rtm, " +
+    "social_minutes = :social, video_game_minutes = :games, streaming_minutes = :stream, " +
+    "shopping_minutes = :shopping, news_minutes = :news, sports_minutes = :sports, " +
+    "goals_completed = :goals, shield_hits = :shield, session_count = :sessions, " +
+    "session_total_minutes = :sessionMinutes, " +
+    "created_at = if_not_exists(created_at, :createdAt), updated_at = :updatedAt";
+  if (item.daily_session_start_time) {
+    updateExpression += ", daily_session_start_time = :sessionStart";
+  }
+
   const cmd = new UpdateCommand({
     TableName: DAILY_TABLE,
     Key: { user_id: userId, date: item.date },
-    UpdateExpression:
-      "SET #tz = :tz, reset_time_minutes = :rtm, " +
-      "social_minutes = :social, video_game_minutes = :games, streaming_minutes = :stream, " +
-      "shopping_minutes = :shopping, news_minutes = :news, sports_minutes = :sports, " +
-      "goals_completed = :goals, shield_opens = :shield, session_count = :sessions, " +
-      "session_total_minutes = :sessionMinutes, " +
-      "created_at = if_not_exists(created_at, :createdAt), updated_at = :updatedAt",
+    UpdateExpression: updateExpression,
     ExpressionAttributeNames: {
       "#tz": "timezone",
     },
     ExpressionAttributeValues: {
       ":tz": item.timezone || "UTC",
-      ":rtm": item.reset_time_minutes ?? 0,
+      ":rtm": item.daily_reset_session_start_time ?? 0,
       ":social": metrics.social_minutes ?? 0,
       ":games": metrics.video_game_minutes ?? 0,
       ":stream": metrics.streaming_minutes ?? 0,
@@ -291,11 +317,12 @@ async function upsertDaily(userId, item) {
       ":news": metrics.news_minutes ?? 0,
       ":sports": metrics.sports_minutes ?? 0,
       ":goals": metrics.goals_completed ?? 0,
-      ":shield": metrics.shield_opens ?? 0,
+      ":shield": metrics.shield_hits ?? 0,
       ":sessions": metrics.session_count ?? 0,
       ":sessionMinutes": metrics.session_total_minutes ?? 0,
       ":createdAt": now,
       ":updatedAt": now,
+      ...(item.daily_session_start_time ? { ":sessionStart": item.daily_session_start_time } : {}),
     },
   });
   await docClient.send(cmd);

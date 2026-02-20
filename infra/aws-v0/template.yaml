@@ -80,22 +80,6 @@ Resources:
         - AttributeName: period
           KeyType: RANGE
 
-  GlobalMetricsTableNew:
-    Type: AWS::DynamoDB::Table
-    Properties:
-      TableName: anchor_v0_global_metrics_new
-      BillingMode: PAY_PER_REQUEST
-      AttributeDefinitions:
-        - AttributeName: metric_name
-          AttributeType: S
-        - AttributeName: period
-          AttributeType: S
-      KeySchema:
-        - AttributeName: metric_name
-          KeyType: HASH
-        - AttributeName: period
-          KeyType: RANGE
-
   V0HttpApi:
     Type: AWS::Serverless::HttpApi
     Properties:
@@ -149,7 +133,6 @@ Resources:
           DAILY_TABLE: !Ref DailyMetricsTable
           WEEKLY_TABLE: !Ref WeeklyMetricsTable
           GLOBAL_TABLE: !Ref GlobalMetricsTable
-          GLOBAL_TABLE_NEW: !Ref GlobalMetricsTableNew
           SECRET_ID: !Ref SecretId
       Policies:
         - Statement:
@@ -169,11 +152,6 @@ Resources:
                 - !GetAtt UsersTable.Arn
                 - !GetAtt WeeklyMetricsTable.Arn
                 - !GetAtt GlobalMetricsTable.Arn
-            - Effect: Allow
-              Action:
-                - dynamodb:Scan
-              Resource:
-                - !GetAtt GlobalMetricsTableNew.Arn
             - Effect: Allow
               Action:
                 - secretsmanager:GetSecretValue
