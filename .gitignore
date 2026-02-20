@@ -4,6 +4,13 @@
 
 ## User settings
 xcuserdata/
+*.xcuserstate
+
+## Xcode indexing and cache
+Index.noindex/
+ModuleCache.noindex/
+SymbolCache.noindex/
+CompilationCache.noindex/
 
 ## compatibility with Xcode 8 and earlier (ignoring not required starting Xcode 9)
 *.xcscmblueprint
@@ -45,6 +52,7 @@ playground.xcworkspace
 # Xcode automatically generates this directory with a .xcworkspacedata file and xcuserdata
 # hence it is not needed unless you have added a package configuration file to your project
 # .swiftpm
+.swiftpm/
 
 .build/
 
