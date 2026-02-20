@@ -55,13 +55,6 @@ class AppCoordinator: ObservableObject {
     }
     
     private func determineInitialFlow() {
-        // Check if user needs onboarding
-        let onboardingViewModel = OnboardingViewModel()
-        if !onboardingViewModel.hasCompletedOnboarding {
-            startOnboardingFlow()
-            return
-        }
-        
         // Check Screen Time authorization
         // If user has completed onboarding but doesn't have Screen Time access, show Screen Time onboarding
         if !screenTimeService.isAuthorized() {

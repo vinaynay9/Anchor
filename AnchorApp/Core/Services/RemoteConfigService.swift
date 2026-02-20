@@ -6,8 +6,14 @@ final class RemoteConfigService {
     
     private let storage = AppGroupStorage.shared
     private let session: URLSession
+    private static let networkSession: URLSession = {
+        let config = URLSessionConfiguration.default
+        config.timeoutIntervalForRequest = 20
+        config.timeoutIntervalForResource = 40
+        return URLSession(configuration: config)
+    }()
     
-    private init(session: URLSession = .shared) {
+    private init(session: URLSession = RemoteConfigService.networkSession) {
         self.session = session
     }
     
@@ -66,9 +72,7 @@ final class AnalyticsIngestService {
         guard !apiKey.isEmpty else { return }
         guard let profile = AppGroupStorage.shared.getProfile() else { return }
 
-        let formatter = DateFormatter()
-        formatter.dateFormat = "yyyy-MM-dd"
-        let today = formatter.string(from: Date())
+        let today = DateFormatters.dayFormatter.string(from: Date())
 
         let payload = DailyMetricsPayload(
             user_id: AppGroupStorage.shared.getOrCreateAnalyticsUserId(),
@@ -105,7 +109,7 @@ final class AnalyticsIngestService {
         }
 
         do {
-            _ = try await URLSession.shared.data(for: request)
+            _ = try await RemoteConfigService.networkSession.data(for: request)
         } catch {
             // best-effort
         }

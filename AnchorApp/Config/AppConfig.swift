@@ -28,7 +28,10 @@ struct AppConfig {
         let trimmed = apiBaseURL.trimmingCharacters(in: .whitespacesAndNewlines)
         let fallback = "http://localhost"
         let base = (trimmed.isEmpty || trimmed == "REPLACE_ME" || trimmed == "https://REPLACE_ME") ? fallback : trimmed
-        return URL(string: "\(base)/rest/\(apiVersion)")!
+        if let url = URL(string: "\(base)/rest/\(apiVersion)") {
+            return url
+        }
+        return URL(string: "http://localhost/rest/\(apiVersion)") ?? URL(string: "http://localhost")!
     }
     
     // MARK: - UserDefaults Keys

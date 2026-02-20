@@ -8,6 +8,12 @@ final class CognitoAuthService: NSObject, ASWebAuthenticationPresentationContext
     private let keychain = KeychainService.shared
     private let defaults = UserDefaults.standard
     private var authSession: ASWebAuthenticationSession?
+    private let session: URLSession = {
+        let config = URLSessionConfiguration.default
+        config.timeoutIntervalForRequest = 20
+        config.timeoutIntervalForResource = 40
+        return URLSession(configuration: config)
+    }()
 
     private enum Keys {
         static let idToken = "cognitoIdToken"
@@ -116,7 +122,9 @@ final class CognitoAuthService: NSObject, ASWebAuthenticationPresentationContext
     }
 
     private func exchangeCodeForTokens(code: String) async throws {
-        let tokenURL = URL(string: "https://\(Secrets.cognitoDomain)/oauth2/token")!
+        guard let tokenURL = URL(string: "https://\(Secrets.cognitoDomain)/oauth2/token") else {
+            throw AnchorAPIError.configurationMissing
+        }
         var request = URLRequest(url: tokenURL)
         request.httpMethod = "POST"
         request.setValue("application/x-www-form-urlencoded", forHTTPHeaderField: "Content-Type")
@@ -129,7 +137,7 @@ final class CognitoAuthService: NSObject, ASWebAuthenticationPresentationContext
         ]
         request.httpBody = formEncoded(body)
 
-        let (data, response) = try await URLSession.shared.data(for: request)
+        let (data, response) = try await session.data(for: request)
         guard let http = response as? HTTPURLResponse, (200...299).contains(http.statusCode) else {
             throw URLError(.badServerResponse)
         }
@@ -139,7 +147,9 @@ final class CognitoAuthService: NSObject, ASWebAuthenticationPresentationContext
     }
 
     private func refreshTokens(refreshToken: String) async throws {
-        let tokenURL = URL(string: "https://\(Secrets.cognitoDomain)/oauth2/token")!
+        guard let tokenURL = URL(string: "https://\(Secrets.cognitoDomain)/oauth2/token") else {
+            throw AnchorAPIError.configurationMissing
+        }
         var request = URLRequest(url: tokenURL)
         request.httpMethod = "POST"
         request.setValue("application/x-www-form-urlencoded", forHTTPHeaderField: "Content-Type")
@@ -151,7 +161,7 @@ final class CognitoAuthService: NSObject, ASWebAuthenticationPresentationContext
         ]
         request.httpBody = formEncoded(body)
 
-        let (data, response) = try await URLSession.shared.data(for: request)
+        let (data, response) = try await session.data(for: request)
         guard let http = response as? HTTPURLResponse, (200...299).contains(http.statusCode) else {
             throw URLError(.badServerResponse)
         }
@@ -166,8 +176,8 @@ final class CognitoAuthService: NSObject, ASWebAuthenticationPresentationContext
         if let refresh = response.refresh_token, !keepRefreshToken {
             try keychain.save(refresh, forKey: Keys.refreshToken)
         }
-        if keepRefreshToken, response.refresh_token != nil {
-            try keychain.save(response.refresh_token!, forKey: Keys.refreshToken)
+        if keepRefreshToken, let refresh = response.refresh_token {
+            try keychain.save(refresh, forKey: Keys.refreshToken)
         }
         let expiry = Date().timeIntervalSince1970 + TimeInterval(response.expires_in)
         defaults.set(expiry, forKey: Keys.idTokenExpiry)

@@ -65,7 +65,7 @@ class NotificationService: NotificationServiceProtocol {
             // Navigate to unlock request detail view using DeepLinkHandler
             // The deep link will be picked up by AppCoordinator which observes pendingDeepLink
             Task { @MainActor in
-                let url = URL(string: "anchor://unlock-request/\(unlockRequestId)")!
+                guard let url = URL(string: "anchor://unlock-request/\(unlockRequestId)") else { return }
                 _ = DeepLinkHandler.shared.handleURL(url)
             }
             return true
@@ -75,7 +75,7 @@ class NotificationService: NotificationServiceProtocol {
         if let sessionId = userInfo["session_id"] as? String,
            UUID(uuidString: sessionId) != nil {
             Task { @MainActor in
-                let url = URL(string: "anchor://session/\(sessionId)")!
+                guard let url = URL(string: "anchor://session/\(sessionId)") else { return }
                 _ = DeepLinkHandler.shared.handleURL(url)
             }
             return true

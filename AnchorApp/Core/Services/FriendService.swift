@@ -31,7 +31,9 @@ final class FriendService: FriendServiceProtocol {
             throw AnchorAPIError.unknown
         }
         
-        let friendUUID = UUID(uuidString: friendId)!
+        guard let friendUUID = UUID(uuidString: friendId) else {
+            throw AnchorAPIError.unknown
+        }
         try await apiClient.request(.addFriend(friendId: friendUUID))
     }
     
@@ -68,4 +70,3 @@ final class FriendService: FriendServiceProtocol {
         try await apiClient.request(.rejectFriendRequest(id: requestUUID))
     }
 }
-

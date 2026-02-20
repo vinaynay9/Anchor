@@ -8,6 +8,7 @@ struct SettingsView: View {
     @EnvironmentObject var authViewModel: AuthViewModel
     @AppStorage(InternalToolsKeys.isEnabled) private var internalToolsEnabled: Bool = false
     @AppStorage("analyticsRemoteExportEnabled") private var analyticsRemoteExportEnabled: Bool = false
+    @AppStorage("hasCompletedOnboarding") private var hasCompletedOnboarding: Bool = false
     
     var body: some View {
         ZStack {
@@ -210,6 +211,20 @@ struct SettingsView: View {
                         showChevron: true
                     )
                 }
+
+                #if DEBUG
+                Divider()
+                    .background(AppColors.textSecondary.opacity(0.2))
+                    .padding(.leading, 50)
+
+                SettingsRowView(
+                    icon: "arrow.uturn.backward",
+                    title: "Reset Onboarding (Debug)",
+                    action: {
+                        hasCompletedOnboarding = false
+                    }
+                )
+                #endif
                 
                 #if INTERNAL_TOOLS || DEBUG
                 if InternalTools.canAccessAdmin(user: authViewModel.currentUser) {

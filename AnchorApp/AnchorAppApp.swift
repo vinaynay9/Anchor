@@ -156,10 +156,15 @@ class AppDelegate: NSObject, UIApplicationDelegate {
 struct AnchorAppApp: App {
     @UIApplicationDelegateAdaptor(AppDelegate.self) var appDelegate
     @StateObject private var appCoordinator = AppCoordinator()
+    @AppStorage("hasCompletedOnboarding") private var hasCompletedOnboarding: Bool = false
     
     var body: some Scene {
         WindowGroup {
-            appCoordinator.rootView
+            if hasCompletedOnboarding {
+                appCoordinator.rootView
+            } else {
+                OnboardingRootView()
+            }
         }
     }
 }

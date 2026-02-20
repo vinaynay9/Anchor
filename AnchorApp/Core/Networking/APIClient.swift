@@ -31,8 +31,15 @@ class APIClient {
     private let session: URLSession
     private let baseURL: URL
     
-    init(session: URLSession = .shared, baseURL: URL = AppConfig.baseURL) {
-        self.session = session
+    init(session: URLSession? = nil, baseURL: URL = AppConfig.baseURL) {
+        if let session {
+            self.session = session
+        } else {
+            let config = URLSessionConfiguration.default
+            config.timeoutIntervalForRequest = 30
+            config.timeoutIntervalForResource = 60
+            self.session = URLSession(configuration: config)
+        }
         self.baseURL = baseURL
     }
     

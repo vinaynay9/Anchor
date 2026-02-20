@@ -74,19 +74,30 @@ extension APIEndpoint {
         var body = Data()
         
         // Add sessionId field
-        body.append("--\(boundary)\r\n".data(using: .utf8)!)
-        body.append("Content-Disposition: form-data; name=\"sessionId\"\r\n\r\n".data(using: .utf8)!)
-        body.append("\(sessionId)\r\n".data(using: .utf8)!)
+        guard
+            let boundaryData = "--\(boundary)\r\n".data(using: .utf8),
+            let sessionHeader = "Content-Disposition: form-data; name=\"sessionId\"\r\n\r\n".data(using: .utf8),
+            let sessionValue = "\(sessionId)\r\n".data(using: .utf8),
+            let fileHeader = "Content-Disposition: form-data; name=\"file\"; filename=\"proof.jpg\"\r\n".data(using: .utf8),
+            let fileType = "Content-Type: image/jpeg\r\n\r\n".data(using: .utf8),
+            let footer = "\r\n".data(using: .utf8),
+            let closing = "--\(boundary)--\r\n".data(using: .utf8)
+        else {
+            return (boundary, Data())
+        }
+        body.append(boundaryData)
+        body.append(sessionHeader)
+        body.append(sessionValue)
         
         // Add file field
-        body.append("--\(boundary)\r\n".data(using: .utf8)!)
-        body.append("Content-Disposition: form-data; name=\"file\"; filename=\"proof.jpg\"\r\n".data(using: .utf8)!)
-        body.append("Content-Type: image/jpeg\r\n\r\n".data(using: .utf8)!)
+        body.append(boundaryData)
+        body.append(fileHeader)
+        body.append(fileType)
         body.append(imageData)
-        body.append("\r\n".data(using: .utf8)!)
+        body.append(footer)
         
         // Add closing boundary
-        body.append("--\(boundary)--\r\n".data(using: .utf8)!)
+        body.append(closing)
         
         return (boundary, body)
     }
