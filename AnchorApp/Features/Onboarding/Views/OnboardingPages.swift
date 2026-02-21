@@ -32,11 +32,11 @@ struct WelcomeOnboardingPage: View {
             VStack(spacing: Theme.spacing2) {
                 Text("Anchor your day")
                     .font(AppTypography.screenTitle)
-                    .foregroundColor(AppColors.textPrimary)
+                    .foregroundColor(AppColors.onboardingTitleText)
                 
                 Text("Lock apps. Set goals. Stay Anchored.")
                     .font(AppTypography.body)
-                    .foregroundColor(AppColors.textSecondary)
+                    .foregroundColor(AppColors.onboardingBodyText)
                     .multilineTextAlignment(.center)
                     .padding(.horizontal, Theme.spacing3)
             }
@@ -51,6 +51,8 @@ struct WelcomeOnboardingPage: View {
             .padding(.horizontal, Theme.spacing3)
             .padding(.bottom, Theme.spacing3)
         }
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
     }
 }
 
@@ -156,11 +158,11 @@ struct SlideView: View {
             VStack(spacing: Theme.spacing2) {
                 Text(slide.title)
                     .font(AppTypography.screenTitle)
-                    .foregroundColor(AppColors.textPrimary)
+                    .foregroundColor(AppColors.onboardingTitleText)
                 
                 Text(slide.description)
                     .font(AppTypography.body)
-                    .foregroundColor(AppColors.textSecondary)
+                    .foregroundColor(AppColors.onboardingBodyText)
                     .multilineTextAlignment(.center)
                     .padding(.horizontal, Theme.spacing3)
             }
@@ -168,6 +170,7 @@ struct SlideView: View {
             Spacer()
         }
         .padding(Theme.spacing3)
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
     }
 }
 
@@ -184,11 +187,11 @@ struct SignInOnboardingPage: View {
             VStack(spacing: Theme.spacing2) {
                 Text("Sign In")
                     .font(AppTypography.screenTitle)
-                    .foregroundColor(AppColors.textPrimary)
+                    .foregroundColor(AppColors.onboardingTitleText)
                 
                 Text("Create an account or sign in to continue")
                     .font(AppTypography.body)
-                    .foregroundColor(AppColors.textSecondary)
+                    .foregroundColor(AppColors.onboardingBodyText)
                     .multilineTextAlignment(.center)
                     .padding(.horizontal, Theme.spacing3)
             }
@@ -233,6 +236,7 @@ struct SignInOnboardingPage: View {
             
             Spacer()
         }
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
     }
 }
 
@@ -259,11 +263,11 @@ struct ProfileOnboardingPage: View {
             VStack(spacing: Theme.spacing2) {
                 Text("Your Profile")
                     .font(AppTypography.screenTitle)
-                    .foregroundColor(AppColors.textPrimary)
+                    .foregroundColor(AppColors.onboardingTitleText)
 
                 Text("This helps Anchor personalize your experience")
                     .font(AppTypography.body)
-                    .foregroundColor(AppColors.textSecondary)
+                    .foregroundColor(AppColors.onboardingBodyText)
                     .multilineTextAlignment(.center)
                     .padding(.horizontal, Theme.spacing3)
             }
@@ -305,6 +309,7 @@ struct ProfileOnboardingPage: View {
             .padding(.horizontal, Theme.spacing3)
             .padding(.bottom, Theme.spacing3)
         }
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
     }
 }
 
@@ -319,11 +324,11 @@ struct PermissionsExplanationPage: View {
                 VStack(spacing: Theme.spacing2) {
                     Text("Permissions")
                         .font(AppTypography.screenTitle)
-                        .foregroundColor(AppColors.textPrimary)
+                        .foregroundColor(AppColors.onboardingTitleText)
                     
                     Text("Anchor needs these permissions to work properly")
                         .font(AppTypography.body)
-                        .foregroundColor(AppColors.textSecondary)
+                        .foregroundColor(AppColors.onboardingBodyText)
                         .multilineTextAlignment(.center)
                 }
                 .padding(.top, Theme.spacing3)
@@ -359,6 +364,7 @@ struct PermissionsExplanationPage: View {
                 .padding(.bottom, Theme.spacing3)
             }
         }
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
     }
 }
 
@@ -382,11 +388,11 @@ struct PermissionExplanationItem: View {
             VStack(alignment: .leading, spacing: Theme.smallSpacing) {
                 Text(title)
                     .font(AppTypography.body)
-                    .foregroundColor(AppColors.textPrimary)
+                    .foregroundColor(AppColors.onboardingTitleText)
                 
                 Text(description)
                     .font(AppTypography.caption)
-                    .foregroundColor(AppColors.textSecondary)
+                    .foregroundColor(AppColors.onboardingBodyText)
             }
             
             Spacer()
@@ -408,12 +414,12 @@ struct GoalCreationOnboardingPage: View {
         VStack(spacing: Theme.spacing3) {
             Text("Set Your First Goal")
                 .font(AppTypography.screenTitle)
-                .foregroundColor(AppColors.textPrimary)
+                .foregroundColor(AppColors.onboardingTitleText)
                 .padding(.top, Theme.spacing3)
             
             Text("Create a daily habit to stay focused")
                 .font(AppTypography.body)
-                .foregroundColor(AppColors.textSecondary)
+                .foregroundColor(AppColors.onboardingBodyText)
                 .padding(.horizontal, Theme.spacing3)
             
             Spacer()
@@ -431,7 +437,7 @@ struct GoalCreationOnboardingPage: View {
                 VStack(spacing: Theme.spacing2) {
                     Text("Great! You've set \(goalViewModel.getTotalCount()) goal(s)")
                         .font(AppTypography.body)
-                        .foregroundColor(AppColors.textPrimary)
+                        .foregroundColor(AppColors.onboardingBodyText)
                     
                     Button(action: onContinue) {
                         Text("Continue")
@@ -444,6 +450,7 @@ struct GoalCreationOnboardingPage: View {
             
             Spacer()
         }
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
         .sheet(isPresented: $showGoalCreation) {
             NavigationStack {
                 GoalCreationView()

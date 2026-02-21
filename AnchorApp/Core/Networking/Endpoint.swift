@@ -109,7 +109,17 @@ enum APIEndpoint: Endpoint {
     case signInApple(token: String)
     case signOut
     case getCurrentUser
-    case updateCurrentUser(username: String?, displayName: String?)
+    case updateCurrentUser(
+        username: String?,
+        displayName: String?,
+        birthMonth: Int?,
+        birthDay: Int?,
+        timezone: String?,
+        email: String?,
+        fullName: String?,
+        givenName: String?,
+        familyName: String?
+    )
     case searchUsers(query: String)
     
     // Friends
@@ -230,10 +240,17 @@ enum APIEndpoint: Endpoint {
         // Auth
         case .signInApple(let token):
             return try? JSONEncoder().encode(["token": token])
-        case .updateCurrentUser(let username, let displayName):
+        case .updateCurrentUser(let username, let displayName, let birthMonth, let birthDay, let timezone, let email, let fullName, let givenName, let familyName):
             var dict: [String: Any] = [:]
             if let username = username { dict["username"] = username }
             if let displayName = displayName { dict["display_name"] = displayName }
+            if let birthMonth = birthMonth { dict["birth_month"] = birthMonth }
+            if let birthDay = birthDay { dict["birth_day"] = birthDay }
+            if let timezone = timezone { dict["timezone"] = timezone }
+            if let email = email { dict["email"] = email }
+            if let fullName = fullName { dict["name"] = fullName }
+            if let givenName = givenName { dict["given_name"] = givenName }
+            if let familyName = familyName { dict["family_name"] = familyName }
             return try? JSONSerialization.data(withJSONObject: dict)
         
         // Friends

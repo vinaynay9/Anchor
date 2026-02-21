@@ -24,7 +24,7 @@ struct OnboardingPagerView: View {
                     VStack(spacing: Theme.spacing) {
                         Text("Swipe to continue →")
                             .font(AppTypography.helper)
-                            .foregroundColor(AppColors.textTertiary)
+                            .foregroundColor(AppColors.onboardingHintText)
                     }
                 }
                 .tag(0)
@@ -69,7 +69,7 @@ struct OnboardingPagerView: View {
 
             Text(text)
                 .font(AppTypography.body)
-                .foregroundColor(AppColors.textSecondary)
+                .foregroundColor(AppColors.onboardingBodyText)
                 .fixedSize(horizontal: false, vertical: true)
 
             Spacer()

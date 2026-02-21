@@ -14,7 +14,6 @@
 		09F2E4DA53E71AF3E95B812F /* SessionSetupView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3523D147C52BCD575305E4C1 /* SessionSetupView.swift */; };
 		0A2C33A9B32C4A0B9C3F5F91 /* AnchorApp/Core/Services/DailyGoalService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8C4A71E8932A4F2D9B3F9C6C /* AnchorApp/Core/Services/DailyGoalService.swift */; };
 		0B6658C170B44D9BB2D375D0 /* Secrets.swift in Sources */ = {isa = PBXBuildFile; fileRef = E065B4F69E06747E92A8DE83 /* Secrets.swift */; };
-		0B7A1C2D3E4F5061728394A5 /* Bundle+Info.swift in Sources */ = {isa = PBXBuildFile; fileRef = E0B7A1C2D3E4F5061728394A /* Bundle+Info.swift */; };
 		0B7E622E1EB476293CFF9119 /* ScreenTimePermissionRequestView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7BB428B18BEFFBF8FAF9DFC7 /* ScreenTimePermissionRequestView.swift */; };
 		0E22C47036B64D6EA15420BE /* PermissionsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E640CF055CA54220A18DA8A6 /* PermissionsView.swift */; };
 		0E7D8B7E1F4F3E205097684F /* ShieldViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0DA33420518623810E3E40DD /* ShieldViewModel.swift */; };
@@ -533,7 +532,7 @@
 		B1E0B77E0F614B8FB3C59349 /* AnchorShieldExtension/ShieldDesignSystem.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AnchorShieldExtension/ShieldDesignSystem.swift; sourceTree = "<group>"; };
 		B27F2EC26BDB4EC592CBE109 /* AnchorApp/Core/Services/GoalService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AnchorApp/Core/Services/GoalService.swift; sourceTree = "<group>"; };
 		B29050F13A6A49D28C3B3803 /* AnchorApp/Core/DesignSystem/Components/AppCardStyle.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AnchorApp/Core/DesignSystem/Components/AppCardStyle.swift; sourceTree = "<group>"; };
-		B3D4E5F60718293A4B5C6D7E /* AnchorApp/Core/Services/AuthDiagnostics.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AuthDiagnostics.swift; sourceTree = "<group>"; };
+		B3D4E5F60718293A4B5C6D7E /* AnchorApp/Core/Services/AuthDiagnostics.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AnchorApp/Core/Services/AuthDiagnostics.swift; sourceTree = "<group>"; };
 		B3E46D8543B86B5032FA7A20 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		B5791503767A4F33953E7549 /* AnchorApp/Features/Proofs/ViewModels/ProofViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AnchorApp/Features/Proofs/ViewModels/ProofViewModel.swift; sourceTree = "<group>"; };
 		B595E004C8D440C980CAFAC5 /* AnchorApp/Features/UnlockRequests/User/Views/UnlockRequestView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AnchorApp/Features/UnlockRequests/User/Views/UnlockRequestView.swift; sourceTree = "<group>"; };
@@ -610,7 +609,7 @@
 		D093EC342F2A76FD004A8476 /* UserRole.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UserRole.swift; sourceTree = "<group>"; };
 		D093EC362F2A76FD004A8476 /* AppGroupStorage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppGroupStorage.swift; sourceTree = "<group>"; };
 		D093EC382F2A76FD004A8476 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
-		D1E2F3A4B5C60718293A4B5C /* AnchorApp/Core/Services/Auth/PKCE.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Auth/PKCE.swift; sourceTree = "<group>"; };
+		D1E2F3A4B5C60718293A4B5C /* AnchorApp/Core/Services/Auth/PKCE.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AnchorApp/Core/Services/Auth/PKCE.swift; sourceTree = "<group>"; };
 		D25F3F5B0E4A41149CEB37D7 /* AnchorApp/Features/OnboardingScreenTime/ScreenTimeOnboardingViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AnchorApp/Features/OnboardingScreenTime/ScreenTimeOnboardingViewModel.swift; sourceTree = "<group>"; };
 		D3C7F942DB7FB236A3C98B37 /* DebugDiagnosticsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DebugDiagnosticsView.swift; sourceTree = "<group>"; };
 		D4A571DD978EA1995778DB86 /* ScreenTimeWhyView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScreenTimeWhyView.swift; sourceTree = "<group>"; };
@@ -632,7 +631,6 @@
 		DE8E52A5B8BCEE24F88841CF /* UnlockRequestService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UnlockRequestService.swift; sourceTree = "<group>"; };
 		DEE6CCFF3C5F427495D62915 /* AnchorApp/Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = AnchorApp/Info.plist; sourceTree = "<group>"; };
 		E065B4F69E06747E92A8DE83 /* Secrets.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Secrets.swift; sourceTree = "<group>"; };
-		E0B7A1C2D3E4F5061728394A /* Bundle+Info.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Bundle+Info.swift"; sourceTree = "<group>"; };
 		E14274C10A8791C4EC5E2CA1 /* SupabaseClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SupabaseClient.swift; sourceTree = "<group>"; };
 		E1853A4993F842FE8ECC4EDD /* AnchorApp/SharedUI/Toast/ToastContainerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AnchorApp/SharedUI/Toast/ToastContainerView.swift; sourceTree = "<group>"; };
 		E1A9AE03858F31CFFC5A72BA /* LockPlanService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LockPlanService.swift; sourceTree = "<group>"; };
@@ -837,7 +835,6 @@
 				7B2A19EF59B3CE21DB0F5C3E /* Date+Extensions.swift */,
 				FC456CDD8C39156E63D6F9B1 /* String+Extensions.swift */,
 				45D9D69BF2468570F79A09F0 /* View+Extensions.swift */,
-				E0B7A1C2D3E4F5061728394A /* Bundle+Info.swift */,
 			);
 			path = Extensions;
 			sourceTree = "<group>";
@@ -2241,7 +2238,6 @@
 				A9C0D0B5F2B14C59A0F1B2C3 /* RemoteConfigService.swift in Sources */,
 				16DA7231A9A3C255E637636D /* AppConfig.swift in Sources */,
 				0B6658C170B44D9BB2D375D0 /* Secrets.swift in Sources */,
-				0B7A1C2D3E4F5061728394A5 /* Bundle+Info.swift in Sources */,
 				68CD45C48B7E806FCD29B334 /* Constants.swift in Sources */,
 				F6E605FE1BF39CC39A594AC4 /* AppColors.swift in Sources */,
 				F08751092F80FEE991998392 /* AppButtonStyle.swift in Sources */,

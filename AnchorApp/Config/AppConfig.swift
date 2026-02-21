@@ -12,6 +12,19 @@ struct AppConfig {
     static let apiBaseURL = Secrets.apiBaseURL
     static let apiVersion = "v1"
     static let analyticsIngestApiKey = ProcessInfo.processInfo.environment["ANCHOR_INGEST_API_KEY"] ?? ""
+
+    // MARK: - Cognito Hosted UI
+    static var cognitoDomain: String {
+        Bundle.main.string(forInfoDictionaryKey: "COGNITO_DOMAIN") ?? ""
+    }
+
+    static var cognitoClientId: String {
+        Bundle.main.string(forInfoDictionaryKey: "COGNITO_CLIENT_ID") ?? ""
+    }
+
+    static var cognitoRedirectURI: String {
+        Bundle.main.string(forInfoDictionaryKey: "COGNITO_REDIRECT_URI") ?? ""
+    }
     
     // MARK: - Invites
     static let inviteBaseURL = URL(string: "https://anchor.app/invite")!

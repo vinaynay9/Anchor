@@ -372,6 +372,7 @@ public final class AppGroupStorage {
     public static let shared = AppGroupStorage()
     
     private let defaults: UserDefaults?
+    private static var didLogAppGroupFailure = false
     
     /// The App Group identifier used for shared UserDefaults.
     /// Must match the App Group identifier configured in both AnchorApp and AnchorShieldExtension targets.
@@ -382,7 +383,17 @@ public final class AppGroupStorage {
     public let updatesPublisher: AnyPublisher<String?, Never>
     
     private init() {
-        defaults = UserDefaults(suiteName: Self.appGroupIdentifier)
+        let suiteDefaults = UserDefaults(suiteName: Self.appGroupIdentifier)
+        if suiteDefaults == nil {
+            AppGroupStorage.logAppGroupFailureOnce("⚠️ [AppGroupStorage] App Group suite not available: \(Self.appGroupIdentifier)")
+            #if DEBUG
+            defaults = UserDefaults.standard
+            #else
+            defaults = nil
+            #endif
+        } else {
+            defaults = suiteDefaults
+        }
         
         // Create Combine publisher for AppGroupStorage updates
         updatesPublisher = NotificationCenter.default
@@ -394,7 +405,21 @@ public final class AppGroupStorage {
     }
 
     public func appGroupContainerURL() -> URL? {
-        FileManager.default.containerURL(forSecurityApplicationGroupIdentifier: Self.appGroupIdentifier)
+        if let url = FileManager.default.containerURL(forSecurityApplicationGroupIdentifier: Self.appGroupIdentifier) {
+            return url
+        }
+        AppGroupStorage.logAppGroupFailureOnce("⚠️ [AppGroupStorage] Failed to resolve container URL for \(Self.appGroupIdentifier)")
+        #if DEBUG
+        return FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first
+        #else
+        return nil
+        #endif
+    }
+
+    private static func logAppGroupFailureOnce(_ message: String) {
+        guard !didLogAppGroupFailure else { return }
+        didLogAppGroupFailure = true
+        print(message)
     }
     
     // MARK: - Internal Helper to Post Notifications

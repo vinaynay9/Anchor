@@ -33,6 +33,22 @@ struct SignInOptionsView: View {
                 }
                 .buttonStyle(PrimaryButtonStyle())
                 .disabled(authViewModel.isLoading)
+
+                Button(action: {
+                    authViewModel.signInWithGoogle()
+                }) {
+                    HStack {
+                        if authViewModel.isLoading {
+                            ProgressView()
+                                .progressViewStyle(CircularProgressViewStyle(tint: AppColors.textPrimary))
+                        } else {
+                            Image(systemName: "globe")
+                        }
+                        Text("Continue with Google")
+                    }
+                }
+                .buttonStyle(SecondaryButtonStyle())
+                .disabled(authViewModel.isLoading)
             }
             .padding(.horizontal, Theme.padding)
             

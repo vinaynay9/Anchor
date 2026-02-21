@@ -37,6 +37,8 @@ struct PostAuthOnboardingFlowView: View {
             .task {
                 await restorePath()
             }
+            .toolbarBackground(AppColors.background, for: .navigationBar)
+            .toolbarBackground(.visible, for: .navigationBar)
         }
         .background(AppColors.background.ignoresSafeArea())
         .animation(AppMotion.animation(AppMotion.standard, reduceMotion: reduceMotion), value: path)

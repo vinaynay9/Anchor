@@ -8,14 +8,20 @@ class PersistenceService {
     
     private let appGroupIdentifier = AppGroupStorage.appGroupIdentifier
     private let fileManager = FileManager.default
+    private static var didLogAppGroupFailure = false
     
     /// Base directory for App Group storage
     private var appGroupDirectory: URL? {
-        guard let containerURL = fileManager.containerURL(forSecurityApplicationGroupIdentifier: appGroupIdentifier) else {
-            print("⚠️ [PersistenceService] Failed to get App Group container URL")
-            return nil
+        if let containerURL = fileManager.containerURL(forSecurityApplicationGroupIdentifier: appGroupIdentifier) {
+            return containerURL
         }
-        return containerURL
+        logAppGroupFailureOnce("⚠️ [PersistenceService] Failed to get App Group container URL")
+        #if DEBUG
+        return fileManager.urls(for: .documentDirectory, in: .userDomainMask).first
+        #else
+        assertionFailure("App Group container unavailable in release build.")
+        return nil
+        #endif
     }
     
     /// Directory for storing cached sessions
@@ -51,6 +57,12 @@ class PersistenceService {
     }
     
     private init() {}
+
+    private func logAppGroupFailureOnce(_ message: String) {
+        guard !Self.didLogAppGroupFailure else { return }
+        Self.didLogAppGroupFailure = true
+        print(message)
+    }
     
     // MARK: - LockSession Persistence
     

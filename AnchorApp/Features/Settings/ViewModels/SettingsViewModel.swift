@@ -179,7 +179,7 @@ class SettingsViewModel: ObservableObject {
     func signInForRemoteConfig() {
         Task {
             do {
-                try await CognitoAuthService.shared.signIn()
+                try await CognitoAuthService.shared.signIn(provider: .google)
                 await RemoteConfigService.shared.refresh()
                 await MainActor.run {
                     self.isCognitoSignedIn = true

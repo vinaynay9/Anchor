@@ -11,46 +11,49 @@ struct FirstLaunchSplashView: View {
         ZStack {
             AppColors.background.ignoresSafeArea()
 
-            VStack(spacing: Theme.spacing4) {
-                Spacer()
+            GeometryReader { proxy in
+                VStack(spacing: Theme.spacing4) {
+                    Spacer()
 
-                Image("Anchor_logo")
-                    .resizable()
-                    .scaledToFit()
-                    .frame(width: 120, height: 120)
-                    .opacity(showLogo ? 1 : 0)
-                    .scaleEffect(showLogo ? 1.0 : 0.98)
+                    Image("Anchor_logo")
+                        .resizable()
+                        .scaledToFit()
+                        .frame(maxHeight: max(120, proxy.size.height * 0.24))
+                        .opacity(showLogo ? 1 : 0)
+                        .scaleEffect(showLogo ? 1.0 : 0.98)
 
-                Button(action: onStart) {
-                    Text("Start Locking In")
-                        .font(AppTypography.button)
-                        .foregroundColor(AppColors.textPrimary)
-                        .padding(.vertical, Theme.spacing2)
-                        .padding(.horizontal, Theme.spacing4)
-                        .background(
-                            Capsule()
-                                .fill(.ultraThinMaterial)
-                                .overlay(
-                                    Capsule()
-                                        .stroke(AppColors.accent.opacity(0.35), lineWidth: 1)
-                                )
-                                .overlay(
-                                    LinearGradient(
-                                        colors: [AppColors.accent.opacity(0.18), AppColors.accent.opacity(0.02)],
-                                        startPoint: .topLeading,
-                                        endPoint: .bottomTrailing
+                    Button(action: onStart) {
+                        Text("Start Locking In")
+                            .font(AppTypography.button)
+                            .foregroundColor(AppColors.onboardingTitleText)
+                            .padding(.vertical, Theme.spacing2)
+                            .padding(.horizontal, Theme.spacing4)
+                            .background(
+                                Capsule()
+                                    .fill(.ultraThinMaterial)
+                                    .overlay(
+                                        Capsule()
+                                            .stroke(AppColors.accent.opacity(0.35), lineWidth: 1)
                                     )
-                                    .clipShape(Capsule())
-                                )
-                        )
-                        .shadow(color: AppColors.accent.opacity(0.2), radius: 12, x: 0, y: 6)
-                }
-                .buttonStyle(PressableButtonStyle())
-                .opacity(showButton ? 1 : 0)
+                                    .overlay(
+                                        LinearGradient(
+                                            colors: [AppColors.accent.opacity(0.18), AppColors.accent.opacity(0.02)],
+                                            startPoint: .topLeading,
+                                            endPoint: .bottomTrailing
+                                        )
+                                        .clipShape(Capsule())
+                                    )
+                            )
+                            .shadow(color: AppColors.accent.opacity(0.2), radius: 12, x: 0, y: 6)
+                    }
+                    .buttonStyle(PressableButtonStyle())
+                    .opacity(showButton ? 1 : 0)
 
-                Spacer()
+                    Spacer(minLength: max(16, proxy.safeAreaInsets.bottom + 12))
+                }
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
+                .padding(.horizontal, Theme.spacing4)
             }
-            .padding(.horizontal, Theme.spacing4)
         }
         .onAppear {
             if reduceMotion {

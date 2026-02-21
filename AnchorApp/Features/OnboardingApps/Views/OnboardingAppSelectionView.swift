@@ -73,12 +73,12 @@ struct OnboardingAppSelectionView: View {
         VStack(spacing: Theme.spacing2) {
             Text("Select apps to block")
                 .font(AppTypography.screenTitle)
-                .foregroundColor(AppColors.textPrimary)
+                .foregroundColor(AppColors.onboardingTitleText)
                 .multilineTextAlignment(.center)
 
             Text("Presets are suggestions. You can edit anytime.")
                 .font(AppTypography.helper)
-                .foregroundColor(AppColors.textSecondary)
+                .foregroundColor(AppColors.onboardingBodyText)
                 .multilineTextAlignment(.center)
         }
         .padding(.horizontal, Theme.spacing3)
@@ -88,7 +88,7 @@ struct OnboardingAppSelectionView: View {
         VStack(alignment: .leading, spacing: Theme.spacing2) {
             Text("Suggested presets")
                 .font(AppTypography.sectionHeader)
-                .foregroundColor(AppColors.textPrimary)
+                .foregroundColor(AppColors.onboardingTitleText)
                 .padding(.horizontal, Theme.spacing3)
 
             LazyVGrid(columns: [GridItem(.adaptive(minimum: 110), spacing: Theme.spacing2)], spacing: Theme.spacing2) {
@@ -96,7 +96,7 @@ struct OnboardingAppSelectionView: View {
                     Button(action: { togglePreset(preset) }) {
                         Text(preset)
                             .font(AppTypography.helper)
-                            .foregroundColor(viewModel.selectedPresets.contains(preset) ? AppColors.onPrimary : AppColors.textPrimary)
+                            .foregroundColor(viewModel.selectedPresets.contains(preset) ? AppColors.onPrimary : AppColors.onboardingBodyText)
                             .padding(.vertical, Theme.spacing)
                             .frame(maxWidth: .infinity)
                             .background(
@@ -115,7 +115,7 @@ struct OnboardingAppSelectionView: View {
 
             Text("Presets don’t auto-select apps on iOS. Tap Select apps to choose.")
                 .font(AppTypography.caption)
-                .foregroundColor(AppColors.textTertiary)
+                .foregroundColor(AppColors.onboardingHintText)
                 .padding(.horizontal, Theme.spacing3)
         }
     }
@@ -130,11 +130,11 @@ struct OnboardingAppSelectionView: View {
         VStack(alignment: .leading, spacing: Theme.spacing2) {
             Text(title)
                 .font(AppTypography.sectionHeader)
-                .foregroundColor(AppColors.textPrimary)
+                .foregroundColor(AppColors.onboardingTitleText)
 
             Text(description)
                 .font(AppTypography.body)
-                .foregroundColor(AppColors.textSecondary)
+                .foregroundColor(AppColors.onboardingBodyText)
 
             Button(action: { showPicker.wrappedValue = true }) {
                 Text(buttonTitle)

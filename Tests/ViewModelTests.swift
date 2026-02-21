@@ -211,6 +211,14 @@ final class MockAuthService: AuthServiceProtocol {
         }
         return result
     }
+
+    func signInWithGoogle() async throws -> User {
+        if let error = shouldThrowError { throw error }
+        guard let result = signInAppleResult else {
+            throw AuthError.notAuthenticated
+        }
+        return result
+    }
     
     func signOut() async throws {
         if let error = shouldThrowError { throw error }

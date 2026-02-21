@@ -22,37 +22,41 @@ struct OnboardingPageView<Content: View, Footer: View>: View {
     }
 
     var body: some View {
-        VStack(spacing: Theme.spacing3) {
-            Spacer()
+        GeometryReader { proxy in
+            VStack(spacing: Theme.spacing3) {
+                Spacer()
 
-            if let iconName {
-                Image(systemName: iconName)
+                if let iconName {
+                    Image(systemName: iconName)
+                        .font(AppTypography.screenTitle)
+                        .foregroundColor(AppColors.accent)
+                        .padding(.bottom, Theme.spacing)
+                }
+
+                Text(title)
                     .font(AppTypography.screenTitle)
-                    .foregroundColor(AppColors.accent)
-                    .padding(.bottom, Theme.spacing)
-            }
-
-            Text(title)
-                .font(AppTypography.screenTitle)
-                .foregroundColor(AppColors.textPrimary)
-                .multilineTextAlignment(.center)
-
-            content
-
-            if let bodyText {
-                Text(bodyText)
-                    .font(AppTypography.body)
-                    .foregroundColor(AppColors.textSecondary)
+                    .foregroundColor(AppColors.onboardingTitleText)
                     .multilineTextAlignment(.center)
+
+                content
+
+                if let bodyText {
+                    Text(bodyText)
+                        .font(AppTypography.body)
+                        .foregroundColor(AppColors.onboardingBodyText)
+                        .multilineTextAlignment(.center)
+                        .padding(.horizontal, Theme.spacing3)
+                }
+
+                footer
+                    .padding(.top, Theme.spacing2)
                     .padding(.horizontal, Theme.spacing3)
+                    .padding(.bottom, max(16, proxy.safeAreaInsets.bottom + 12))
+
+                Spacer(minLength: 0)
             }
-
-            footer
-                .padding(.top, Theme.spacing2)
-                .padding(.horizontal, Theme.spacing3)
-
-            Spacer()
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
+            .padding(.horizontal, Theme.spacing3)
         }
-        .padding(.horizontal, Theme.spacing3)
     }
 }

@@ -36,14 +36,14 @@ struct SignInView: View {
                     .buttonStyle(PrimaryButtonStyle())
 
                     Button {
-                        // TODO: Wire Google Sign-In when available
+                        authViewModel.signInWithGoogle()
                     } label: {
-                        Text("Continue with Google (Coming soon)")
+                        Text("Continue with Google")
                             .font(AnchorTheme.Typography.body)
                             .frame(maxWidth: .infinity)
                     }
                     .buttonStyle(SecondaryButtonStyle())
-                    .disabled(true)
+                    .disabled(authViewModel.isLoading)
                 }
             }
 

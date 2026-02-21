@@ -156,12 +156,12 @@ struct WelcomePage: View {
             VStack(spacing: Theme.spacing * 2) {
                 Text("Anchor your day")
                     .font(AppTypography.screenTitle)
-                    .foregroundColor(AppColors.textPrimary)
+                    .foregroundColor(AppColors.onboardingTitleText)
                     .multilineTextAlignment(.center)
                 
                 Text("Lock apps. Set goals. Stay Anchored.")
                     .font(AppTypography.body)
-                    .foregroundColor(AppColors.textSecondary)
+                    .foregroundColor(AppColors.onboardingBodyText)
                     .multilineTextAlignment(.center)
                     .padding(.horizontal, Theme.padding * 2)
             }
@@ -169,6 +169,7 @@ struct WelcomePage: View {
             Spacer()
         }
         .padding(Theme.padding * 2)
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
     }
 }
 
@@ -195,12 +196,12 @@ struct AppBlockingPage: View {
             VStack(spacing: Theme.spacing * 2) {
                 Text("Stay Anchored with app blocking")
                     .font(AppTypography.screenTitle)
-                    .foregroundColor(AppColors.textPrimary)
+                    .foregroundColor(AppColors.onboardingTitleText)
                     .multilineTextAlignment(.center)
                 
                 Text("Lock selected apps until your goals are complete.")
                     .font(AppTypography.body)
-                    .foregroundColor(AppColors.textSecondary)
+                    .foregroundColor(AppColors.onboardingBodyText)
                     .multilineTextAlignment(.center)
                     .padding(.horizontal, Theme.padding * 2)
             }
@@ -208,6 +209,7 @@ struct AppBlockingPage: View {
             Spacer()
         }
         .padding(Theme.padding * 2)
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
     }
 
     private func animate(_ animation: Animation = AppMotion.gentleSpring, delay: Double = 0, _ changes: @escaping () -> Void) {

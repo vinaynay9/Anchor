@@ -22,12 +22,12 @@ struct OnboardingPermissionStepView: View {
                 VStack(spacing: Theme.spacing * 2) {
                     Text("Complete Setup")
                         .font(AppTypography.screenTitle)
-                        .foregroundColor(AppColors.textPrimary)
+                        .foregroundColor(AppColors.onboardingTitleText)
                         .multilineTextAlignment(.center)
                     
                     Text("Grant permissions to unlock Anchor's full potential")
                         .font(AppTypography.body)
-                        .foregroundColor(AppColors.textSecondary)
+                        .foregroundColor(AppColors.onboardingBodyText)
                         .multilineTextAlignment(.center)
                         .padding(.horizontal, Theme.padding * 2)
                 }
@@ -66,7 +66,7 @@ struct OnboardingPermissionStepView: View {
                 }) {
                     Text("Complete Setup")
                         .font(AppTypography.body)
-                        .foregroundColor(AppColors.textPrimary)
+                        .foregroundColor(AppColors.onboardingTitleText)
                         .frame(maxWidth: .infinity)
                         .padding(.vertical, Theme.padding)
                         .background(AppColors.accent)
@@ -77,6 +77,7 @@ struct OnboardingPermissionStepView: View {
                 .scaleEffect(showCompletionAnimation ? 0.95 : 1.0)
             }
         }
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
         .onAppear {
             viewModel.checkScreenTimePermission()
             viewModel.checkNotificationsPermission()
@@ -108,11 +109,11 @@ struct PermissionItemView: View {
             VStack(alignment: .leading, spacing: 4) {
                 Text(title)
                     .font(AppTypography.body)
-                    .foregroundColor(AppColors.textPrimary)
+                    .foregroundColor(AppColors.onboardingTitleText)
                 
                 Text(description)
                     .font(AppTypography.caption)
-                    .foregroundColor(AppColors.textSecondary)
+                    .foregroundColor(AppColors.onboardingBodyText)
             }
             
             Spacer()

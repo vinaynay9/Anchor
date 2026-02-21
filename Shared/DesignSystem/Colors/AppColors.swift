@@ -19,6 +19,11 @@ public enum AppColors {
     public static let textSecondary = textSecondaryDarkMode
     public static let textTertiary = textTertiaryDarkMode
 
+    // MARK: - Onboarding Text (Lavender)
+    public static let onboardingTitleText = textPrimaryDarkMode
+    public static let onboardingBodyText = textSecondaryDarkMode
+    public static let onboardingHintText = textTertiaryDarkMode
+
     // MARK: - Brand Aliases (Compatibility)
     public static let primary = brandAccent
     public static let primaryPressed = Color(red: 0.302, green: 0.133, blue: 0.827) // #4D22D3

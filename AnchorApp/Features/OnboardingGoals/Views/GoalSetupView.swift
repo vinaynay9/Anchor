@@ -30,7 +30,7 @@ struct GoalSetupView: View {
                     if viewModel.drafts.count >= viewModel.maxGoals {
                         Text("Max 7 goals. If you want more, combine a few into a bigger goal.")
                             .font(AppTypography.helper)
-                            .foregroundColor(AppColors.textTertiary)
+                            .foregroundColor(AppColors.onboardingHintText)
                             .multilineTextAlignment(.center)
                             .padding(.horizontal, Theme.spacing3)
                     }
@@ -61,12 +61,12 @@ struct GoalSetupView: View {
         VStack(spacing: Theme.spacing2) {
             Text("Time to set your goals.")
                 .font(AppTypography.screenTitle)
-                .foregroundColor(AppColors.textPrimary)
+                .foregroundColor(AppColors.onboardingTitleText)
                 .multilineTextAlignment(.center)
 
             Text("Remember: choose goals that push you past your current habits and improve your lifestyle.")
                 .font(AppTypography.body)
-                .foregroundColor(AppColors.textSecondary)
+                .foregroundColor(AppColors.onboardingBodyText)
                 .multilineTextAlignment(.center)
                 .padding(.horizontal, Theme.spacing3)
         }
@@ -90,10 +90,10 @@ struct GoalSetupView: View {
                     HStack(spacing: 6) {
                         Text(draft.wrappedValue.category.displayName)
                             .font(AppTypography.body)
-                            .foregroundColor(AppColors.textPrimary)
+                            .foregroundColor(AppColors.onboardingTitleText)
                         Image(systemName: "chevron.down")
                             .font(AppTypography.caption)
-                            .foregroundColor(AppColors.textSecondary)
+                            .foregroundColor(AppColors.onboardingBodyText)
                     }
                     .frame(maxWidth: .infinity, alignment: .leading)
                     .padding(.vertical, Theme.spacing2)

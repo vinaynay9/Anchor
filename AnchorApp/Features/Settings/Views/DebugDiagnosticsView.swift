@@ -6,12 +6,18 @@ import Shared
 /// **Warning:** This is for debugging purposes only.
 struct DebugDiagnosticsView: View {
     private let logger = LoggerService.shared
+    private let authDiagnostics = AuthDiagnostics.shared
     @State private var logs: [String] = []
     @State private var isVerboseLoggingEnabled: Bool = false
     @State private var isAnchored: Bool = false
     @State private var nextLockTimeText: String = "—"
     @State private var completedGoals: Int = 0
     @State private var unlockMinutes: Int = 0
+    @State private var appGroupStatusText: String = "—"
+    @State private var appGroupPathText: String = "—"
+    @State private var authSchemesText: String = "—"
+    @State private var lastAuthErrorText: String = "—"
+    @State private var lastAuthContextText: String = "—"
     @State private var cancellables = Set<AnyCancellable>()
     
     var body: some View {
@@ -27,6 +33,12 @@ struct DebugDiagnosticsView: View {
 
                 // Anchor Status
                 anchorStatusSection
+
+                // App Group Diagnostics
+                appGroupSection
+
+                // Auth Diagnostics
+                authDiagnosticsSection
                 
                 // Logs section
                 logsSection
@@ -146,6 +158,49 @@ struct DebugDiagnosticsView: View {
         }
         .padding(.top, Theme.spacing2)
     }
+
+    private var appGroupSection: some View {
+        VStack(alignment: .leading, spacing: Theme.spacing) {
+            Text("App Group")
+                .font(AppTypography.sectionHeader)
+                .foregroundColor(AppColors.textPrimary)
+                .padding(.horizontal, Theme.spacing2)
+
+            VStack(alignment: .leading, spacing: Theme.spacing2) {
+                statusRow(label: "Identifier", value: AppGroupStorage.appGroupIdentifier)
+                statusRow(label: "Status", value: appGroupStatusText)
+                statusRow(label: "Container", value: appGroupPathText)
+            }
+            .padding(Theme.spacing2)
+            .background(AppColors.secondaryBackground)
+            .cornerRadius(Theme.cornerRadiusMedium)
+        }
+        .padding(.top, Theme.spacing2)
+    }
+
+    private var authDiagnosticsSection: some View {
+        VStack(alignment: .leading, spacing: Theme.spacing) {
+            Text("Auth Diagnostics")
+                .font(AppTypography.sectionHeader)
+                .foregroundColor(AppColors.textPrimary)
+                .padding(.horizontal, Theme.spacing2)
+
+            VStack(alignment: .leading, spacing: Theme.spacing2) {
+                statusRow(label: "Bundle ID", value: authDiagnostics.bundleIdentifier)
+                statusRow(label: "Google Client ID", value: authDiagnostics.googleClientIDMasked)
+                statusRow(label: "Reverse Client ID", value: authDiagnostics.googleReverseClientIDMasked)
+                statusRow(label: "URL Schemes", value: authSchemesText)
+                statusRow(label: "Google Callback", value: authDiagnostics.hasGoogleCallbackScheme ? "OK" : "Missing")
+                statusRow(label: "Callback URL", value: authDiagnostics.canConstructGoogleCallbackURL ? "OK" : "Invalid")
+                statusRow(label: "Last Auth Context", value: lastAuthContextText)
+                statusRow(label: "Last Auth Error", value: lastAuthErrorText)
+            }
+            .padding(Theme.spacing2)
+            .background(AppColors.secondaryBackground)
+            .cornerRadius(Theme.cornerRadiusMedium)
+        }
+        .padding(.top, Theme.spacing2)
+    }
     
     // MARK: - Logs Section
     
@@ -207,6 +262,19 @@ struct DebugDiagnosticsView: View {
         formatter.dateStyle = .none
         formatter.timeStyle = .short
         nextLockTimeText = formatter.string(from: next)
+
+        if let containerURL = AppGroupStorage.shared.appGroupContainerURL() {
+            appGroupStatusText = "OK"
+            appGroupPathText = containerURL.path
+        } else {
+            appGroupStatusText = "Unavailable"
+            appGroupPathText = "—"
+        }
+
+        let schemes = authDiagnostics.urlSchemes
+        authSchemesText = schemes.isEmpty ? "—" : schemes.joined(separator: ", ")
+        lastAuthErrorText = authDiagnostics.lastError ?? "—"
+        lastAuthContextText = authDiagnostics.lastContext ?? "—"
     }
     
     private func setupSubscriptions() {

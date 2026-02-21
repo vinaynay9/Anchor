@@ -71,7 +71,7 @@ struct UnlockPolicyView: View {
         VStack(spacing: Theme.spacing2) {
             Text("Choose how you earn screen time")
                 .font(AppTypography.screenTitle)
-                .foregroundColor(AppColors.textPrimary)
+                .foregroundColor(AppColors.onboardingTitleText)
                 .multilineTextAlignment(.center)
         }
         .padding(.horizontal, Theme.spacing3)
@@ -86,7 +86,7 @@ struct UnlockPolicyView: View {
                     .foregroundColor(viewModel.selectedMode == mode ? AppColors.accent : AppColors.textTertiary)
                 Text(title)
                     .font(AppTypography.body)
-                    .foregroundColor(AppColors.textPrimary)
+                    .foregroundColor(AppColors.onboardingBodyText)
                 Spacer()
             }
             .padding(Theme.spacing2)
@@ -104,7 +104,7 @@ struct UnlockPolicyView: View {
         VStack(alignment: .leading, spacing: Theme.spacing) {
             Text(title)
                 .font(AppTypography.helper)
-                .foregroundColor(AppColors.textSecondary)
+                .foregroundColor(AppColors.onboardingBodyText)
 
             Menu {
                 ForEach(viewModel.minuteOptions, id: \.self) { value in
@@ -116,11 +116,11 @@ struct UnlockPolicyView: View {
                 HStack {
                     Text("\(selection.wrappedValue) minutes")
                         .font(AppTypography.body)
-                        .foregroundColor(AppColors.textPrimary)
+                        .foregroundColor(AppColors.onboardingBodyText)
                     Spacer()
                     Image(systemName: "chevron.down")
                         .font(AppTypography.caption)
-                        .foregroundColor(AppColors.textSecondary)
+                        .foregroundColor(AppColors.onboardingBodyText)
                 }
                 .padding(.vertical, Theme.spacing2)
                 .padding(.horizontal, Theme.spacing2)
@@ -138,7 +138,7 @@ struct UnlockPolicyView: View {
         VStack(alignment: .leading, spacing: Theme.spacing) {
             Text("Percent milestone")
                 .font(AppTypography.helper)
-                .foregroundColor(AppColors.textSecondary)
+                .foregroundColor(AppColors.onboardingBodyText)
 
             Menu {
                 ForEach(viewModel.percentOptions, id: \.self) { value in
@@ -150,11 +150,11 @@ struct UnlockPolicyView: View {
                 HStack {
                     Text("\(viewModel.percentThreshold)%")
                         .font(AppTypography.body)
-                        .foregroundColor(AppColors.textPrimary)
+                        .foregroundColor(AppColors.onboardingBodyText)
                     Spacer()
                     Image(systemName: "chevron.down")
                         .font(AppTypography.caption)
-                        .foregroundColor(AppColors.textSecondary)
+                        .foregroundColor(AppColors.onboardingBodyText)
                 }
                 .padding(.vertical, Theme.spacing2)
                 .padding(.horizontal, Theme.spacing2)

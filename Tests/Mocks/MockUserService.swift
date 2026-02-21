@@ -11,6 +11,7 @@ final class MockUserService: UserServiceProtocol {
     var getCurrentUserCalled = false
     var getUserCalled = false
     var updateUserCalled = false
+    var updateUserProfileCalled = false
     var searchUsersCalled = false
     
     func getCurrentUser() async throws -> User {
@@ -56,6 +57,26 @@ final class MockUserService: UserServiceProtocol {
         currentUser = updatedUser
         return updatedUser
     }
+
+    func updateUserProfile(
+        displayName: String?,
+        birthMonth: Int?,
+        birthDay: Int?,
+        timezone: String?,
+        email: String?,
+        fullName: String?,
+        givenName: String?,
+        familyName: String?
+    ) async throws -> User {
+        if let error = shouldThrowError {
+            throw error
+        }
+        updateUserProfileCalled = true
+        guard let user = currentUser else {
+            throw NSError(domain: "MockUserService", code: 404, userInfo: [NSLocalizedDescriptionKey: "User not found"])
+        }
+        return user
+    }
     
     func searchUsers(query: String) async throws -> [User] {
         if let error = shouldThrowError {
@@ -73,6 +94,7 @@ final class MockUserService: UserServiceProtocol {
         getCurrentUserCalled = false
         getUserCalled = false
         updateUserCalled = false
+        updateUserProfileCalled = false
         searchUsersCalled = false
     }
 }
