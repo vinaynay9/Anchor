@@ -7,12 +7,12 @@ enum AuthError: Error {
     case invalidToken
     case networkError
     case notAuthenticated
-    case configurationMissing
+    case invalidCredentials
 }
 
 protocol AuthServiceProtocol {
-    func signInWithApple() async throws -> User
-    func signInWithGoogle() async throws -> User
+    func signUp(email: String, password: String) async throws -> User
+    func signIn(email: String, password: String) async throws -> User
     func signOut() async throws
     func currentUser() async throws -> User?
 }
@@ -22,68 +22,68 @@ class AuthService: AuthServiceProtocol {
     
     private let apiClient = APIClient.shared
     private let keychainService = KeychainService.shared
-    private let cognitoAuthService = CognitoAuthService.shared
     private let logger = LoggerService.shared
     private let userService = UserService.shared
     
-    // MARK: - Apple Sign In
-    func signInWithApple() async throws -> User {
-        guard !AppConfig.cognitoDomain.isEmpty,
-              !AppConfig.cognitoClientId.isEmpty,
-              !AppConfig.cognitoRedirectURI.isEmpty else {
-            throw AuthError.configurationMissing
-        }
-
+    // MARK: - Email Auth
+    func signUp(email: String, password: String) async throws -> User {
+        logger.logInfo("Auth signup requested", category: "Auth")
         do {
-            try await cognitoAuthService.signIn(provider: .apple)
+            let response: AuthResponse = try await apiClient.request(
+                .signUpEmail(email: email, password: password),
+                responseType: AuthResponse.self
+            )
+            try storeTokens(from: response)
+            logger.logInfo("Auth signup token stored", category: "Auth")
+            let user = response.user.toUser()
+            if let user {
+                UserDefaults.standard.set(user.id.uuidString, forKey: AppConfig.UserDefaultsKeys.currentUserId)
+                await postSignInProfileUpsert(email: user.email)
+                logger.logInfo("Auth signup completed", category: "Auth")
+                return user
+            }
+            throw AuthError.notAuthenticated
+        } catch let error as AnchorAPIError {
+            logger.logWarning("Auth signup failed: \(error)", category: "Auth")
+            throw AuthError.failed(error)
         } catch {
+            logger.logWarning("Auth signup failed: \(error.localizedDescription)", category: "Auth")
             throw AuthError.failed(error)
         }
-
-        guard let idToken = await cognitoAuthService.getValidIdToken() else {
-            throw AuthError.invalidToken
-        }
-
-        try keychainService.save(idToken, forKey: AppConfig.UserDefaultsKeys.accessToken)
-        let user = try await currentUserOrNil()
-        if let user {
-            await postSignInProfileUpsert()
-            return user
-        }
-        throw AuthError.notAuthenticated
     }
 
-    // MARK: - Google Sign In (via Cognito Hosted UI)
-    func signInWithGoogle() async throws -> User {
-        guard !AppConfig.cognitoDomain.isEmpty,
-              !AppConfig.cognitoClientId.isEmpty,
-              !AppConfig.cognitoRedirectURI.isEmpty else {
-            throw AuthError.configurationMissing
-        }
-
+    func signIn(email: String, password: String) async throws -> User {
+        logger.logInfo("Auth signin requested", category: "Auth")
         do {
-            try await cognitoAuthService.signIn(provider: .google)
+            let response: AuthResponse = try await apiClient.request(
+                .signInEmail(email: email, password: password),
+                responseType: AuthResponse.self
+            )
+            try storeTokens(from: response)
+            logger.logInfo("Auth signin token stored", category: "Auth")
+            let user = response.user.toUser()
+            if let user {
+                UserDefaults.standard.set(user.id.uuidString, forKey: AppConfig.UserDefaultsKeys.currentUserId)
+                await postSignInProfileUpsert(email: user.email)
+                logger.logInfo("Auth signin completed", category: "Auth")
+                return user
+            }
+            throw AuthError.notAuthenticated
+        } catch let error as AnchorAPIError {
+            if case .unauthorized = error {
+                throw AuthError.invalidCredentials
+            }
+            logger.logWarning("Auth signin failed: \(error)", category: "Auth")
+            throw AuthError.failed(error)
         } catch {
+            logger.logWarning("Auth signin failed: \(error.localizedDescription)", category: "Auth")
             throw AuthError.failed(error)
         }
-
-        guard let idToken = await cognitoAuthService.getValidIdToken() else {
-            throw AuthError.invalidToken
-        }
-
-        // Store token so APIClient can use it for /user/me
-        try keychainService.save(idToken, forKey: AppConfig.UserDefaultsKeys.accessToken)
-
-        let user = try await currentUserOrNil()
-        if let user {
-            await postSignInProfileUpsert()
-            return user
-        }
-        throw AuthError.notAuthenticated
     }
     
     // MARK: - Sign Out
     func signOut() async throws {
+        logger.logInfo("Auth sign out requested", category: "Auth")
         // Call backend to invalidate token
         do {
             try await apiClient.request(.signOut)
@@ -98,13 +98,13 @@ class AuthService: AuthServiceProtocol {
         // Clear tokens from Keychain
         try? keychainService.delete(forKey: AppConfig.UserDefaultsKeys.accessToken)
         try? keychainService.delete(forKey: AppConfig.UserDefaultsKeys.refreshToken)
-        cognitoAuthService.signOutLocal()
     }
     
     // MARK: - Current User
     func currentUser() async throws -> User? {
         // GET /user/me
         do {
+            logger.logInfo("Auth current user fetch", category: "Auth")
             let dto: UserDTO = try await apiClient.request(.getCurrentUser, responseType: UserDTO.self)
             guard let user = dto.toUser() else {
                 return nil
@@ -125,27 +125,14 @@ class AuthService: AuthServiceProtocol {
         }
     }
 
-    private func currentUserOrNil() async throws -> User? {
-        do {
-            return try await currentUser()
-        } catch {
-            return nil
-        }
-    }
-
-    private func postSignInProfileUpsert() async {
-        let claims = await decodeIDTokenClaims()
-        let email = claims["email"] as? String
-        let fullName = claims["name"] as? String
-        let givenName = claims["given_name"] as? String
-        let familyName = claims["family_name"] as? String
-
+    private func postSignInProfileUpsert(email: String?) async {
         guard let profile = AppGroupStorage.shared.getProfile() else {
             logger.logInfo("Profile upsert skipped: no local profile", category: "Auth")
             return
         }
 
-        let displayName = profile.displayName.isEmpty ? (fullName ?? profile.displayName) : profile.displayName
+        let displayName = profile.displayName
+        let personal = AppGroupStorage.shared.getPersonalInfo()
 
         do {
             _ = try await userService.updateUserProfile(
@@ -154,41 +141,25 @@ class AuthService: AuthServiceProtocol {
                 birthDay: profile.birthDay,
                 timezone: profile.timezone,
                 email: email,
-                fullName: fullName,
-                givenName: givenName,
-                familyName: familyName
+                firstName: personal?.firstName,
+                lastName: personal?.lastName,
+                birthday: personal?.birthday
             )
             logger.logInfo("Profile upsert success", category: "Auth")
         } catch {
             logger.logWarning("Profile upsert failed: \(error.localizedDescription)", category: "Auth")
         }
     }
-
-    private func decodeIDTokenClaims() async -> [String: Any] {
-        guard let idToken = await cognitoAuthService.getValidIdToken() else {
-            return [:]
+    
+    private func storeTokens(from response: AuthResponse) throws {
+        let access = response.accessToken ?? response.token
+        if let access {
+            try keychainService.save(access, forKey: AppConfig.UserDefaultsKeys.accessToken)
+        } else {
+            logger.logWarning("Auth response missing access token", category: "Auth")
         }
-        let segments = idToken.split(separator: ".")
-        guard segments.count >= 2 else { return [:] }
-        let payload = String(segments[1])
-        let padded = payload.padBase64()
-        guard let data = Data(base64Encoded: padded),
-              let json = try? JSONSerialization.jsonObject(with: data) as? [String: Any] else {
-            return [:]
+        if let refresh = response.refreshToken {
+            try keychainService.save(refresh, forKey: AppConfig.UserDefaultsKeys.refreshToken)
         }
-        return json
-    }
-}
-
-private extension String {
-    func padBase64() -> String {
-        var result = self
-            .replacingOccurrences(of: "-", with: "+")
-            .replacingOccurrences(of: "_", with: "/")
-        let padding = 4 - (result.count % 4)
-        if padding < 4 {
-            result += String(repeating: "=", count: padding)
-        }
-        return result
     }
 }

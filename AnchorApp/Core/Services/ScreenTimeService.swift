@@ -284,7 +284,7 @@ class ScreenTimeService: ScreenTimeServiceProtocol {
         let categoryTokens = selection?.categoryTokens ?? Set<ActivityCategoryToken>()
         
         if tokens.isEmpty && categoryTokens.isEmpty {
-            LoggerService.shared.logWarning("No app selection found for anchoring.", category: "ScreenTime")
+            LoggerService.shared.logInfo("No app selection found for anchoring. Skipping apply.", category: "ScreenTime")
             return
         }
         
@@ -329,8 +329,10 @@ class ScreenTimeService: ScreenTimeServiceProtocol {
         store.shield.applications = tokensToBlock.isEmpty ? nil : tokensToBlock
         store.shield.applicationCategories = .all()
 
-        DispatchQueue.main.asyncAfter(deadline: .now() + duration) { [weak self] in
-            Task { await self?.applyDailyAnchor() }
+        DispatchQueue.main.asyncAfter(deadline: .now() + duration) {
+            Task { @MainActor in
+                await ScreenTimeService.shared.applyDailyAnchor()
+            }
         }
     }
     

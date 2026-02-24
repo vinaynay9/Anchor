@@ -2,7 +2,7 @@ import SwiftUI
 
 struct FirstLaunchSplashView: View {
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
-    @State private var showLogo = false
+    @State private var showTitle = false
     @State private var showButton = false
 
     let onStart: () -> Void
@@ -15,12 +15,11 @@ struct FirstLaunchSplashView: View {
                 VStack(spacing: Theme.spacing4) {
                     Spacer()
 
-                    Image("Anchor_logo")
-                        .resizable()
-                        .scaledToFit()
-                        .frame(maxHeight: max(120, proxy.size.height * 0.24))
-                        .opacity(showLogo ? 1 : 0)
-                        .scaleEffect(showLogo ? 1.0 : 0.98)
+                    Text("Welcome to Anchor")
+                        .font(AppTypography.screenTitle)
+                        .foregroundColor(AppColors.onboardingTitleText)
+                        .opacity(showTitle ? 1 : 0)
+                        .scaleEffect(showTitle ? 1.0 : 0.98)
 
                     Button(action: onStart) {
                         Text("Start Locking In")
@@ -55,13 +54,14 @@ struct FirstLaunchSplashView: View {
                 .padding(.horizontal, Theme.spacing4)
             }
         }
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
         .onAppear {
             if reduceMotion {
-                showLogo = true
+                showTitle = true
                 showButton = true
             } else {
                 animate(AppMotion.gentleSpring) {
-                    showLogo = true
+                    showTitle = true
                 }
                 animate(AppMotion.standard, delay: 0.12) {
                     showButton = true

@@ -27,8 +27,8 @@ public enum GoalCategory: String, Codable, Hashable, CaseIterable {
         case .career: return "Career"
         case .finance: return "Finance"
         case .relationships: return "Relationships"
-        case .creativity: return "Creativity"
-        case .home: return "Home"
+        case .creativity: return "Creative"
+        case .home: return "Household"
         case .other: return "Other"
         }
     }

@@ -6,7 +6,7 @@ Anchor is a native iOS app built with Swift and SwiftUI that helps users stay ac
 
 - **Screen Time Integration**: Uses Apple's FamilyControls and ManagedSettings to block selected apps during focus sessions
 - **Custom Shield Screen**: Displays a custom UI when blocked apps are opened
-- **Authentication**: Supports Apple Sign-In
+- **Authentication**: Email + password
 
 ## Architecture
 
@@ -53,7 +53,7 @@ Anchor/
 ## Secrets
 
 - Secrets are stored only in `AnchorApp/Config/Secrets.swift` (git-ignored).
-- Do not store AWS access keys in the app. Use Cognito/temporary credentials or a backend.
+- Do not store AWS access keys in the app. Use temporary credentials or a backend.
 - `Secrets.swift` stores only non-secret bootstrap values (API base URL and remote config path).
 
 ## Local Setup (Required)
@@ -73,6 +73,7 @@ Anchor/
 The app uses an App Group to share data between the main app and shield extension. Configure this in:
 - `AnchorApp/Config/AppConfig.swift`: `appGroupIdentifier`
 - `AnchorShieldExtension/Shared/AppGroupStorage.swift`: Must match the main app's identifier
+The required App Group identifier is: `group.com.vinay.anchor`
 
 ### Backend
 
@@ -84,15 +85,12 @@ The app calls:
 `GET {apiBaseURL}{remoteConfigPath}` (default: `/config`)
 
 The backend (Lambda or equivalent) reads AWS Secrets Manager and returns non-secret configuration required by the app. Secrets never ship in the app bundle.
-The endpoint is protected with a Cognito User Pool JWT; the app authenticates via Cognito Hosted UI and sends `Authorization: Bearer <id_token>`.
+The endpoint is protected with an auth token; the app authenticates with email + password and sends `Authorization: Bearer <token>`.
 
 Example JSON:
 ```json
 {
-  "googleClientID": "...apps.googleusercontent.com",
-  "googleReverseClientID": "com.googleusercontent.apps....",
   "awsRegion": "us-east-1",
-  "cognitoIdentityPoolId": "us-east-1:...",
   "updatedAtISO": "2026-02-17T00:00:00Z"
 }
 ```

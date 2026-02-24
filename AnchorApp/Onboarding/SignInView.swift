@@ -3,6 +3,13 @@ import SwiftUI
 struct SignInView: View {
     @ObservedObject var authViewModel: AuthViewModel
     let onContinue: () -> Void
+    @StateObject private var emailAuthViewModel = EmailAuthViewModel()
+    @State private var mode: AuthMode = .signIn
+
+    private enum AuthMode: String, CaseIterable {
+        case signIn = "Sign In"
+        case signUp = "Create Account"
+    }
 
     private var isSignedIn: Bool { authViewModel.currentUser != nil }
 
@@ -23,31 +30,26 @@ struct SignInView: View {
 
             OnboardingCard {
                 VStack(spacing: AnchorTheme.Spacing.sm) {
-                    Button {
-                        authViewModel.signInWithApple()
-                    } label: {
-                        HStack {
-                            Image(systemName: "applelogo")
-                            Text("Continue with Apple")
-                                .font(AnchorTheme.Typography.body)
+                    Picker("Auth Mode", selection: $mode) {
+                        ForEach(AuthMode.allCases, id: \.self) { mode in
+                            Text(mode.rawValue)
                         }
-                        .frame(maxWidth: .infinity)
                     }
-                    .buttonStyle(PrimaryButtonStyle())
+                    .pickerStyle(.segmented)
 
-                    Button {
-                        authViewModel.signInWithGoogle()
-                    } label: {
-                        Text("Continue with Google")
-                            .font(AnchorTheme.Typography.body)
-                            .frame(maxWidth: .infinity)
+                    if mode == .signIn {
+                        EmailSignInView(viewModel: emailAuthViewModel) { user in
+                            authViewModel.handleAuthenticatedUser(user)
+                        }
+                    } else {
+                        EmailSignUpView(viewModel: emailAuthViewModel) { user in
+                            authViewModel.handleAuthenticatedUser(user)
+                        }
                     }
-                    .buttonStyle(SecondaryButtonStyle())
-                    .disabled(authViewModel.isLoading)
                 }
             }
 
-            if let error = authViewModel.errorMessage {
+            if let error = emailAuthViewModel.errorMessage {
                 Text(error)
                     .font(AnchorTheme.Typography.caption)
                     .foregroundColor(AppColors.error)

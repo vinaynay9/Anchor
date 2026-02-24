@@ -9,11 +9,13 @@ class OnboardingFlow: Coordinator {
     @Published var presentedFullScreenCover: FullScreenCoverDestination?
     
     private let onboardingViewModel = OnboardingViewModel()
+    private let authViewModel: AuthViewModel
     private var cancellables = Set<AnyCancellable>()
     weak var parentCoordinator: AppCoordinator?
     
-    init(parentCoordinator: AppCoordinator? = nil) {
+    init(parentCoordinator: AppCoordinator? = nil, authViewModel: AuthViewModel = AuthViewModel()) {
         self.parentCoordinator = parentCoordinator
+        self.authViewModel = authViewModel
         setupOnboardingObserver()
     }
     
@@ -41,6 +43,6 @@ class OnboardingFlow: Coordinator {
     var rootView: some View {
         OnboardingView()
             .environmentObject(onboardingViewModel)
+            .environmentObject(authViewModel)
     }
 }
-

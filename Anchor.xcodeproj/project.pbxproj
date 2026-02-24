@@ -7,7 +7,14 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		FEA1B2C3D4E5F60718293D01 /* DebugNetworkBlocker.swift in Sources */ = {isa = PBXBuildFile; fileRef = FEA1B2C3D4E5F60718293D00 /* DebugNetworkBlocker.swift */; };
+		7F1A2B3C4D5E6F708192A3B4 /* OnboardingIconHeader.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5C2C2B1E2D3E4F5A8B7C9D0E /* OnboardingIconHeader.swift */; };
 		00F8D749C1ED6359EA0F5F23 /* LoadingView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 262B2B4369734DFA75437A51 /* LoadingView.swift */; };
+		FEA1B2C3D4E5F60718293C01 /* EmailAuthViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = FEA1B2C3D4E5F60718293B01 /* AnchorApp/Features/Auth/ViewModels/EmailAuthViewModel.swift */; };
+		FEA1B2C3D4E5F60718293C02 /* EmailSignInView.swift in Sources */ = {isa = PBXBuildFile; fileRef = FEA1B2C3D4E5F60718293B02 /* AnchorApp/Features/Auth/Views/EmailSignInView.swift */; };
+		FEA1B2C3D4E5F60718293C03 /* EmailSignUpView.swift in Sources */ = {isa = PBXBuildFile; fileRef = FEA1B2C3D4E5F60718293B03 /* AnchorApp/Features/Auth/Views/EmailSignUpView.swift */; };
+		FEA1B2C3D4E5F60718293C04 /* PersonalInfoView.swift in Sources */ = {isa = PBXBuildFile; fileRef = FEA1B2C3D4E5F60718293B04 /* PersonalInfoView.swift */; };
+		FEA1B2C3D4E5F60718293C05 /* AuthResponse.swift in Sources */ = {isa = PBXBuildFile; fileRef = FEA1B2C3D4E5F60718293B05 /* AuthResponse.swift */; };
 		01E9A9E45E35F999ED3A427D /* Shared.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 5768BF82AFE6BC241C57DE50 /* Shared.framework */; };
 		070E1CD15C85BFB535ACA498 /* Endpoint.swift in Sources */ = {isa = PBXBuildFile; fileRef = F552107853AFCD394F91A728 /* Endpoint.swift */; };
 		07B0D6FD53F8A9B100983C6F /* Shared.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 5768BF82AFE6BC241C57DE50 /* Shared.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
@@ -22,7 +29,6 @@
 		0FFA3E284AA55187D2BC7C1C /* ActiveSessionView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 36149013F29EC3F0216FED28 /* ActiveSessionView.swift */; };
 		14C19FBEA20C0842529BDCDF /* DeepLinkHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1BF676E723D39567F2BCFA04 /* DeepLinkHandler.swift */; };
 		1545033ECAC7EC836E519EA5 /* SettingsRowView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5D2B440B6AC29A6E7A093E21 /* SettingsRowView.swift */; };
-		15798813EA9F1EFE890BC8E1 /* AppleSignInCoordinator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5E7D999A07DB4D3EB27F0A5A /* AppleSignInCoordinator.swift */; };
 		1616B2B5BEB8BC4D06C79451 /* ToastModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = C4FE24EE28E64B5A29643BA6 /* ToastModel.swift */; };
 		16DA7231A9A3C255E637636D /* AppConfig.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4EDC74587745A8CD546832E5 /* AppConfig.swift */; };
 		18389DF677FCFCE7DA235B45 /* ManagedSettings.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 246BC9CE45519152AB45A493 /* ManagedSettings.framework */; };
@@ -142,8 +148,6 @@
 		CDF5BB4C0A7854C1846DFB2F /* SelectAppsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 897DA810051FD2AC41F2ACEC /* SelectAppsView.swift */; };
 		CE580AF8CA5707D7753E7DAC /* TabBarPreview.swift in Sources */ = {isa = PBXBuildFile; fileRef = C8A8B5C03553C6051241A983 /* TabBarPreview.swift */; };
 		D04259552F2AA1550029893C /* DailyAnchorTime.swift in Sources */ = {isa = PBXBuildFile; fileRef = D04259542F2AA1550029893C /* DailyAnchorTime.swift */; };
-		D061FC6C2F4A6EF40024BE90 /* AnchorApp/Core/Services/AuthDiagnostics.swift in Sources */ = {isa = PBXBuildFile; fileRef = B3D4E5F60718293A4B5C6D7E /* AnchorApp/Core/Services/AuthDiagnostics.swift */; };
-		D061FC6D2F4A6EFE0024BE90 /* AnchorApp/Core/Services/Auth/PKCE.swift in Sources */ = {isa = PBXBuildFile; fileRef = D1E2F3A4B5C60718293A4B5C /* AnchorApp/Core/Services/Auth/PKCE.swift */; };
 		D084BDFA2F16E1C70029EF8C /* AnchorAppApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = D084BDF92F16E1C70029EF8C /* AnchorAppApp.swift */; };
 		D093EC3A2F2A76FD004A8476 /* AppCategory.swift in Sources */ = {isa = PBXBuildFile; fileRef = D093EC282F2A76FD004A8476 /* AppCategory.swift */; };
 		D093EC3B2F2A76FD004A8476 /* LockSession.swift in Sources */ = {isa = PBXBuildFile; fileRef = D093EC2D2F2A76FD004A8476 /* LockSession.swift */; };
@@ -172,7 +176,6 @@
 		E012670EB4E7CC4EF63CC101 /* OnboardingFlow.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9AB681147B07A63A6174F05D /* OnboardingFlow.swift */; };
 		E05AA593D6D69AED02E59008 /* ScreenTimeServiceProtocol.swift in Sources */ = {isa = PBXBuildFile; fileRef = BAFA153E7D3BA1DBAA6B99F9 /* ScreenTimeServiceProtocol.swift */; };
 		E12DB3A84979D4F68CE9DF26 /* NotificationPreferencesView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A26E7529B90C873F14E5CF4 /* NotificationPreferencesView.swift */; };
-		E1C0D0B5F2B14C59A0F1B2C3 /* CognitoAuthService.swift in Sources */ = {isa = PBXBuildFile; fileRef = F1C0D0B5F2B14C59A0F1B2C3 /* CognitoAuthService.swift */; };
 		E62553F11C6F42A8B0F86BE7 /* GoalCategory.swift in Sources */ = {isa = PBXBuildFile; fileRef = AE6035C6156843A1A533AFFB /* GoalCategory.swift */; };
 		E669E804D3EF427EBC9680AB /* SignInView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C02EC82E71384B28AD92F10D /* SignInView.swift */; };
 		EA0BA64528EE4B3A9658F141 /* UnlockPolicyConfig.swift in Sources */ = {isa = PBXBuildFile; fileRef = 76C69CF1F2BD4425802D5A51 /* UnlockPolicyConfig.swift */; };
@@ -396,7 +399,6 @@
 		5D2B440B6AC29A6E7A093E21 /* SettingsRowView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsRowView.swift; sourceTree = "<group>"; };
 		5DACEB27D92C85C503BA2FA3 /* MainTabFlow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MainTabFlow.swift; sourceTree = "<group>"; };
 		5E0A19D86A3A4C918C8B7BB1 /* AnchorApp/Core/Services/DailyAnchorService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AnchorApp/Core/Services/DailyAnchorService.swift; sourceTree = "<group>"; };
-		5E7D999A07DB4D3EB27F0A5A /* AppleSignInCoordinator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppleSignInCoordinator.swift; sourceTree = "<group>"; };
 		5F0C2B358F2C419FAE9FAC6F /* AnchorApp/Core/Services/AuthService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AnchorApp/Core/Services/AuthService.swift; sourceTree = "<group>"; };
 		5F8A7413F5B658547A924059 /* ScreenTimeOnboardingViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScreenTimeOnboardingViewModel.swift; sourceTree = "<group>"; };
 		6047FCAA44AF45FEB5A8BF2E /* AnchorApp/Features/Settings/Views/SettingsRowView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AnchorApp/Features/Settings/Views/SettingsRowView.swift; sourceTree = "<group>"; };
@@ -437,7 +439,6 @@
 		755034BA699DAA338678B82C /* FriendActivityService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FriendActivityService.swift; sourceTree = "<group>"; };
 		75A0828084E18CC2F024DC48 /* ProofCaptureView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProofCaptureView.swift; sourceTree = "<group>"; };
 		75B3ABEAE5EE4A2993EF9ACD /* Shared/Models/UnlockRequest.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Shared/Models/UnlockRequest.swift; sourceTree = "<group>"; };
-		766989114A754FE0B1778908 /* AnchorApp/Core/Services/CognitoAuthService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AnchorApp/Core/Services/CognitoAuthService.swift; sourceTree = "<group>"; };
 		768FBA8649CF4CB5AC889E38 /* AnchorShieldActionExtension/ShieldActionExtension.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AnchorShieldActionExtension/ShieldActionExtension.swift; sourceTree = "<group>"; };
 		76C69CF1F2BD4425802D5A51 /* UnlockPolicyConfig.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UnlockPolicyConfig.swift; sourceTree = "<group>"; };
 		76CCC9985B36694E71E3032C /* DailyReflectionView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DailyReflectionView.swift; sourceTree = "<group>"; };
@@ -449,6 +450,7 @@
 		7BB428B18BEFFBF8FAF9DFC7 /* ScreenTimePermissionRequestView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScreenTimePermissionRequestView.swift; sourceTree = "<group>"; };
 		7E5B78DF9136432694B346FE /* AnchorApp/Features/AppSelection/FamilyActivityPickerRepresentable.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AnchorApp/Features/AppSelection/FamilyActivityPickerRepresentable.swift; sourceTree = "<group>"; };
 		7E7A68EB09FD4645B414EE43 /* AnchorApp/Features/Auth/ViewModels/AuthViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AnchorApp/Features/Auth/ViewModels/AuthViewModel.swift; sourceTree = "<group>"; };
+		FEA1B2C3D4E5F60718293B01 /* AnchorApp/Features/Auth/ViewModels/EmailAuthViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AnchorApp/Features/Auth/ViewModels/EmailAuthViewModel.swift; sourceTree = "<group>"; };
 		7F0E5B1152B1499F93A1896E /* AnchorApp/Features/Settings/ViewModels/SettingsViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AnchorApp/Features/Settings/ViewModels/SettingsViewModel.swift; sourceTree = "<group>"; };
 		7F20BD3F8780D680CC044C0D /* AppColors.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppColors.swift; sourceTree = "<group>"; };
 		7F8E2F5A1B3242B9AA88B1D1 /* DailyGoalProgress.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DailyGoalProgress.swift; sourceTree = "<group>"; };
@@ -463,6 +465,8 @@
 		84D9EA449C3142EFA6568558 /* AnchorApp/Core/Utilities/Logging/Logger.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AnchorApp/Core/Utilities/Logging/Logger.swift; sourceTree = "<group>"; };
 		864B1004BF0EE501E3B58FD7 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		88490848B8E0558A82C695DF /* APIClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = APIClient.swift; sourceTree = "<group>"; };
+		FEA1B2C3D4E5F60718293B05 /* AuthResponse.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DTOs/AuthResponse.swift; sourceTree = "<group>"; };
+		FEA1B2C3D4E5F60718293D00 /* DebugNetworkBlocker.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DebugNetworkBlocker.swift; sourceTree = "<group>"; };
 		89308146D86F5240027CB7A2 /* SessionTimelineView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SessionTimelineView.swift; sourceTree = "<group>"; };
 		897DA810051FD2AC41F2ACEC /* SelectAppsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SelectAppsView.swift; sourceTree = "<group>"; };
 		8C4A71E8932A4F2D9B3F9C6C /* AnchorApp/Core/Services/DailyGoalService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AnchorApp/Core/Services/DailyGoalService.swift; sourceTree = "<group>"; };
@@ -496,6 +500,8 @@
 		9EC625A5DE3342B0976B5F76 /* AnchorApp/Onboarding/SignInView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AnchorApp/Onboarding/SignInView.swift; sourceTree = "<group>"; };
 		9F0E8023772D43A9B93D6E5A /* AnchorApp/Internal/InternalTools.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AnchorApp/Internal/InternalTools.swift; sourceTree = "<group>"; };
 		9F54B5160054441298EC1946 /* AnchorApp/Features/Auth/Views/SignInOptionsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AnchorApp/Features/Auth/Views/SignInOptionsView.swift; sourceTree = "<group>"; };
+		FEA1B2C3D4E5F60718293B02 /* AnchorApp/Features/Auth/Views/EmailSignInView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AnchorApp/Features/Auth/Views/EmailSignInView.swift; sourceTree = "<group>"; };
+		FEA1B2C3D4E5F60718293B03 /* AnchorApp/Features/Auth/Views/EmailSignUpView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AnchorApp/Features/Auth/Views/EmailSignUpView.swift; sourceTree = "<group>"; };
 		A000B68AD8042217EDDDEAAE /* QuorumService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QuorumService.swift; sourceTree = "<group>"; };
 		A17F7C3C5A8E4F0DBE1A1A01 /* AnchorApp/Core/Services/InviteService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AnchorApp/Core/Services/InviteService.swift; sourceTree = "<group>"; };
 		A17F7C3C5A8E4F0DBE1A1A02 /* AnchorApp/Core/Models/InviteState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AnchorApp/Core/Models/InviteState.swift; sourceTree = "<group>"; };
@@ -508,6 +514,7 @@
 		A21F7C3C5A8E4F0DBE1A1A12 /* AnchorApp/SharedUI/Animations/HoverEffectModifier.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AnchorApp/SharedUI/Animations/HoverEffectModifier.swift; sourceTree = "<group>"; };
 		A2BF3104BDB44634932B2761 /* AnchorApp/Features/Friends/Views/FriendsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AnchorApp/Features/Friends/Views/FriendsView.swift; sourceTree = "<group>"; };
 		A31FB2D0C8354119B270476D /* AnchorApp/Features/Onboarding/Views/FirstLaunchSplashView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AnchorApp/Features/Onboarding/Views/FirstLaunchSplashView.swift; sourceTree = "<group>"; };
+		FEA1B2C3D4E5F60718293B04 /* PersonalInfoView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AnchorApp/Features/Onboarding/Views/PersonalInfoView.swift; sourceTree = "<group>"; };
 		A42CF6F725318FD202930820 /* Constants.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Constants.swift; sourceTree = "<group>"; };
 		A44B0627AC93376DCAEC1631 /* BreathingDotView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BreathingDotView.swift; sourceTree = "<group>"; };
 		A4A814C62D0AB0FC14F24CCB /* AnchorShieldActionExtension.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; path = AnchorShieldActionExtension.appex; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -533,7 +540,6 @@
 		B1E0B77E0F614B8FB3C59349 /* AnchorShieldExtension/ShieldDesignSystem.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AnchorShieldExtension/ShieldDesignSystem.swift; sourceTree = "<group>"; };
 		B27F2EC26BDB4EC592CBE109 /* AnchorApp/Core/Services/GoalService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AnchorApp/Core/Services/GoalService.swift; sourceTree = "<group>"; };
 		B29050F13A6A49D28C3B3803 /* AnchorApp/Core/DesignSystem/Components/AppCardStyle.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AnchorApp/Core/DesignSystem/Components/AppCardStyle.swift; sourceTree = "<group>"; };
-		B3D4E5F60718293A4B5C6D7E /* AnchorApp/Core/Services/AuthDiagnostics.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AuthDiagnostics.swift; sourceTree = "<group>"; };
 		B3E46D8543B86B5032FA7A20 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		B5791503767A4F33953E7549 /* AnchorApp/Features/Proofs/ViewModels/ProofViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AnchorApp/Features/Proofs/ViewModels/ProofViewModel.swift; sourceTree = "<group>"; };
 		B595E004C8D440C980CAFAC5 /* AnchorApp/Features/UnlockRequests/User/Views/UnlockRequestView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AnchorApp/Features/UnlockRequests/User/Views/UnlockRequestView.swift; sourceTree = "<group>"; };
@@ -610,13 +616,11 @@
 		D093EC342F2A76FD004A8476 /* UserRole.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UserRole.swift; sourceTree = "<group>"; };
 		D093EC362F2A76FD004A8476 /* AppGroupStorage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppGroupStorage.swift; sourceTree = "<group>"; };
 		D093EC382F2A76FD004A8476 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
-		D1E2F3A4B5C60718293A4B5C /* AnchorApp/Core/Services/Auth/PKCE.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Auth/PKCE.swift; sourceTree = "<group>"; };
 		D25F3F5B0E4A41149CEB37D7 /* AnchorApp/Features/OnboardingScreenTime/ScreenTimeOnboardingViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AnchorApp/Features/OnboardingScreenTime/ScreenTimeOnboardingViewModel.swift; sourceTree = "<group>"; };
 		D3C7F942DB7FB236A3C98B37 /* DebugDiagnosticsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DebugDiagnosticsView.swift; sourceTree = "<group>"; };
 		D4A571DD978EA1995778DB86 /* ScreenTimeWhyView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScreenTimeWhyView.swift; sourceTree = "<group>"; };
 		D4DA30AA500842CDA666764A /* AnchorApp/Features/Sessions/Views/ActivityPickerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AnchorApp/Features/Sessions/Views/ActivityPickerView.swift; sourceTree = "<group>"; };
 		D52A2EFBD32841ADB2CFE4EC /* Shared/Models/LockSession.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Shared/Models/LockSession.swift; sourceTree = "<group>"; };
-		D5FBC0633BDF482A9B538134 /* AnchorApp/Core/Utilities/Keychain/AppleSignInCoordinator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AnchorApp/Core/Utilities/Keychain/AppleSignInCoordinator.swift; sourceTree = "<group>"; };
 		D66BB3818FBD6824AFBF550C /* UserService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UserService.swift; sourceTree = "<group>"; };
 		D6A64F7FFACFD0EBAD8840B8 /* ShieldDesignSystem.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShieldDesignSystem.swift; sourceTree = "<group>"; };
 		D6B41FBE5D4046208DE8AB50 /* AnchorApp/Core/Services/RemoteConfigService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AnchorApp/Core/Services/RemoteConfigService.swift; sourceTree = "<group>"; };
@@ -663,7 +667,6 @@
 		F0F7F36FA3B645EFA922B83B /* Shared/Logging/LoggerService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Shared/Logging/LoggerService.swift; sourceTree = "<group>"; };
 		F19235B8D06E399379A2492F /* OnboardingPages.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnboardingPages.swift; sourceTree = "<group>"; };
 		F1AC1124A72042E782B4C0AA /* Shared/Models/UserRole.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Shared/Models/UserRole.swift; sourceTree = "<group>"; };
-		F1C0D0B5F2B14C59A0F1B2C3 /* CognitoAuthService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CognitoAuthService.swift; sourceTree = "<group>"; };
 		F404DEE51CC84308B259D23A /* AnchorTheme.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AnchorTheme.swift; sourceTree = "<group>"; };
 		F5339524A2C2482DB94FF995 /* OnboardingState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnboardingState.swift; sourceTree = "<group>"; };
 		F552107853AFCD394F91A728 /* Endpoint.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Endpoint.swift; sourceTree = "<group>"; };
@@ -805,7 +808,6 @@
 		1324EC110CADE76B620F57E9 /* Keychain */ = {
 			isa = PBXGroup;
 			children = (
-				5E7D999A07DB4D3EB27F0A5A /* AppleSignInCoordinator.swift */,
 				2979C66DCA22E7689D5ED8B1 /* KeychainService.swift */,
 			);
 			path = Keychain;
@@ -865,7 +867,6 @@
 		2840534DFD2853A4879322B8 /* Services */ = {
 			isa = PBXGroup;
 			children = (
-				F1C0D0B5F2B14C59A0F1B2C3 /* CognitoAuthService.swift */,
 				B9C0D0B5F2B14C59A0F1B2C3 /* RemoteConfigService.swift */,
 				A4D42EACA70B9459A6049CB3 /* ActivitySelectionService.swift */,
 				3828144B6D4C239E505C6A25 /* AdminAccessPolicy.swift */,
@@ -873,8 +874,6 @@
 				B1039C695D8E38F6E6979DD3 /* AnalyticsInsightsService.swift */,
 				2E67AB30C7EA45D0911E19C1 /* AuditService.swift */,
 				0995A075C67F06B0737B651F /* AuthService.swift */,
-				B3D4E5F60718293A4B5C6D7E /* AnchorApp/Core/Services/AuthDiagnostics.swift */,
-				D1E2F3A4B5C60718293A4B5C /* AnchorApp/Core/Services/Auth/PKCE.swift */,
 				BE997A0573CF41C7AA39BE39 /* OnboardingService.swift */,
 				F78EAF6E841479BA8BCAB137 /* ContractService.swift */,
 				1BF676E723D39567F2BCFA04 /* DeepLinkHandler.swift */,
@@ -1028,6 +1027,7 @@
 				800F47987BED4577B1D7183B /* AnchorApp/Features/Onboarding/Views/OnboardingPermissionStepView.swift */,
 				3FEE955C66FF4B7ABACBBCD5 /* AnchorApp/Features/Onboarding/Views/ImageProcessingUtility.swift */,
 				E6338DEC28E04D7C92F283B6 /* AnchorApp/Features/Onboarding/Views/OnboardingPages.swift */,
+				FEA1B2C3D4E5F60718293B04 /* PersonalInfoView.swift */,
 				A31FB2D0C8354119B270476D /* AnchorApp/Features/Onboarding/Views/FirstLaunchSplashView.swift */,
 				4033110D4300467FACC2011B /* AnchorApp/Features/Onboarding/Views/OnboardingPagerView.swift */,
 				E8D2FF84B53546FAB3A54F5C /* AnchorApp/Features/Onboarding/Views/OnboardingPageView.swift */,
@@ -1069,8 +1069,11 @@
 				3274902BCADC4EE69BB50AFD /* AnchorApp/Features/AnalyticsDashboard/ViewModels/AnalyticsDashboardViewModel.swift */,
 				66D06E5AACB849A496C082D2 /* AnchorApp/Features/AnalyticsDashboard/Views/AnalyticsDashboardView.swift */,
 				7E7A68EB09FD4645B414EE43 /* AnchorApp/Features/Auth/ViewModels/AuthViewModel.swift */,
+				FEA1B2C3D4E5F60718293B01 /* AnchorApp/Features/Auth/ViewModels/EmailAuthViewModel.swift */,
 				3BE4A69532594B7C9435463E /* AnchorApp/Features/Auth/Views/AuthRootView.swift */,
 				9F54B5160054441298EC1946 /* AnchorApp/Features/Auth/Views/SignInOptionsView.swift */,
+				FEA1B2C3D4E5F60718293B02 /* AnchorApp/Features/Auth/Views/EmailSignInView.swift */,
+				FEA1B2C3D4E5F60718293B03 /* AnchorApp/Features/Auth/Views/EmailSignUpView.swift */,
 				B077D0EF597D4087968C2F0B /* AnchorApp/Features/Auth/Views/UsernameSetupView.swift */,
 				379B9BE6C7764FCB9B724DC8 /* AnchorApp/Features/Goals/Views/GoalCreationView.swift */,
 				9183ED3646E54BC789A31943 /* AnchorApp/Features/Goals/Views/GoalsExplanationView.swift */,
@@ -1121,7 +1124,6 @@
 				FC93DAB1044148E7AB079526 /* AnchorApp/Core/Services/DeepLinkHandler.swift */,
 				FAB998E8868E4E04983CF6F4 /* AnchorApp/Core/Services/PersistenceService.swift */,
 				25E3611E4C7247DEB9C38B2E /* AnchorApp/Core/Services/NotificationService.swift */,
-				766989114A754FE0B1778908 /* AnchorApp/Core/Services/CognitoAuthService.swift */,
 				D9F54078C5C14CB7A71555AC /* AnchorApp/Core/Services/UsageReportService.swift */,
 				110129E8FAAE46DFBCAD9928 /* AnchorApp/Core/Services/FriendActivityService.swift */,
 				738C415F9F4D4E28B275DFF3 /* AnchorApp/Core/Services/NotificationService+DeepLink.swift */,
@@ -1144,7 +1146,6 @@
 				0C384762E7624B54BC31158A /* AnchorApp/Core/Utilities/Extensions/View+Extensions.swift */,
 				C0AF0942DB284149888B2C99 /* AnchorApp/Core/Utilities/Extensions/Date+Extensions.swift */,
 				0207819F81CC4816979B2F25 /* AnchorApp/Core/Utilities/Keychain/KeychainService.swift */,
-				D5FBC0633BDF482A9B538134 /* AnchorApp/Core/Utilities/Keychain/AppleSignInCoordinator.swift */,
 				84D9EA449C3142EFA6568558 /* AnchorApp/Core/Utilities/Logging/Logger.swift */,
 				B29050F13A6A49D28C3B3803 /* AnchorApp/Core/DesignSystem/Components/AppCardStyle.swift */,
 				AC06BB36677D466E8CE98A76 /* AnchorApp/Core/DesignSystem/Components/AppButtonStyle.swift */,
@@ -1955,6 +1956,8 @@
 			children = (
 				88490848B8E0558A82C695DF /* APIClient.swift */,
 				F552107853AFCD394F91A728 /* Endpoint.swift */,
+				FEA1B2C3D4E5F60718293B05 /* AuthResponse.swift */,
+				FEA1B2C3D4E5F60718293D00 /* DebugNetworkBlocker.swift */,
 				E14274C10A8791C4EC5E2CA1 /* SupabaseClient.swift */,
 			);
 			path = Networking;
@@ -2233,11 +2236,10 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				D061FC6D2F4A6EFE0024BE90 /* AnchorApp/Core/Services/Auth/PKCE.swift in Sources */,
-				D061FC6C2F4A6EF40024BE90 /* AnchorApp/Core/Services/AuthDiagnostics.swift in Sources */,
+				FEA1B2C3D4E5F60718293D01 /* DebugNetworkBlocker.swift in Sources */,
+				7F1A2B3C4D5E6F708192A3B4 /* OnboardingIconHeader.swift in Sources */,
 				C300E6AC6E36408E844BFA7C /* AnchorApp/Core/Services/SessionService.swift in Sources */,
 				4FC607F4B9944F4CA1C49D29 /* AnchorApp/Core/Services/QuorumService.swift in Sources */,
-				E1C0D0B5F2B14C59A0F1B2C3 /* CognitoAuthService.swift in Sources */,
 				A9C0D0B5F2B14C59A0F1B2C3 /* RemoteConfigService.swift in Sources */,
 				16DA7231A9A3C255E637636D /* AppConfig.swift in Sources */,
 				0B6658C170B44D9BB2D375D0 /* Secrets.swift in Sources */,
@@ -2254,6 +2256,7 @@
 				A17F7C3C5A8E4F0DBE1A1B02 /* AnchorApp/Core/Models/InviteState.swift in Sources */,
 				6D815D1E22F40CF0B8B6DFD5 /* APIClient.swift in Sources */,
 				070E1CD15C85BFB535ACA498 /* Endpoint.swift in Sources */,
+				FEA1B2C3D4E5F60718293C05 /* AuthResponse.swift in Sources */,
 				26DB254BAF0F9C520B498A2D /* SupabaseClient.swift in Sources */,
 				A5A546F4327B7CF8B3F8DFA4 /* NotificationNames.swift in Sources */,
 				9DF233FF37F60EC18DCC2DCD /* ActivitySelectionService.swift in Sources */,
@@ -2282,15 +2285,17 @@
 				B459AEB276FA9E425A7BAB3D /* String+Extensions.swift in Sources */,
 				BB0BCF7B2B0DBDE0F7294668 /* View+Extensions.swift in Sources */,
 				19100B6437D9CEA37C81235E /* ImageProcessingUtility.swift in Sources */,
-				15798813EA9F1EFE890BC8E1 /* AppleSignInCoordinator.swift in Sources */,
 				EB09AE4E7AA1EECE81A559BD /* KeychainService.swift in Sources */,
 				6CE176A00FB17BC59BACEADB /* Logger.swift in Sources */,
 				DE9EE3F513194D69A83B8858 /* FamilyActivityPickerRepresentable.swift in Sources */,
 				CDF5BB4C0A7854C1846DFB2F /* SelectAppsView.swift in Sources */,
 				F401517B8E8B80E6057973C6 /* SelectAppsViewModel.swift in Sources */,
 				F0E830D3E4BD04CD7CC3EC91 /* AuthViewModel.swift in Sources */,
+				FEA1B2C3D4E5F60718293C01 /* EmailAuthViewModel.swift in Sources */,
 				38F8D9D25DF3F3B09B8B7B5D /* AuthRootView.swift in Sources */,
 				4DA98327F60220439710BB83 /* SignInOptionsView.swift in Sources */,
+				FEA1B2C3D4E5F60718293C02 /* EmailSignInView.swift in Sources */,
+				FEA1B2C3D4E5F60718293C03 /* EmailSignUpView.swift in Sources */,
 				96C8E77D284CF883B91F0872 /* UsernameSetupView.swift in Sources */,
 				8541D16339134AA758FA7A43 /* GoalCreationView.swift in Sources */,
 				90C9737C3EA8A5753BAE1357 /* GoalsExplanationView.swift in Sources */,
@@ -2299,6 +2304,7 @@
 				E12DB3A84979D4F68CE9DF26 /* NotificationPreferencesView.swift in Sources */,
 				CC82118DCDDD00D33CAA463A /* NotificationPreferencesViewModel.swift in Sources */,
 				FB1D73077BBF0DCB072EEC93 /* OnboardingViewModel.swift in Sources */,
+				FEA1B2C3D4E5F60718293C04 /* PersonalInfoView.swift in Sources */,
 				890D790A97EF401580291EE2 /* AnchorApp/Features/Onboarding/Views/PostAuthOnboardingFlowView.swift in Sources */,
 				4D27F3CB33654C03974033B9 /* GoalSetupView.swift in Sources */,
 				1D6855A29A2146D4A6A1AEAD /* GoalSetupViewModel.swift in Sources */,

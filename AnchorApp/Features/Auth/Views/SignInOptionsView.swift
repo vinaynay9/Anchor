@@ -2,6 +2,13 @@ import SwiftUI
 
 struct SignInOptionsView: View {
     @EnvironmentObject var authViewModel: AuthViewModel
+    @StateObject private var emailAuthViewModel = EmailAuthViewModel()
+    @State private var mode: AuthMode = .signIn
+
+    private enum AuthMode: String, CaseIterable {
+        case signIn = "Sign In"
+        case signUp = "Create Account"
+    }
     
     var body: some View {
         VStack(spacing: Theme.spacing * 2) {
@@ -12,55 +19,41 @@ struct SignInOptionsView: View {
                 .foregroundColor(AppColors.textPrimary)
                 .padding(.bottom, Theme.padding * 2)
             
-            Text("Stay accountable. Stay focused.")
+            Text("Lock apps. Set goals. Stay Anchored.")
                 .font(AppTypography.body)
                 .foregroundColor(AppColors.textSecondary)
                 .padding(.bottom, Theme.padding * 3)
             
-            VStack(spacing: Theme.spacing) {
-                Button(action: {
-                    authViewModel.signInWithApple()
-                }) {
-                    HStack {
-                        if authViewModel.isLoading {
-                            ProgressView()
-                                .progressViewStyle(CircularProgressViewStyle(tint: AppColors.textPrimary))
-                        } else {
-                            Image(systemName: "applelogo")
-                        }
-                        Text("Continue with Apple")
-                    }
+            Picker("Auth Mode", selection: $mode) {
+                ForEach(AuthMode.allCases, id: \.self) { mode in
+                    Text(mode.rawValue)
                 }
-                .buttonStyle(PrimaryButtonStyle())
-                .disabled(authViewModel.isLoading)
+            }
+            .pickerStyle(.segmented)
+            .padding(.horizontal, Theme.padding)
+            .onChange(of: mode) { _ in
+                emailAuthViewModel.errorMessage = nil
+                emailAuthViewModel.confirmPassword = ""
+            }
 
-                Button(action: {
-                    authViewModel.signInWithGoogle()
-                }) {
-                    HStack {
-                        if authViewModel.isLoading {
-                            ProgressView()
-                                .progressViewStyle(CircularProgressViewStyle(tint: AppColors.textPrimary))
-                        } else {
-                            Image(systemName: "globe")
-                        }
-                        Text("Continue with Google")
+            VStack(spacing: Theme.spacing2) {
+                if mode == .signIn {
+                    EmailSignInView(viewModel: emailAuthViewModel) { user in
+                        authViewModel.handleAuthenticatedUser(user)
+                    }
+                } else {
+                    EmailSignUpView(viewModel: emailAuthViewModel) { user in
+                        authViewModel.handleAuthenticatedUser(user)
                     }
                 }
-                .buttonStyle(SecondaryButtonStyle())
-                .disabled(authViewModel.isLoading)
             }
             .padding(.horizontal, Theme.padding)
             
-            if let errorMessage = authViewModel.errorMessage {
-                Text(errorMessage)
-                    .font(AppTypography.caption)
-                    .foregroundColor(AppColors.error)
-                    .padding(.top, Theme.spacing)
-            }
-            
             Spacer()
         }
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .padding(.horizontal, Theme.padding)
         .background(AppColors.background)
+        .ignoresSafeArea()
     }
 }

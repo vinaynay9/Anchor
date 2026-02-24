@@ -6,13 +6,14 @@ struct OnboardingAppSelectionView: View {
     @StateObject var viewModel: OnboardingAppSelectionViewModel
     @State private var showBlockedPicker = false
     @State private var showUnlockedPicker = false
+    @State private var isSaving = false
 
     let onFinish: () -> Void
 
     private let presets = [
         "Socials",
         "Games",
-        "Sports",
+        "Sports (Fantasy / Betting / Stats)",
         "Video",
         "Shopping",
         "Food",
@@ -46,16 +47,29 @@ struct OnboardingAppSelectionView: View {
                             showPicker: $showUnlockedPicker
                         )
                     }
-
-                    Button(action: finish) {
+                }
+                .padding(.vertical, Theme.spacing4)
+                .padding(.bottom, Theme.spacing5)
+            }
+        }
+        .safeAreaInset(edge: .bottom) {
+            VStack(spacing: Theme.spacing) {
+                Button(action: finish) {
+                    if isSaving {
+                        ProgressView()
+                            .progressViewStyle(CircularProgressViewStyle(tint: AppColors.onPrimary))
+                    } else {
                         Text("Finish")
                             .frame(maxWidth: .infinity)
                     }
-                    .buttonStyle(PrimaryPressableButtonStyle())
-                    .padding(.horizontal, Theme.spacing3)
                 }
-                .padding(.vertical, Theme.spacing4)
+                .buttonStyle(PrimaryPressableButtonStyle())
+                .disabled(!viewModel.hasBlockedSelection || isSaving)
+                .accessibilityLabel(viewModel.hasBlockedSelection ? "Finish onboarding" : "Select apps to continue")
             }
+            .padding(.horizontal, Theme.spacing3)
+            .padding(.vertical, Theme.spacing2)
+            .background(AppColors.background.opacity(0.95))
         }
         .sheet(isPresented: $showBlockedPicker) {
             FamilyActivityPickerWrapper(selection: $viewModel.blockedSelection)
@@ -113,7 +127,7 @@ struct OnboardingAppSelectionView: View {
             }
             .padding(.horizontal, Theme.spacing3)
 
-            Text("Presets don’t auto-select apps on iOS. Tap Select apps to choose.")
+            Text("Sports includes fantasy, betting, and stats (Kalshi, Polymarket). Presets don’t auto-select apps on iOS.")
                 .font(AppTypography.caption)
                 .foregroundColor(AppColors.onboardingHintText)
                 .padding(.horizontal, Theme.spacing3)
@@ -127,14 +141,22 @@ struct OnboardingAppSelectionView: View {
         selection: Binding<FamilyActivitySelection>,
         showPicker: Binding<Bool>
     ) -> some View {
-        VStack(alignment: .leading, spacing: Theme.spacing2) {
+        let selectionCount = selection.wrappedValue.applicationTokens.count + selection.wrappedValue.categoryTokens.count
+
+        return VStack(alignment: .leading, spacing: Theme.spacing2) {
             Text(title)
                 .font(AppTypography.sectionHeader)
                 .foregroundColor(AppColors.onboardingTitleText)
 
-            Text(description)
-                .font(AppTypography.body)
-                .foregroundColor(AppColors.onboardingBodyText)
+            HStack {
+                Text(description)
+                    .font(AppTypography.body)
+                    .foregroundColor(AppColors.onboardingBodyText)
+                Spacer()
+                Text(selectionCount == 0 ? "None" : "\(selectionCount) selected")
+                    .font(AppTypography.caption)
+                    .foregroundColor(AppColors.onboardingHintText)
+            }
 
             Button(action: { showPicker.wrappedValue = true }) {
                 Text(buttonTitle)
@@ -147,7 +169,7 @@ struct OnboardingAppSelectionView: View {
         .cornerRadius(Theme.cornerRadiusMedium)
         .overlay(
             RoundedRectangle(cornerRadius: Theme.cornerRadiusMedium)
-                .stroke(AppColors.border, lineWidth: 1)
+                .stroke(selectionCount > 0 ? AppColors.accent.opacity(0.5) : AppColors.border, lineWidth: 1)
         )
         .shadow(color: AppColors.accent.opacity(0.12), radius: 10, x: 0, y: 4)
         .padding(.horizontal, Theme.spacing3)
@@ -162,10 +184,13 @@ struct OnboardingAppSelectionView: View {
     }
 
     private func finish() {
+        guard !isSaving else { return }
+        isSaving = true
         Task {
             await viewModel.persistSelections()
             await viewModel.markComplete()
             await MainActor.run {
+                isSaving = false
                 onFinish()
             }
         }

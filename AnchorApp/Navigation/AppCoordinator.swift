@@ -17,6 +17,8 @@ class AppCoordinator: ObservableObject {
     private let authViewModel = AuthViewModel()
     private let screenTimeService = ScreenTimeService.shared
     private let onboardingService = OnboardingService.shared
+    private let logger = LoggerService.shared
+    private let keychainService = KeychainService.shared
     private var cancellables = Set<AnyCancellable>()
     
     // Deep link handling
@@ -57,13 +59,36 @@ class AppCoordinator: ObservableObject {
     }
     
     private func determineInitialFlow() {
-        if authViewModel.currentUser != nil {
-            routeAfterAuth()
+        #if DEBUG && targetEnvironment(simulator)
+        let shouldReset = ProcessInfo.processInfo.arguments.contains("-resetOnboarding")
+            || ProcessInfo.processInfo.environment["UITESTING"] == "1"
+            || ProcessInfo.processInfo.environment["XCTestConfigurationFilePath"] != nil
+        if shouldReset {
+            UserDefaults.standard.removeObject(forKey: AppConfig.UserDefaultsKeys.hasSeenOnboarding)
+            UserDefaults.standard.removeObject(forKey: AppConfig.UserDefaultsKeys.hasCompletedOnboarding)
+            UserDefaults.standard.removeObject(forKey: AppConfig.UserDefaultsKeys.currentUserId)
+            try? keychainService.delete(forKey: AppConfig.UserDefaultsKeys.accessToken)
+            try? keychainService.delete(forKey: AppConfig.UserDefaultsKeys.refreshToken)
+            logger.logInfo("Routing: cleared onboarding + auth session (DEBUG reset)", category: "Navigation")
+        }
+        #endif
+
+        let hasSeenOnboarding = UserDefaults.standard.bool(forKey: AppConfig.UserDefaultsKeys.hasSeenOnboarding)
+        let hasCompletedOnboarding = UserDefaults.standard.bool(forKey: AppConfig.UserDefaultsKeys.hasCompletedOnboarding)
+        let isAuthenticated = authViewModel.currentUser != nil
+
+        logger.logInfo(
+            "Routing: seen=\(hasSeenOnboarding) completed=\(hasCompletedOnboarding) authed=\(isAuthenticated)",
+            category: "Navigation"
+        )
+
+        if !hasCompletedOnboarding {
+            startOnboardingFlow()
             return
         }
 
-        if !UserDefaults.standard.bool(forKey: "hasCompletedOnboarding") {
-            startOnboardingFlow()
+        if isAuthenticated {
+            routeAfterAuth()
             return
         }
 
@@ -88,7 +113,8 @@ class AppCoordinator: ObservableObject {
     
     func startOnboardingFlow() {
         currentFlow = .onboarding
-        onboardingFlow = nil
+        onboardingFlow = OnboardingFlow(parentCoordinator: self, authViewModel: authViewModel)
+        onboardingFlow?.start()
     }
     
     func startScreenTimeOnboardingFlow() {

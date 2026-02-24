@@ -11,9 +11,9 @@ protocol UserServiceProtocol {
         birthDay: Int?,
         timezone: String?,
         email: String?,
-        fullName: String?,
-        givenName: String?,
-        familyName: String?
+        firstName: String?,
+        lastName: String?,
+        birthday: String?
     ) async throws -> User
     func searchUsers(query: String) async throws -> [User]
 }
@@ -53,9 +53,9 @@ class UserService: UserServiceProtocol {
                 birthDay: nil,
                 timezone: nil,
                 email: nil,
-                fullName: nil,
-                givenName: nil,
-                familyName: nil
+                firstName: nil,
+                lastName: nil,
+                birthday: nil
             ),
             responseType: UserDTO.self
         )
@@ -71,9 +71,9 @@ class UserService: UserServiceProtocol {
         birthDay: Int?,
         timezone: String?,
         email: String?,
-        fullName: String?,
-        givenName: String?,
-        familyName: String?
+        firstName: String?,
+        lastName: String?,
+        birthday: String?
     ) async throws -> User {
         let dto: UserDTO = try await apiClient.request(
             .updateCurrentUser(
@@ -83,9 +83,9 @@ class UserService: UserServiceProtocol {
                 birthDay: birthDay,
                 timezone: timezone,
                 email: email,
-                fullName: fullName,
-                givenName: givenName,
-                familyName: familyName
+                firstName: firstName,
+                lastName: lastName,
+                birthday: birthday
             ),
             responseType: UserDTO.self
         )

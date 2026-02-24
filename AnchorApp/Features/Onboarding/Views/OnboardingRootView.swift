@@ -25,6 +25,7 @@ struct OnboardingRootView: View {
                 .transition(.opacity)
             }
         }
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
         .animation(AppMotion.animation(AppMotion.standard, reduceMotion: reduceMotion), value: viewModel.stage)
     }
 }

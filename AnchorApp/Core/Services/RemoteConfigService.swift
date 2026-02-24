@@ -27,8 +27,7 @@ final class RemoteConfigService {
             return
         }
 
-        let token = await CognitoAuthService.shared.getValidIdToken()
-        guard let token else {
+        guard let token = try? KeychainService.shared.get(forKey: AppConfig.UserDefaultsKeys.accessToken) else {
             return
         }
 

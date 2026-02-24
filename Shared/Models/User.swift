@@ -5,6 +5,9 @@ public struct User: Identifiable, Codable, Hashable {
     public let email: String
     public let username: String
     public let displayName: String?
+    public let firstName: String?
+    public let lastName: String?
+    public let birthday: String?
     public let createdAt: Date
     public let role: UserRole
     
@@ -13,15 +16,21 @@ public struct User: Identifiable, Codable, Hashable {
         case email
         case username
         case displayName = "display_name"
+        case firstName = "first_name"
+        case lastName = "last_name"
+        case birthday
         case createdAt = "created_at"
         case role
     }
     
-    public init(id: UUID, email: String, username: String, displayName: String?, createdAt: Date, role: UserRole = .user) {
+    public init(id: UUID, email: String, username: String, displayName: String?, firstName: String? = nil, lastName: String? = nil, birthday: String? = nil, createdAt: Date, role: UserRole = .user) {
         self.id = id
         self.email = email
         self.username = username
         self.displayName = displayName
+        self.firstName = firstName
+        self.lastName = lastName
+        self.birthday = birthday
         self.createdAt = createdAt
         self.role = role
     }
@@ -32,9 +41,12 @@ public struct User: Identifiable, Codable, Hashable {
         let email = try container.decode(String.self, forKey: .email)
         let username = try container.decode(String.self, forKey: .username)
         let displayName = try container.decodeIfPresent(String.self, forKey: .displayName)
+        let firstName = try container.decodeIfPresent(String.self, forKey: .firstName)
+        let lastName = try container.decodeIfPresent(String.self, forKey: .lastName)
+        let birthday = try container.decodeIfPresent(String.self, forKey: .birthday)
         let createdAt = try container.decode(Date.self, forKey: .createdAt)
         let role = (try? container.decode(UserRole.self, forKey: .role)) ?? .user
-        self.init(id: id, email: email, username: username, displayName: displayName, createdAt: createdAt, role: role)
+        self.init(id: id, email: email, username: username, displayName: displayName, firstName: firstName, lastName: lastName, birthday: birthday, createdAt: createdAt, role: role)
     }
 }
 
@@ -45,6 +57,9 @@ public struct UserDTO: Codable {
     public let email: String
     public let username: String
     public let displayName: String?
+    public let firstName: String?
+    public let lastName: String?
+    public let birthday: String?
     public let createdAt: String
     public let role: UserRole?
     
@@ -53,6 +68,9 @@ public struct UserDTO: Codable {
         case email
         case username
         case displayName = "display_name"
+        case firstName = "first_name"
+        case lastName = "last_name"
+        case birthday
         case createdAt = "created_at"
         case role
     }
@@ -67,6 +85,9 @@ public struct UserDTO: Codable {
             email: email,
             username: username,
             displayName: displayName,
+            firstName: firstName,
+            lastName: lastName,
+            birthday: birthday,
             createdAt: createdAtDate,
             role: role ?? .user
         )

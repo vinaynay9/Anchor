@@ -4,11 +4,9 @@
 <dict>
 	<key>com.apple.developer.family-controls</key>
 	<true/>
-	<key>com.apple.developer.applesignin</key>
-	<string>Default</string>
 	<key>com.apple.security.application-groups</key>
 	<array>
-		<string>group.com.anchor.app</string>
+		<string>group.com.vinay.anchor</string>
 	</array>
 </dict>
 </plist>

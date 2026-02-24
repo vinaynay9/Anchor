@@ -188,7 +188,7 @@ final class AppGroupStorageTests: XCTestCase {
     
     func testAppGroupIdentifierConsistency() {
         // Verify the app group identifier is correctly set
-        XCTAssertEqual(AppGroupStorage.appGroupIdentifier, "group.com.anchor.app")
+        XCTAssertEqual(AppGroupStorage.appGroupIdentifier, "group.com.vinay.anchor")
     }
     
     // MARK: - Storage Key Tests
@@ -220,4 +220,3 @@ final class AppGroupStorageTests: XCTestCase {
         XCTAssertFalse(storage.isUnlockExpired())
     }
 }
-

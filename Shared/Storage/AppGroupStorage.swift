@@ -233,6 +233,21 @@ public enum AppGroupStorageKey: String {
     /// **Purpose:** Local profile timezone identifier.
     case profileTimezone = "profileTimezone"
 
+    /// **Key:** `"profileFirstName"`
+    /// **Type:** String
+    /// **Purpose:** Local profile first name.
+    case profileFirstName = "profileFirstName"
+
+    /// **Key:** `"profileLastName"`
+    /// **Type:** String
+    /// **Purpose:** Local profile last name.
+    case profileLastName = "profileLastName"
+
+    /// **Key:** `"profileBirthday"`
+    /// **Type:** String
+    /// **Purpose:** Local profile birthday (YYYY-MM-DD).
+    case profileBirthday = "profileBirthday"
+
     /// **Key:** `"profileComplete"`
     /// **Type:** Bool
     /// **Purpose:** Whether required profile fields have been collected.
@@ -377,7 +392,7 @@ public final class AppGroupStorage {
     /// The App Group identifier used for shared UserDefaults.
     /// Must match the App Group identifier configured in both AnchorApp and AnchorShieldExtension targets.
     /// This is the single source of truth for the App Group identifier across all targets.
-    public static let appGroupIdentifier = "group.com.anchor.app"
+    public static let appGroupIdentifier = "group.com.vinay.anchor"
     
     // MARK: - Combine Publisher for Real-Time Updates
     public let updatesPublisher: AnyPublisher<String?, Never>
@@ -1016,6 +1031,17 @@ public final class AppGroupStorage {
         notifyUpdate(forKey: .profileComplete)
     }
 
+    public func setPersonalInfo(firstName: String, lastName: String, birthday: String) {
+        defaults?.set(firstName, forKey: AppGroupStorageKey.profileFirstName.rawValue)
+        defaults?.set(lastName, forKey: AppGroupStorageKey.profileLastName.rawValue)
+        defaults?.set(birthday, forKey: AppGroupStorageKey.profileBirthday.rawValue)
+        defaults?.set(true, forKey: AppGroupStorageKey.profileComplete.rawValue)
+        notifyUpdate(forKey: .profileFirstName)
+        notifyUpdate(forKey: .profileLastName)
+        notifyUpdate(forKey: .profileBirthday)
+        notifyUpdate(forKey: .profileComplete)
+    }
+
     public func getProfile() -> (displayName: String, birthMonth: Int, birthDay: Int, timezone: String)? {
         guard let displayName = defaults?.string(forKey: AppGroupStorageKey.profileDisplayName.rawValue),
               !displayName.isEmpty else {
@@ -1028,6 +1054,22 @@ public final class AppGroupStorage {
         }
         let timezone = defaults?.string(forKey: AppGroupStorageKey.profileTimezone.rawValue) ?? TimeZone.current.identifier
         return (displayName, birthMonth, birthDay, timezone)
+    }
+
+    public func getPersonalInfo() -> (firstName: String, lastName: String, birthday: String)? {
+        guard let firstName = defaults?.string(forKey: AppGroupStorageKey.profileFirstName.rawValue),
+              let lastName = defaults?.string(forKey: AppGroupStorageKey.profileLastName.rawValue),
+              let birthday = defaults?.string(forKey: AppGroupStorageKey.profileBirthday.rawValue),
+              !firstName.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty,
+              !lastName.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty,
+              !birthday.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else {
+            return nil
+        }
+        return (firstName, lastName, birthday)
+    }
+
+    public func isPersonalInfoComplete() -> Bool {
+        getPersonalInfo() != nil
     }
 
     public func isProfileComplete() -> Bool {

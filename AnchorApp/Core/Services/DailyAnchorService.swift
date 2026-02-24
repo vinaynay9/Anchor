@@ -9,6 +9,7 @@ final class DailyAnchorService {
     private let scheduleService = AnchorScheduleService.shared
     private let deviceActivityService = DeviceActivityService.shared
     private let screenTimeService: ScreenTimeServiceProtocol
+    private let activitySelectionService = ActivitySelectionService.shared
 
     private init(screenTimeService: ScreenTimeServiceProtocol = ScreenTimeService.shared) {
         self.screenTimeService = screenTimeService
@@ -25,12 +26,20 @@ final class DailyAnchorService {
     }
 
     func applyIfNeeded() async {
+        let tokens = activitySelectionService.loadApplicationTokens()
+        let categoryTokens = activitySelectionService.loadCategoryTokens()
+        let hasSelection = !tokens.isEmpty || !categoryTokens.isEmpty
+
         let today = localDayString(for: Date())
         let lastApplied = storage.getLastDailyAnchorAppliedDate()
 
         let now = Date()
         let lockTime = scheduleService.dailyAnchorTime
         if shouldApplyAnchor(now: now, lockTime: lockTime, lastAppliedDate: lastApplied, today: today) {
+            guard hasSelection else {
+                LoggerService.shared.logInfo("Daily anchor skipped: no app selection", category: "ScreenTime")
+                return
+            }
             await screenTimeService.applyDailyAnchor()
             storage.setLastDailyAnchorAppliedDate(today)
             storage.setShieldState(ShieldState(reason: .activeLock))
@@ -38,8 +47,13 @@ final class DailyAnchorService {
 
         if let temporaryUntil = storage.getTemporaryUnlockUntil(), Date() >= temporaryUntil {
             storage.setTemporaryUnlockUntil(nil)
-            await screenTimeService.applyDailyAnchor()
-            storage.setShieldState(ShieldState(reason: .activeLock))
+            if hasSelection {
+                await screenTimeService.applyDailyAnchor()
+                storage.setShieldState(ShieldState(reason: .activeLock))
+            } else {
+                storage.setShieldState(ShieldState(reason: .free))
+                LoggerService.shared.logInfo("Temporary unlock ended: no selection to re-apply", category: "ScreenTime")
+            }
         }
     }
 

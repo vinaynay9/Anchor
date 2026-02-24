@@ -16,7 +16,6 @@ class SettingsViewModel: ObservableObject {
     @Published var dailyAnchorTime: Date
     @Published var showLockTimeConfirmation = false
     @Published var pendingLockTime: Date?
-    @Published var isCognitoSignedIn: Bool = false
     @Published var inviteState: InviteState?
     
     private let anchorScheduleService = AnchorScheduleService.shared
@@ -55,7 +54,6 @@ class SettingsViewModel: ObservableObject {
         components.hour = schedule.hour
         components.minute = schedule.minute
         dailyAnchorTime = Calendar.current.date(from: components) ?? Date()
-        isCognitoSignedIn = CognitoAuthService.shared.isSignedIn
     }
     
     // Simulated actions
@@ -156,10 +154,6 @@ class SettingsViewModel: ObservableObject {
         print("Delete Account tapped")
     }
 
-    func refreshCognitoStatus() {
-        isCognitoSignedIn = CognitoAuthService.shared.isSignedIn
-    }
-
     func loadInviteState() async {
         let state = await inviteService.currentInviteState()
         await MainActor.run {
@@ -176,28 +170,6 @@ class SettingsViewModel: ObservableObject {
         await inviteService.sharePayload()
     }
 
-    func signInForRemoteConfig() {
-        Task {
-            do {
-                try await CognitoAuthService.shared.signIn(provider: .google)
-                await RemoteConfigService.shared.refresh()
-                await MainActor.run {
-                    self.isCognitoSignedIn = true
-                }
-            } catch {
-                await MainActor.run {
-                    self.isCognitoSignedIn = false
-                }
-                print("Cognito sign-in failed: \(error)")
-            }
-        }
-    }
-
-    func signOutCognito() {
-        CognitoAuthService.shared.signOutLocal()
-        isCognitoSignedIn = false
-    }
-    
     // Get app version
     var appVersion: String {
         if let version = Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String {

@@ -1,87 +1,100 @@
 import SwiftUI
-import Combine
-import UIKit
+import Shared
 
-class OnboardingViewModel: ObservableObject {
-    @Published var currentPage: Int = 0
-    @Published var screenTimePermissionGranted: Bool = false
-    @Published var notificationsPermissionGranted: Bool = false
+@MainActor
+final class OnboardingViewModel: ObservableObject {
+    enum Step: Equatable {
+        case intro
+        case what
+        case why
+        case signUp
+        case signIn
+        case personalInfo
+        case goalsFlow
+    }
+
+    @Published var currentStep: Step = .intro
     @Published var hasCompletedOnboarding: Bool = false
-    
+
     private let userDefaults = UserDefaults.standard
-    private let hasCompletedOnboardingKey = "hasCompletedOnboarding"
-    private let screenTimeService = ScreenTimeService.shared
-    
+    private let userService = UserService.shared
+    private let logger = LoggerService.shared
+
     init() {
-        // Load initial state from UserDefaults
-        hasCompletedOnboarding = userDefaults.bool(forKey: hasCompletedOnboardingKey)
-        
-        // Check real permission statuses
-        checkScreenTimePermission()
-        checkNotificationsPermission()
+        hasCompletedOnboarding = userDefaults.bool(forKey: AppConfig.UserDefaultsKeys.hasCompletedOnboarding)
     }
-    
-    var totalPages: Int {
-        return 3
+
+    func markSeen() {
+        userDefaults.set(true, forKey: AppConfig.UserDefaultsKeys.hasSeenOnboarding)
     }
-    
-    var isLastPage: Bool {
-        return currentPage == totalPages - 1
-    }
-    
-    func nextPage() {
-        if currentPage < totalPages - 1 {
-            if UIAccessibility.isReduceMotionEnabled {
-                currentPage += 1
-            } else {
-                withAnimation(AppMotion.standard) {
-                    currentPage += 1
-                }
-            }
-        }
-    }
-    
-    func previousPage() {
-        if currentPage > 0 {
-            if UIAccessibility.isReduceMotionEnabled {
-                currentPage -= 1
-            } else {
-                withAnimation(AppMotion.standard) {
-                    currentPage -= 1
-                }
-            }
-        }
-    }
-    
+
     func completeOnboarding() {
         hasCompletedOnboarding = true
-        userDefaults.set(true, forKey: hasCompletedOnboardingKey)
+        userDefaults.set(true, forKey: AppConfig.UserDefaultsKeys.hasCompletedOnboarding)
     }
-    
-    // Real permission status checks
-    func checkScreenTimePermission() {
-        let status = screenTimeService.getAuthorizationStatus()
-        screenTimePermissionGranted = (status == .approved)
+
+    func advance(to step: Step) {
+        currentStep = step
     }
-    
-    func checkNotificationsPermission() {
-        // TODO: Implement real notification permission check
-        // For now, keep as false to indicate it needs to be requested
-        notificationsPermissionGranted = false
+
+    func isPersonalInfoComplete(user: User?) -> Bool {
+        if let user {
+            let firstOk = !(user.firstName ?? "").trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+            let lastOk = !(user.lastName ?? "").trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+            let birthdayOk = !(user.birthday ?? "").trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+            if firstOk && lastOk && birthdayOk { return true }
+        }
+        return AppGroupStorage.shared.isPersonalInfoComplete()
     }
-    
-    /// Request Screen Time authorization
-    func requestScreenTimePermission() async {
+
+    func syncPersonalInfoIfAvailable(user: User?) {
+        guard let user else { return }
+        let first = (user.firstName ?? "").trimmingCharacters(in: .whitespacesAndNewlines)
+        let last = (user.lastName ?? "").trimmingCharacters(in: .whitespacesAndNewlines)
+        let birthday = (user.birthday ?? "").trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !first.isEmpty, !last.isEmpty, !birthday.isEmpty else { return }
+        AppGroupStorage.shared.setPersonalInfo(firstName: first, lastName: last, birthday: birthday)
+    }
+
+    func savePersonalInfo(firstName: String, lastName: String, birthday: Date) async -> Bool {
+        let trimmedFirst = firstName.trimmingCharacters(in: .whitespacesAndNewlines)
+        let trimmedLast = lastName.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !trimmedFirst.isEmpty, !trimmedLast.isEmpty else { return false }
+
+        let formatter = DateFormatter()
+        formatter.calendar = Calendar(identifier: .gregorian)
+        formatter.dateFormat = "yyyy-MM-dd"
+        let birthdayString = formatter.string(from: birthday)
+
+        AppGroupStorage.shared.setPersonalInfo(firstName: trimmedFirst, lastName: trimmedLast, birthday: birthdayString)
+
+        let displayName = "\(trimmedFirst) \(trimmedLast)".trimmingCharacters(in: .whitespacesAndNewlines)
+        let calendar = Calendar(identifier: .gregorian)
+        let month = calendar.component(.month, from: birthday)
+        let day = calendar.component(.day, from: birthday)
+        AppGroupStorage.shared.setProfile(
+            displayName: displayName,
+            birthMonth: month,
+            birthDay: day,
+            timezone: TimeZone.current.identifier
+        )
+
         do {
-            try await screenTimeService.requestAuthorization()
-            await MainActor.run {
-                checkScreenTimePermission()
-            }
+            _ = try await userService.updateUserProfile(
+                displayName: displayName,
+                birthMonth: month,
+                birthDay: day,
+                timezone: TimeZone.current.identifier,
+                email: nil,
+                firstName: trimmedFirst,
+                lastName: trimmedLast,
+                birthday: birthdayString
+            )
+            logger.logInfo("Personal info patch succeeded", category: "Auth")
+            return true
         } catch {
-            // Error handled by the service
-            await MainActor.run {
-                checkScreenTimePermission()
-            }
+            logger.logWarning("Personal info patch failed: \(error.localizedDescription)", category: "Auth")
+            return false
         }
     }
 }

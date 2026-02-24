@@ -10,7 +10,6 @@ class AuthViewModel: ObservableObject {
     
     private let authService: AuthServiceProtocol
     private let userService = UserService.shared
-    private let authDiagnostics = AuthDiagnostics.shared
     
     init(authService: AuthServiceProtocol = AuthService.shared) {
         self.authService = authService
@@ -45,52 +44,10 @@ class AuthViewModel: ObservableObject {
         }
     }
     
-    func signInWithApple() {
-        isLoading = true
+    func handleAuthenticatedUser(_ user: User) {
+        currentUser = user
+        needsUsernameSetup = user.username.isEmpty
         errorMessage = nil
-        
-        Task {
-            do {
-                let user = try await authService.signInWithApple()
-                await MainActor.run {
-                    self.currentUser = user
-                    self.needsUsernameSetup = user.username.isEmpty
-                    self.isLoading = false
-                    self.authDiagnostics.clear()
-                }
-            } catch {
-                await MainActor.run {
-                    self.currentUser = nil
-                    self.needsUsernameSetup = false
-                    self.isLoading = false
-                    self.handleAuthError(error, context: "apple")
-                }
-            }
-        }
-    }
-
-    func signInWithGoogle() {
-        isLoading = true
-        errorMessage = nil
-
-        Task {
-            do {
-                let user = try await authService.signInWithGoogle()
-                await MainActor.run {
-                    self.currentUser = user
-                    self.needsUsernameSetup = user.username.isEmpty
-                    self.isLoading = false
-                    self.authDiagnostics.clear()
-                }
-            } catch {
-                await MainActor.run {
-                    self.currentUser = nil
-                    self.needsUsernameSetup = false
-                    self.isLoading = false
-                    self.handleAuthError(error, context: "google")
-                }
-            }
-        }
     }
     
     func completeUsernameSetup(_ username: String) {
@@ -119,39 +76,20 @@ class AuthViewModel: ObservableObject {
         }
     }
 
-    private func handleAuthError(_ error: Error, context: String) {
-        authDiagnostics.record(error: error, context: context)
-        let nsError = error as NSError
-
-        if nsError.domain == "AKAuthenticationError" && nsError.code == -7026 {
-            errorMessage = "Apple Sign In isn’t available on this simulator. Try on a real device or use Google."
-            return
-        }
-
-        if nsError.domain == "com.apple.AuthenticationServices.AuthorizationError" && nsError.code == 1000 {
-            errorMessage = "Apple Sign In isn’t available on this simulator. Try on a real device or use Google."
-            return
-        }
-
+    private func handleAuthError(_ error: Error, context _: String) {
         if let authError = error as? AuthError {
             switch authError {
-            case .configurationMissing:
-                errorMessage = "Google Sign-In is not configured. Update Cognito settings in Secrets."
             case .cancelled:
                 errorMessage = "Sign in cancelled."
             case .invalidToken:
                 errorMessage = "Sign in failed. Please try again."
             case .notAuthenticated:
                 errorMessage = "Could not authenticate. Please try again."
+            case .invalidCredentials:
+                errorMessage = "Invalid email or password."
             case .failed(let underlying):
                 let underlyingNSError = underlying as NSError
-                if underlyingNSError.domain == "AKAuthenticationError" && underlyingNSError.code == -7026 {
-                    errorMessage = "Apple Sign In isn’t available on this simulator. Try on a real device or use Google."
-                } else if underlyingNSError.domain == "com.apple.AuthenticationServices.AuthorizationError" && underlyingNSError.code == 1000 {
-                    errorMessage = "Apple Sign In isn’t available on this simulator. Try on a real device or use Google."
-                } else {
-                    errorMessage = "Sign in failed (\(underlyingNSError.domain) \(underlyingNSError.code))."
-                }
+                errorMessage = "Sign in failed (\(underlyingNSError.domain) \(underlyingNSError.code))."
             case .networkError:
                 errorMessage = "Network error. Please check your connection."
             }

@@ -13,6 +13,10 @@ final class OnboardingAppSelectionViewModel: ObservableObject {
     private let activitySelectionService = ActivitySelectionService.shared
     private let storage = AppGroupStorage.shared
 
+    var hasBlockedSelection: Bool {
+        !blockedSelection.applicationTokens.isEmpty || !blockedSelection.categoryTokens.isEmpty
+    }
+
     func loadState() async {
         let state = await onboardingService.loadState()
         showUnlockedAppsSection = state.unlockPolicy?.mode == .unlockFixedAppsPerGoalCompletedForFixedTime

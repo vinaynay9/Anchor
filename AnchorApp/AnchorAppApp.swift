@@ -157,6 +157,10 @@ struct AnchorAppApp: App {
     @UIApplicationDelegateAdaptor(AppDelegate.self) var appDelegate
     @StateObject private var appCoordinator = AppCoordinator()
     @Environment(\.scenePhase) private var scenePhase
+
+    init() {
+        DebugNetworkBlocker.enableIfNeeded()
+    }
     
     var body: some Scene {
         WindowGroup {

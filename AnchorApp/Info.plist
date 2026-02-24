@@ -24,21 +24,7 @@
 				<string>anchor</string>
 			</array>
 		</dict>
-		<dict>
-			<key>CFBundleTypeRole</key>
-			<string>Editor</string>
-			<key>CFBundleURLSchemes</key>
-			<array>
-				<string>com.googleusercontent.apps.REPLACE_ME</string>
-			</array>
-		</dict>
 	</array>
-	<key>COGNITO_DOMAIN</key>
-	<string>anchor-v0-569645681060.auth.us-east-1.amazoncognito.com</string>
-	<key>COGNITO_CLIENT_ID</key>
-	<string>f5nppnve0tj2sl234a7br6akn</string>
-	<key>COGNITO_REDIRECT_URI</key>
-	<string>anchor://auth/callback</string>
 	<key>CFBundleVersion</key>
 	<string>1</string>
 	<key>NSFamilyControlsUsageDescription</key>

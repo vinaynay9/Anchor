@@ -178,7 +178,13 @@ struct SlideView: View {
 struct SignInOnboardingPage: View {
     @ObservedObject var authViewModel: AuthViewModel
     let onSignIn: () -> Void
-    let onLogin: () -> Void
+    @StateObject private var emailAuthViewModel = EmailAuthViewModel()
+    @State private var mode: AuthMode = .signIn
+
+    private enum AuthMode: String, CaseIterable {
+        case signIn = "Sign In"
+        case signUp = "Create Account"
+    }
     
     var body: some View {
         VStack(spacing: Theme.spacing4) {
@@ -199,35 +205,28 @@ struct SignInOnboardingPage: View {
             Spacer()
             
             VStack(spacing: Theme.spacing2) {
-                // Apple Sign In
-                Button(action: {
-                    Task {
-                        authViewModel.signInWithApple()
+                Picker("Auth Mode", selection: $mode) {
+                    ForEach(AuthMode.allCases, id: \.self) { mode in
+                        Text(mode.rawValue)
+                    }
+                }
+                .pickerStyle(.segmented)
+
+                if mode == .signIn {
+                    EmailSignInView(viewModel: emailAuthViewModel) { user in
+                        authViewModel.handleAuthenticatedUser(user)
                         onSignIn()
                     }
-                }) {
-                    HStack {
-                        Image(systemName: "applelogo")
-                            .font(AppTypography.body)
-                        Text("Continue with Apple")
-                            .frame(maxWidth: .infinity)
+                } else {
+                    EmailSignUpView(viewModel: emailAuthViewModel) { user in
+                        authViewModel.handleAuthenticatedUser(user)
+                        onSignIn()
                     }
                 }
-                .buttonStyle(SecondaryButtonStyle())
-                .disabled(authViewModel.isLoading)
-                
-                // Login button for existing users
-                Button(action: onLogin) {
-                    Text("Already have an account? Sign In")
-                        .font(AppTypography.caption)
-                        .foregroundColor(AppColors.accent)
-                }
-                .buttonStyle(GhostButtonStyle())
-                .padding(.top, Theme.spacing)
             }
             .padding(.horizontal, Theme.spacing3)
             
-            if let errorMessage = authViewModel.errorMessage {
+            if let errorMessage = emailAuthViewModel.errorMessage {
                 Text(errorMessage)
                     .font(AppTypography.caption)
                     .foregroundColor(AppColors.error)
@@ -315,7 +314,6 @@ struct ProfileOnboardingPage: View {
 
 // MARK: - Permissions Explanation Page
 struct PermissionsExplanationPage: View {
-    @ObservedObject var viewModel: OnboardingViewModel
     let onContinue: () -> Void
     
     var body: some View {
@@ -349,12 +347,7 @@ struct PermissionsExplanationPage: View {
                 }
                 .padding(.horizontal, Theme.spacing2)
                 
-                Button(action: {
-                    Task {
-                        await viewModel.requestScreenTimePermission()
-                        onContinue()
-                    }
-                }) {
+                Button(action: onContinue) {
                     Text("Grant Permissions")
                         .frame(maxWidth: .infinity)
                 }

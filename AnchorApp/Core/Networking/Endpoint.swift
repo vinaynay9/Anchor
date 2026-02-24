@@ -106,7 +106,8 @@ extension APIEndpoint {
 // MARK: - API Endpoints
 enum APIEndpoint: Endpoint {
     // Auth
-    case signInApple(token: String)
+    case signInEmail(email: String, password: String)
+    case signUpEmail(email: String, password: String)
     case signOut
     case getCurrentUser
     case updateCurrentUser(
@@ -116,9 +117,9 @@ enum APIEndpoint: Endpoint {
         birthDay: Int?,
         timezone: String?,
         email: String?,
-        fullName: String?,
-        givenName: String?,
-        familyName: String?
+        firstName: String?,
+        lastName: String?,
+        birthday: String?
     )
     case searchUsers(query: String)
     
@@ -160,7 +161,8 @@ enum APIEndpoint: Endpoint {
     var path: String {
         switch self {
         // Auth
-        case .signInApple: return "/auth/apple"
+        case .signInEmail: return "/auth/signin"
+        case .signUpEmail: return "/auth/signup"
         case .signOut: return "/auth/signout"
         case .getCurrentUser: return "/user/me"
         case .updateCurrentUser: return "/user/me"
@@ -218,7 +220,7 @@ enum APIEndpoint: Endpoint {
             return .get
         
         // POST
-        case .signInApple, .signOut, .addFriend, .startSession, .endSession,
+        case .signInEmail, .signUpEmail, .signOut, .addFriend, .startSession, .endSession,
              .createUnlockRequest, .uploadProof, .registerDeviceToken,
              .acceptFriendRequest, .rejectFriendRequest,
              .approveUnlockRequest, .rejectUnlockRequest, .cancelUnlockRequest,
@@ -238,9 +240,11 @@ enum APIEndpoint: Endpoint {
     var body: Data? {
         switch self {
         // Auth
-        case .signInApple(let token):
-            return try? JSONEncoder().encode(["token": token])
-        case .updateCurrentUser(let username, let displayName, let birthMonth, let birthDay, let timezone, let email, let fullName, let givenName, let familyName):
+        case .signInEmail(let email, let password):
+            return try? JSONEncoder().encode(["email": email, "password": password])
+        case .signUpEmail(let email, let password):
+            return try? JSONEncoder().encode(["email": email, "password": password])
+        case .updateCurrentUser(let username, let displayName, let birthMonth, let birthDay, let timezone, let email, let firstName, let lastName, let birthday):
             var dict: [String: Any] = [:]
             if let username = username { dict["username"] = username }
             if let displayName = displayName { dict["display_name"] = displayName }
@@ -248,9 +252,9 @@ enum APIEndpoint: Endpoint {
             if let birthDay = birthDay { dict["birth_day"] = birthDay }
             if let timezone = timezone { dict["timezone"] = timezone }
             if let email = email { dict["email"] = email }
-            if let fullName = fullName { dict["name"] = fullName }
-            if let givenName = givenName { dict["given_name"] = givenName }
-            if let familyName = familyName { dict["family_name"] = familyName }
+            if let firstName = firstName { dict["first_name"] = firstName }
+            if let lastName = lastName { dict["last_name"] = lastName }
+            if let birthday = birthday { dict["birthday"] = birthday }
             return try? JSONSerialization.data(withJSONObject: dict)
         
         // Friends

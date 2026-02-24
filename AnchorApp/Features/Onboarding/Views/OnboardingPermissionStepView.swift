@@ -3,9 +3,11 @@ import SwiftUI
 struct OnboardingPermissionStepView: View {
     @ObservedObject var viewModel: OnboardingViewModel
     @State private var showCompletionAnimation = false
+    @State private var screenTimeGranted = false
+    @State private var notificationsGranted = false
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     
-    init(viewModel: OnboardingViewModel = OnboardingViewModel()) {
+    init(viewModel: OnboardingViewModel) {
         self.viewModel = viewModel
     }
     
@@ -38,14 +40,14 @@ struct OnboardingPermissionStepView: View {
                     PermissionItemView(
                         title: "Screen Time",
                         description: "Required to block apps during Anchored Mode",
-                        isGranted: viewModel.screenTimePermissionGranted,
+                        isGranted: screenTimeGranted,
                         icon: "lock.shield.fill"
                     )
                     
                     PermissionItemView(
                         title: "Notifications",
                         description: "Get reminders when it's time to Anchor your day",
-                        isGranted: viewModel.notificationsPermissionGranted,
+                        isGranted: notificationsGranted,
                         icon: "bell.fill"
                     )
                 }
@@ -78,10 +80,6 @@ struct OnboardingPermissionStepView: View {
             }
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
-        .onAppear {
-            viewModel.checkScreenTimePermission()
-            viewModel.checkNotificationsPermission()
-        }
     }
 }
 
