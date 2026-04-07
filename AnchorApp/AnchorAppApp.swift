@@ -158,10 +158,6 @@ struct AnchorAppApp: App {
     @StateObject private var appCoordinator = AppCoordinator()
     @Environment(\.scenePhase) private var scenePhase
 
-    init() {
-        DebugNetworkBlocker.enableIfNeeded()
-    }
-    
     var body: some Scene {
         WindowGroup {
             appCoordinator.rootView

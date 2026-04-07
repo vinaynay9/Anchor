@@ -21,9 +21,11 @@ class SessionViewModel: ObservableObject {
     private let dailyGoalService = DailyGoalService.shared
     private let usageReportService = UsageReportService.shared
     
+    // Production default uses the real ScreenTimeService.
+    // Pass MockScreenTimeService.shared explicitly in SwiftUI Previews or unit tests.
     init(
         sessionService: SessionServiceProtocol = SessionService.shared,
-        screenTimeService: ScreenTimeServiceProtocol = MockScreenTimeService.shared
+        screenTimeService: ScreenTimeServiceProtocol = ScreenTimeService.shared
     ) {
         self.sessionService = sessionService
         self.screenTimeService = screenTimeService

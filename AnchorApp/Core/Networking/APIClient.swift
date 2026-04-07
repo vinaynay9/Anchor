@@ -1,5 +1,16 @@
 import Foundation
 
+// MARK: - DebugNetworkBlocker Removal Notice
+// DebugNetworkBlocker.swift was deleted.  It registered a URLProtocol subclass
+// (BlockingURLProtocol) that intercepted ALL network traffic in DEBUG+simulator
+// builds, returning NSURLErrorNotConnectedToInternet for every request that
+// wasn't one of three hard-coded stubs (/auth/signup, /auth/signin, /user/me).
+// This made the app completely untestable on the simulator.
+//
+// Now that the backend is Supabase the stubs are obsolete; all real network
+// requests pass through unmodified.  The call site in AnchorAppApp.init() was
+// also removed.
+
 /// Unified error model for all Anchor API networking operations
 enum AnchorAPIError: Error {
     /// Network-level error (connection failure, timeout, etc.)
