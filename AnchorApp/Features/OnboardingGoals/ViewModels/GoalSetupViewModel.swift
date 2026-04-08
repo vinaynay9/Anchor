@@ -3,53 +3,98 @@ import Shared
 
 @MainActor
 final class GoalSetupViewModel: ObservableObject {
+
+    // MARK: - Goal Draft
+
     struct GoalDraft: Identifiable, Hashable {
         let id: UUID
         var title: String
         var category: GoalCategory
-        var customCategoryName: String
+        var notes: String
+        var isNotesExpanded: Bool
 
-        init(id: UUID = UUID(), title: String = "", category: GoalCategory = .fitness, customCategoryName: String = "") {
+        init(
+            id: UUID = UUID(),
+            title: String = "",
+            category: GoalCategory = .fitness,
+            notes: String = "",
+            isNotesExpanded: Bool = false
+        ) {
             self.id = id
             self.title = title
             self.category = category
-            self.customCategoryName = customCategoryName
+            self.notes = notes
+            self.isNotesExpanded = isNotesExpanded
         }
     }
 
-    @Published var drafts: [GoalDraft] = Array(repeating: GoalDraft(), count: 4)
-    @Published var showMaxHelper = false
+    // MARK: - Published State
 
-    let maxGoals = 7
+    @Published var drafts: [GoalDraft] = []
 
-    var canAddMore: Bool {
-        drafts.count < maxGoals
+    static let minimumGoals = 3
+    static let maximumGoals = 7
+
+    var canAddMore: Bool { drafts.count < Self.maximumGoals }
+
+    var meetsMinimum: Bool { validDraftCount >= Self.minimumGoals }
+
+    /// Number of drafts that have a non-empty title.
+    var validDraftCount: Int {
+        drafts.filter { !$0.title.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty }.count
     }
 
-    var isValid: Bool {
-        drafts.allSatisfy { draft in
-            let titleValid = !draft.title.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
-            let categoryValid = draft.category != .other || !draft.customCategoryName.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
-            return titleValid && categoryValid
+    var canContinue: Bool { meetsMinimum }
+
+    // MARK: - Counter label shown in the UI
+
+    var counterText: String {
+        let v = validDraftCount
+        let min = Self.minimumGoals
+        if v >= min {
+            return "\(v)/\(min) minimum goals added ✓"
         }
+        return "\(v)/\(min) minimum goals"
     }
+
+    var counterMet: Bool { validDraftCount >= Self.minimumGoals }
+
+    // MARK: - Init
+
+    init() {
+        // Start with 3 empty drafts so the minimum is visible immediately.
+        drafts = (0..<Self.minimumGoals).map { _ in GoalDraft() }
+    }
+
+    // MARK: - Mutations
 
     func addGoal() {
-        guard canAddMore else {
-            showMaxHelper = true
-            return
-        }
-        drafts.append(GoalDraft())
+        guard canAddMore else { return }
+        let draft = GoalDraft()
+        drafts.append(draft)
     }
 
+    func remove(id: UUID) {
+        drafts.removeAll { $0.id == id }
+    }
+
+    func toggleNotes(id: UUID) {
+        guard let idx = drafts.firstIndex(where: { $0.id == id }) else { return }
+        drafts[idx].isNotesExpanded.toggle()
+    }
+
+    // MARK: - Output
+
     func buildGoals() -> [Shared.Goal] {
-        drafts.map { draft in
-            Shared.Goal(
-                id: draft.id,
-                title: draft.title.trimmingCharacters(in: .whitespacesAndNewlines),
-                category: draft.category,
-                customCategoryName: draft.category == .other ? draft.customCategoryName.trimmingCharacters(in: .whitespacesAndNewlines) : nil
-            )
-        }
+        drafts
+            .filter { !$0.title.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty }
+            .map { draft in
+                Shared.Goal(
+                    id: draft.id,
+                    title: draft.title.trimmingCharacters(in: .whitespacesAndNewlines),
+                    category: draft.category,
+                    customCategoryName: nil
+                )
+            }
     }
 }

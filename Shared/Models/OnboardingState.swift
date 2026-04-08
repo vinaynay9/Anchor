@@ -3,6 +3,7 @@ import Foundation
 public enum OnboardingStep: String, Codable, Hashable, CaseIterable {
     case goals
     case policy
+    case lockSchedule
     case appSelection
     case complete
 }
