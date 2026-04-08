@@ -1,41 +1,28 @@
 import SwiftUI
 
-/// Coordinator for the authentication flow
+/// Coordinator for the authentication flow.
+/// Root view is now SocialAuthView — email/password auth has been removed.
 @MainActor
 class AuthFlow: Coordinator, SheetPresenting {
-    @Published var path = NavigationPath()
+    @Published var path             = NavigationPath()
     @Published var presentedSheet: SheetDestination?
-    
-    private let authViewModel = AuthViewModel()
+
     weak var parentCoordinator: AppCoordinator?
-    
+
     init(parentCoordinator: AppCoordinator? = nil) {
         self.parentCoordinator = parentCoordinator
     }
-    
+
     func start() {
-        // Auth flow starts with sign in options
-        // Navigation is handled by the view based on auth state
+        // Flow is driven entirely by SocialAuthView callbacks — no internal state needed.
     }
-    
-    func navigateToUsernameSetup() {
-        // Username setup is shown conditionally in AuthRootView
-        // No explicit navigation needed
-    }
-    
-    func handleAuthenticationSuccess() {
-        // Notify parent coordinator that authentication succeeded
-        parentCoordinator?.handleAuthenticationSuccess()
-    }
-    
+
+    // MARK: - Root View
+
     var rootView: some View {
-        AuthRootView()
-            .environmentObject(authViewModel)
-            .onChange(of: authViewModel.currentUser) { [weak self] newValue in
-                guard let self = self else { return }
-                if newValue != nil && !self.authViewModel.needsUsernameSetup {
-                    self.handleAuthenticationSuccess()
-                }
-            }
+        SocialAuthView { [weak self] credential in
+            // Deliver the credential to the coordinator; it will route to profileSetup.
+            self?.parentCoordinator?.handleSocialAuthSuccess(credential: credential)
+        }
     }
 }

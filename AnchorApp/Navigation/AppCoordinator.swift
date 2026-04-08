@@ -2,43 +2,58 @@ import SwiftUI
 import Combine
 import Shared
 
-/// Main app coordinator that manages all navigation flows
+/// Main app coordinator that manages all navigation flows.
 @MainActor
 class AppCoordinator: ObservableObject {
-    // Current flow state
+
+    // MARK: - Flow State
     @Published var currentFlow: AppFlow = .loading
-    
-    // Child coordinators
+
+    // MARK: - Child Coordinators
     @Published private(set) var onboardingFlow: OnboardingFlow?
     @Published private(set) var authFlow: AuthFlow?
     @Published private(set) var mainTabFlow: MainTabFlow?
-    
-    // Auth state management
-    private let authViewModel = AuthViewModel()
+
+    // MARK: - Services
+    private let authViewModel    = AuthViewModel()
     private let screenTimeService = ScreenTimeService.shared
     private let onboardingService = OnboardingService.shared
-    private let logger = LoggerService.shared
-    private let keychainService = KeychainService.shared
-    private var cancellables = Set<AnyCancellable>()
-    
-    // Deep link handling
+    private let logger           = LoggerService.shared
+    private let keychainService  = KeychainService.shared
+    private var cancellables     = Set<AnyCancellable>()
+
+    // MARK: - Social Auth Prefill
+    // Stored after a successful social sign-in so ProfileSetupView can pre-fill
+    // first/last name from the provider's profile without needing a backend round-trip.
+    private var pendingAuthFirstName: String?
+    private var pendingAuthLastName:  String?
+
+    // MARK: - Deep Link
     private let deepLinkHandler = DeepLinkHandler.shared
-    
+
+    // MARK: - Flow Enum
+
     enum AppFlow {
         case loading
         case onboarding
         case screenTimeOnboarding
         case auth
+        /// Shown after social sign-in when personal info hasn't been set up yet.
+        case profileSetup
         case postAuthOnboarding
         case main
     }
-    
+
+    // MARK: - Init
+
     init() {
         setupAuthObserver()
         setupDeepLinkObserver()
         determineInitialFlow()
     }
-    
+
+    // MARK: - Observers
+
     private func setupAuthObserver() {
         authViewModel.$currentUser
             .receive(on: DispatchQueue.main)
@@ -47,21 +62,23 @@ class AppCoordinator: ObservableObject {
             }
             .store(in: &cancellables)
     }
-    
+
     private func setupDeepLinkObserver() {
         deepLinkHandler.$pendingDeepLink
             .receive(on: DispatchQueue.main)
             .sink { [weak self] deepLink in
-                guard let deepLink = deepLink else { return }
+                guard let deepLink else { return }
                 self?.handleDeepLink(deepLink)
             }
             .store(in: &cancellables)
     }
-    
+
+    // MARK: - Initial Routing
+
     private func determineInitialFlow() {
-        #if DEBUG && targetEnvironment(simulator)
+#if DEBUG && targetEnvironment(simulator)
         let shouldReset = ProcessInfo.processInfo.arguments.contains("-resetOnboarding")
-            || ProcessInfo.processInfo.environment["UITESTING"] == "1"
+            || ProcessInfo.processInfo.environment["UITESTING"]              == "1"
             || ProcessInfo.processInfo.environment["XCTestConfigurationFilePath"] != nil
         if shouldReset {
             UserDefaults.standard.removeObject(forKey: AppConfig.UserDefaultsKeys.hasSeenOnboarding)
@@ -71,14 +88,22 @@ class AppCoordinator: ObservableObject {
             try? keychainService.delete(forKey: AppConfig.UserDefaultsKeys.refreshToken)
             logger.logInfo("Routing: cleared onboarding + auth session (DEBUG reset)", category: "Navigation")
         }
-        #endif
+#endif
 
-        let hasSeenOnboarding = UserDefaults.standard.bool(forKey: AppConfig.UserDefaultsKeys.hasSeenOnboarding)
-        let hasCompletedOnboarding = UserDefaults.standard.bool(forKey: AppConfig.UserDefaultsKeys.hasCompletedOnboarding)
-        let isAuthenticated = authViewModel.currentUser != nil
+        let hasCompletedOnboarding = UserDefaults.standard.bool(
+            forKey: AppConfig.UserDefaultsKeys.hasCompletedOnboarding
+        )
+
+        // For the Supabase migration period, treat a stored userId OR a live User
+        // object as "authenticated".  Once Supabase is wired up, authViewModel.currentUser
+        // will be non-nil on every warm start and this fallback can be removed.
+        let hasCachedUserId = UserDefaults.standard.string(
+            forKey: AppConfig.UserDefaultsKeys.currentUserId
+        ) != nil
+        let isAuthenticated = authViewModel.currentUser != nil || hasCachedUserId
 
         logger.logInfo(
-            "Routing: seen=\(hasSeenOnboarding) completed=\(hasCompletedOnboarding) authed=\(isAuthenticated)",
+            "Routing: onboarded=\(hasCompletedOnboarding) authed=\(isAuthenticated)",
             category: "Navigation"
         )
 
@@ -94,189 +119,242 @@ class AppCoordinator: ObservableObject {
 
         startAuthFlow()
     }
-    
+
+    // MARK: - Auth State Change (Combine observer)
+
     private func handleAuthStateChange(user: User?) {
-        if user != nil && currentFlow != .main {
-            // User just signed in
-            if authViewModel.needsUsernameSetup {
-                // Stay in auth flow for username setup
-                return
-            }
+        if let user, currentFlow != .main {
+            logger.logInfo("Routing: auth state changed — user signed in (\(user.id))", category: "Navigation")
+            // Username setup is no longer part of the flow (replaced by ProfileSetupView).
             routeAfterAuth()
-        } else if user == nil && currentFlow == .main {
-            // User signed out
+        } else if user == nil, currentFlow == .main {
+            logger.logInfo("Routing: auth state changed — user signed out", category: "Navigation")
             startAuthFlow()
         }
     }
-    
+
     // MARK: - Flow Management
-    
+
     func startOnboardingFlow() {
-        currentFlow = .onboarding
+        currentFlow    = .onboarding
         onboardingFlow = OnboardingFlow(parentCoordinator: self, authViewModel: authViewModel)
         onboardingFlow?.start()
     }
-    
+
     func startScreenTimeOnboardingFlow() {
         currentFlow = .screenTimeOnboarding
     }
-    
+
     func startAuthFlow() {
         currentFlow = .auth
-        authFlow = AuthFlow(parentCoordinator: self)
+        authFlow    = AuthFlow(parentCoordinator: self)
         authFlow?.start()
     }
-    
+
     func startMainFlow() {
-        currentFlow = .main
-        mainTabFlow = MainTabFlow()
+        currentFlow  = .main
+        mainTabFlow  = MainTabFlow()
         mainTabFlow?.start()
     }
 
-    private func routeAfterAuth() {
+    // MARK: - Social Auth Entry Point
+    // Called by AuthFlow when SocialAuthView delivers a credential.
+
+    func handleSocialAuthSuccess(credential: SocialAuthCredential) {
+        logger.logInfo(
+            "Social auth success — provider: \(credential.provider == .apple ? "Apple" : "Google")",
+            category: "Navigation"
+        )
+
+        // Cache name for ProfileSetupView pre-fill.
+        pendingAuthFirstName = credential.firstName
+        pendingAuthLastName  = credential.lastName
+
+        // Store a local user ID so subsequent cold-starts route correctly
+        // (past auth screen) during the Supabase migration period.
+        // This will be replaced by the Supabase session userId once migrated.
+        if UserDefaults.standard.string(forKey: AppConfig.UserDefaultsKeys.currentUserId) == nil {
+            UserDefaults.standard.set(
+                UUID().uuidString,
+                forKey: AppConfig.UserDefaultsKeys.currentUserId
+            )
+        }
+
+        // Store identity token for future backend calls.
+        try? keychainService.save(
+            credential.identityToken,
+            forKey: AppConfig.UserDefaultsKeys.accessToken
+        )
+        if let code = credential.authorizationCode {
+            try? keychainService.save(code, forKey: AppConfig.UserDefaultsKeys.refreshToken)
+        }
+
+        // TODO: [Supabase Migration] Exchange credential with Supabase here:
+        // let session = try await SupabaseClient.shared.auth.signInWithIdToken(
+        //     credentials: OpenIDConnectCredentials(
+        //         provider: credential.provider == .apple ? .apple : .google,
+        //         idToken:  credential.identityToken,
+        //         nonce:    currentNonce       // raw nonce, not hashed
+        //     )
+        // )
+        // let anchorUser = session.user.toAnchorUser()
+        // authViewModel.handleAuthenticatedUser(anchorUser)
+
+        routeAfterSocialAuth()
+    }
+
+    // MARK: - Post-Auth Routing
+
+    /// Routing for social sign-ins — checks personal info before deciding next step.
+    private func routeAfterSocialAuth() {
         Task { @MainActor in
             let state = await onboardingService.loadState()
+
             if state.isComplete {
+                logger.logInfo("Routing: onboarding complete → main", category: "Navigation")
                 startMainFlow()
+            } else if AppGroupStorage.shared.getPersonalInfo() == nil {
+                logger.logInfo("Routing: no personal info → profileSetup", category: "Navigation")
+                currentFlow = .profileSetup
             } else {
+                logger.logInfo("Routing: personal info set → postAuthOnboarding", category: "Navigation")
                 currentFlow = .postAuthOnboarding
             }
         }
     }
-    
+
+    /// Routing used by the Combine observer (existing User session restored on launch).
+    private func routeAfterAuth() {
+        Task { @MainActor in
+            let state = await onboardingService.loadState()
+
+            if state.isComplete {
+                logger.logInfo("Routing: onboarding complete → main", category: "Navigation")
+                startMainFlow()
+            } else if AppGroupStorage.shared.getPersonalInfo() == nil {
+                logger.logInfo("Routing: no personal info → profileSetup", category: "Navigation")
+                currentFlow = .profileSetup
+            } else {
+                logger.logInfo("Routing: personal info set → postAuthOnboarding", category: "Navigation")
+                currentFlow = .postAuthOnboarding
+            }
+        }
+    }
+
+    // MARK: - Coordinator Callbacks
+
     func handleScreenTimeOnboardingComplete() {
-        // After Screen Time onboarding, check auth state
         if authViewModel.currentUser != nil {
             startMainFlow()
         } else {
             startAuthFlow()
         }
     }
-    
+
     func handleAuthenticationSuccess() {
-        // Called when auth flow completes successfully
-        if !authViewModel.needsUsernameSetup {
-            startMainFlow()
-        }
+        routeAfterAuth()
     }
-    
+
     func handleOnboardingComplete() {
-        // Called when onboarding completes
         if authViewModel.currentUser != nil {
-            startMainFlow()
+            routeAfterAuth()
         } else {
             startAuthFlow()
         }
     }
-    
+
     // MARK: - Deep Link Handling
-    
+
     private func handleDeepLink(_ deepLink: DeepLink) {
-        // Only handle deep links if user is authenticated and in main flow
-        guard authViewModel.currentUser != nil else {
-            // Store deep link to handle after authentication
-            return
-        }
-        
-        // Ensure we're in the main flow
+        guard authViewModel.currentUser != nil else { return }
+
         if currentFlow != .main {
             startMainFlow()
-            // Wait a moment for flow to initialize, then handle deep link
             DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) { [weak self] in
                 self?.handleDeepLink(deepLink)
             }
             return
         }
-        
-        guard let mainTabFlow = mainTabFlow else { return }
-        
+
+        guard let mainTabFlow else { return }
+
         switch deepLink {
         case .home:
-            // Already in main flow, no navigation needed
-            // Clear any pending deep link context
             AppGroupStorage.shared.clearPendingDeepLinkContext()
             deepLinkHandler.clearPendingDeepLink()
-            break
-            
-        case .unlockRequest:
-            // V1: unlock requests are not user-facing. Clear and ignore.
-            deepLinkHandler.clearPendingDeepLink()
-            AppGroupStorage.shared.clearPendingDeepLinkContext()
-            
-        case .messagePartner:
-            // V1: partner messaging is not available. Clear and ignore.
-            deepLinkHandler.clearPendingDeepLink()
-            AppGroupStorage.shared.clearPendingDeepLinkContext()
 
-        case .invite:
-            // V1: invite attribution is handled at signup. Clear pending link.
+        case .unlockRequest, .messagePartner, .invite:
             deepLinkHandler.clearPendingDeepLink()
             AppGroupStorage.shared.clearPendingDeepLinkContext()
 
         case .session(let sessionId):
-            // Navigate to session detail if session ID is valid
-            if let uuid = UUID(uuidString: sessionId) {
-                Task {
-                    do {
-                        // Try to get active session
-                        if let activeSession = try await SessionService.shared.getActiveSession(),
-                           activeSession.id == uuid {
-                            await MainActor.run {
-                                mainTabFlow.navigateToActiveSession(session: activeSession)
-                                deepLinkHandler.clearPendingDeepLink()
-                            }
-                        } else {
-                            await MainActor.run {
-                                deepLinkHandler.clearPendingDeepLink()
-                            }
-                        }
-                    } catch {
+            guard let uuid = UUID(uuidString: sessionId) else {
+                deepLinkHandler.clearPendingDeepLink()
+                return
+            }
+            Task {
+                do {
+                    if let active = try await SessionService.shared.getActiveSession(),
+                       active.id == uuid {
                         await MainActor.run {
+                            mainTabFlow.navigateToActiveSession(session: active)
                             deepLinkHandler.clearPendingDeepLink()
                         }
+                    } else {
+                        await MainActor.run { deepLinkHandler.clearPendingDeepLink() }
                     }
+                } catch {
+                    await MainActor.run { deepLinkHandler.clearPendingDeepLink() }
                 }
-            } else {
-                deepLinkHandler.clearPendingDeepLink()
             }
-            
         }
     }
-    
+
     // MARK: - Root View
-    
+
     @ViewBuilder
     var rootView: some View {
         switch currentFlow {
         case .loading:
-            ProgressView("Loading...")
+            ProgressView("Loading…")
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
                 .withGlobalToasts()
-            
+
         case .onboarding:
             OnboardingRootView(onComplete: { [weak self] in
                 self?.handleOnboardingComplete()
             })
             .withGlobalToasts()
-            
+
         case .screenTimeOnboarding:
             ScreenTimeOnboardingFlowView(onComplete: { [weak self] in
                 self?.handleScreenTimeOnboardingComplete()
             })
             .withGlobalToasts()
-            
+
         case .auth:
             if let flow = authFlow {
                 flow.rootView
                     .withGlobalToasts()
             }
 
+        case .profileSetup:
+            ProfileSetupView(
+                prefillFirstName: pendingAuthFirstName,
+                prefillLastName:  pendingAuthLastName,
+                onComplete: { [weak self] in
+                    self?.logger.logInfo("Routing: profile setup complete → postAuthOnboarding", category: "Navigation")
+                    self?.currentFlow = .postAuthOnboarding
+                }
+            )
+            .withGlobalToasts()
+
         case .postAuthOnboarding:
             PostAuthOnboardingFlowView(onComplete: { [weak self] in
                 self?.startMainFlow()
             })
             .withGlobalToasts()
-            
+
         case .main:
             if let flow = mainTabFlow {
                 flow.rootView
