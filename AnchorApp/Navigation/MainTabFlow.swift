@@ -7,11 +7,12 @@ class MainTabFlow: Coordinator, SheetPresenting {
     @Published var path = NavigationPath()
     @Published var presentedSheet: SheetDestination?
     
-    // Navigation paths for each tab (Home, Settings)
-    @Published var sessionsPath = NavigationPath()  // Home tab navigation
+    // Navigation paths for each tab
+    @Published var sessionsPath = NavigationPath()  // Session tab navigation
     @Published var settingsPath = NavigationPath()  // Settings tab navigation
-    
-    // Tab selection (0: Home, 1: Settings)
+    @Published var statsPath = NavigationPath()     // Stats tab navigation (future)
+
+    // Tab selection (0: Session, 1: Goals, 2: Stats, 3: Settings)
     @Published var selectedTab: Int = 0
     
     func start() {

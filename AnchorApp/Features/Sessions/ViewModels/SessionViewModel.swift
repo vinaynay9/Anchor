@@ -15,12 +15,44 @@ class SessionViewModel: ObservableObject {
     @Published var selectedDurationMinutes: Int = 25
     @Published var selectedCategories: Set<AppCategory> = []
     @Published var schedule: LockSessionSchedule? = nil
-    
+
+    // MARK: - Timer (locked elapsed time)
+
+    @Published var lockedElapsedSeconds: Int = 0
+    private var timerCancellable: AnyCancellable?
+
+    var lockedTimeDisplay: String {
+        let h = lockedElapsedSeconds / 3600
+        let m = (lockedElapsedSeconds % 3600) / 60
+        let s = lockedElapsedSeconds % 60
+        return String(format: "%02d:%02d:%02d", h, m, s)
+    }
+
+    var shieldHitCountToday: Int {
+        AppGroupStorage.shared.getShieldHitCountToday()
+    }
+
+    func startElapsedTimer(from startDate: Date) {
+        stopElapsedTimer()
+        let elapsed = max(0, Int(Date().timeIntervalSince(startDate)))
+        lockedElapsedSeconds = elapsed
+        timerCancellable = Timer.publish(every: 1, on: .main, in: .common)
+            .autoconnect()
+            .sink { [weak self] _ in
+                self?.lockedElapsedSeconds += 1
+            }
+    }
+
+    func stopElapsedTimer() {
+        timerCancellable?.cancel()
+        timerCancellable = nil
+    }
+
     private let sessionService: SessionServiceProtocol
     private let screenTimeService: ScreenTimeServiceProtocol
     private let dailyGoalService = DailyGoalService.shared
     private let usageReportService = UsageReportService.shared
-    
+
     // Production default uses the real ScreenTimeService.
     // Pass MockScreenTimeService.shared explicitly in SwiftUI Previews or unit tests.
     init(
@@ -30,31 +62,21 @@ class SessionViewModel: ObservableObject {
         self.sessionService = sessionService
         self.screenTimeService = screenTimeService
     }
-    
+
     // MARK: - Notification Callbacks (UI-only wiring)
-    
-    /// Callback for when session ends - can be called from UI or notification handlers
+
     func onSessionEnded() {
-        // Refresh active session state
         loadActiveSession()
-        
-        // Show UI feedback (toast will be shown by NotificationService if notifications disabled)
-        // This is a UI-only callback for additional UI updates if needed
     }
-    
-    /// Callback for when session expires - can be called from UI or notification handlers
+
     func onSessionExpired() {
-        // Refresh active session state
         loadActiveSession()
-        
-        // Show UI feedback (toast will be shown by NotificationService if notifications disabled)
-        // This is a UI-only callback for additional UI updates if needed
     }
-    
+
     func loadActiveSession() {
         isLoading = true
         errorMessage = nil
-        
+
         Task {
             do {
                 self.activeSession = try await sessionService.getActiveSession()
@@ -70,6 +92,11 @@ class SessionViewModel: ObservableObject {
         let shieldState = AppGroupStorage.shared.getShieldState()
         isAnchored = shieldState?.isBlocking ?? false
 
+        if isAnchored {
+            let startDate = shieldState?.updatedAt ?? Date()
+            startElapsedTimer(from: startDate)
+        }
+
         let progress = dailyGoalService.loadProgress()
         goalsCompleted = progress.completedGoalIds.count
         goalsTotal = max((await dailyGoalService.loadGoals()).count, 0)
@@ -82,18 +109,14 @@ class SessionViewModel: ObservableObject {
             usageError = error.localizedDescription
         }
     }
-    
+
     func startSession() async {
         isLoading = true
         errorMessage = nil
-        
-        // Check Screen Time authorization
+
         if !screenTimeService.isAuthorized() {
-            // Request authorization if not already granted
             do {
                 try await screenTimeService.requestAuthorization()
-                
-                // Verify authorization was granted
                 if !screenTimeService.isAuthorized() {
                     self.errorMessage = "Screen Time authorization is required to enter Anchored Mode."
                     self.isLoading = false
@@ -105,8 +128,7 @@ class SessionViewModel: ObservableObject {
                 return
             }
         }
-        
-        // Authorization granted, proceed with starting session
+
         do {
             let categories = selectedCategories.isEmpty ? nil : Array(selectedCategories)
             let session = try await sessionService.startSession(
@@ -122,11 +144,11 @@ class SessionViewModel: ObservableObject {
             self.isLoading = false
         }
     }
-    
+
     func endSession() {
         isLoading = true
         errorMessage = nil
-        
+
         Task {
             do {
                 try await sessionService.endSession()

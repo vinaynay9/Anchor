@@ -8,6 +8,11 @@ final class GoalsViewModel: ObservableObject {
     @Published var isAnchored: Bool = false
     @Published var completionFeedback: String?
 
+    // Add goal sheet state
+    @Published var showAddGoalSheet = false
+    @Published var newGoalTitle = ""
+    @Published var newGoalCategory: GoalCategory = .other
+
     private let dailyGoalService = DailyGoalService.shared
 
     var completedCount: Int {
@@ -19,7 +24,7 @@ final class GoalsViewModel: ObservableObject {
     }
 
     var progressText: String {
-        "\(completedCount) / \(max(totalCount, 0)) complete"
+        "\(completedCount) of \(max(totalCount, 0)) goals completed"
     }
 
     func load() async {
@@ -42,5 +47,25 @@ final class GoalsViewModel: ObservableObject {
 
     func isGoalCompleted(_ goal: Shared.Goal) -> Bool {
         progress.completedGoalIds.contains(goal.id)
+    }
+
+    func delete(goal: Shared.Goal) async {
+        await dailyGoalService.removeGoal(id: goal.id)
+        await load()
+    }
+
+    func addGoalFromSheet() async {
+        let title = newGoalTitle.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !title.isEmpty else { return }
+        await dailyGoalService.addGoal(title: title, category: newGoalCategory)
+        newGoalTitle = ""
+        newGoalCategory = .other
+        showAddGoalSheet = false
+        await load()
+    }
+
+    func resetProgress() {
+        AppGroupStorage.shared.setDailyGoalProgress(nil)
+        progress = dailyGoalService.loadProgress()
     }
 }

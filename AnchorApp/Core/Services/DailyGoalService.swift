@@ -98,6 +98,28 @@ final class DailyGoalService {
         }
     }
 
+    func addGoal(title: String, category: GoalCategory = .other) async {
+        var state = await onboardingService.loadState()
+        let newGoal = Shared.Goal(title: title, category: category)
+        state.goals.append(newGoal)
+        await onboardingService.saveState(state)
+    }
+
+    func removeGoal(id: UUID) async {
+        var state = await onboardingService.loadState()
+        state.goals.removeAll { $0.id == id }
+        await onboardingService.saveState(state)
+    }
+
+    /// Synchronous check suitable for non-isolated callers (e.g. SessionService, UnlockRequestService).
+    /// Reads directly from AppGroupStorage to avoid actor-hopping.
+    nonisolated func areAllGoalsCompleted() -> Bool {
+        let goals = AppGroupStorage.shared.getOnboardingState()?.goals ?? []
+        guard !goals.isEmpty else { return false }
+        let completed = AppGroupStorage.shared.getDailyGoalProgress()?.completedGoalIds.count ?? 0
+        return completed >= goals.count
+    }
+
     private func localDayString(for date: Date) -> String {
         let formatter = DateFormatter()
         formatter.calendar = Calendar.current

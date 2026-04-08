@@ -7,13 +7,13 @@ struct MainTabView: View {
     @State private var isAnchored = false
     @State private var didSetInitialTab = false
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
-    
+
     var body: some View {
         ZStack {
             AppColors.background.ignoresSafeArea()
 
             TabView(selection: $coordinator.selectedTab) {
-                // Tab 0: Home (Active Session)
+                // Tab 0: Session
                 NavigationStack(path: $coordinator.sessionsPath) {
                     SessionHomeView()
                         .navigationDestination(for: LockSession.self) { session in
@@ -28,7 +28,7 @@ struct MainTabView: View {
                         }
                 }
                 .tabItem {
-                    Label("Home", systemImage: "house.fill")
+                    Label("Session", systemImage: "shield.fill")
                 }
                 .tag(0)
 
@@ -37,11 +37,20 @@ struct MainTabView: View {
                     GoalsListView()
                 }
                 .tabItem {
-                    Label("Goals", systemImage: "checklist")
+                    Label("Goals", systemImage: "target")
                 }
                 .tag(1)
-                
-                // Tab 2: Settings
+
+                // Tab 2: Stats
+                NavigationStack {
+                    StatsView()
+                }
+                .tabItem {
+                    Label("Stats", systemImage: "chart.bar.fill")
+                }
+                .tag(2)
+
+                // Tab 3: Settings
                 NavigationStack(path: $coordinator.settingsPath) {
                     SettingsView()
                         .navigationDestination(for: String.self) { destination in
@@ -59,7 +68,7 @@ struct MainTabView: View {
                 .tabItem {
                     Label("Settings", systemImage: "gearshape.fill")
                 }
-                .tag(2)
+                .tag(3)
             }
             .tint(AppColors.accent)
             .sheet(item: $coordinator.presentedSheet) { sheet in
@@ -70,7 +79,7 @@ struct MainTabView: View {
                     SelectAppsView()
                 }
             }
-            
+
             if isAnchored {
                 anchoredStatusPill
                     .transition(.move(edge: .top).combined(with: .opacity))
@@ -92,7 +101,7 @@ struct MainTabView: View {
         }
         .motion(AppMotion.standard, reduceMotion: reduceMotion, value: isAnchored)
     }
-    
+
     private var anchoredStatusPill: some View {
         VStack {
             HStack(spacing: 8) {
@@ -114,21 +123,18 @@ struct MainTabView: View {
             )
             .padding(.top, 12)
             .padding(.horizontal, 16)
-            
+
             Spacer()
         }
         .allowsHitTesting(false)
     }
-    
+
     private func refreshAnchoredState() {
         let shieldState = AppGroupStorage.shared.getShieldState()
         isAnchored = shieldState?.isBlocking ?? false
 
         if !didSetInitialTab {
-            coordinator.selectedTab = isAnchored ? 1 : 0
             didSetInitialTab = true
-        } else if isAnchored {
-            coordinator.selectedTab = 1
         }
     }
 }

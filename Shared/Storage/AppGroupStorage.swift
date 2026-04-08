@@ -978,6 +978,29 @@ public final class AppGroupStorage {
         return Date(timeIntervalSince1970: timestamp)
     }
 
+    /// Returns how many times the shield was hit today.
+    /// Key is date-suffixed so it auto-resets each day.
+    /// The shield extension increments this via `incrementShieldHitCountToday()`.
+    public func getShieldHitCountToday() -> Int {
+        let key = "shieldHitCountToday_\(localDayString(for: Date()))"
+        return defaults?.integer(forKey: key) ?? 0
+    }
+
+    public func incrementShieldHitCountToday() {
+        let key = "shieldHitCountToday_\(localDayString(for: Date()))"
+        let current = defaults?.integer(forKey: key) ?? 0
+        defaults?.set(current + 1, forKey: key)
+    }
+
+    private func localDayString(for date: Date) -> String {
+        let formatter = DateFormatter()
+        formatter.calendar = Calendar.current
+        formatter.locale = Locale(identifier: "en_US_POSIX")
+        formatter.timeZone = TimeZone.current
+        formatter.dateFormat = "yyyy-MM-dd"
+        return formatter.string(from: date)
+    }
+
     public func getOrCreateAnalyticsSalt() -> String {
         if let salt = defaults?.string(forKey: AppGroupStorageKey.analyticsSalt.rawValue), !salt.isEmpty {
             return salt

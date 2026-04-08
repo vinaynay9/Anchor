@@ -8,13 +8,29 @@ final class OnboardingAppSelectionViewModel: ObservableObject {
     @Published var unlockedSelection = FamilyActivitySelection()
     @Published var showUnlockedAppsSection = false
     @Published var selectedPresets: Set<String> = []
+    @Published var authorizationError: String?
 
     private let onboardingService = OnboardingService.shared
     private let activitySelectionService = ActivitySelectionService.shared
+    private let screenTimeService = ScreenTimeService.shared
     private let storage = AppGroupStorage.shared
 
     var hasBlockedSelection: Bool {
         !blockedSelection.applicationTokens.isEmpty || !blockedSelection.categoryTokens.isEmpty
+    }
+
+    var totalSelectedCount: Int {
+        blockedSelection.applicationTokens.count + blockedSelection.categoryTokens.count
+    }
+
+    func requestAuthorizationIfNeeded() async {
+        guard !screenTimeService.isAuthorized() else { return }
+        do {
+            try await screenTimeService.requestAuthorization()
+            authorizationError = nil
+        } catch {
+            authorizationError = error.localizedDescription
+        }
     }
 
     func loadState() async {
@@ -35,6 +51,10 @@ final class OnboardingAppSelectionViewModel: ObservableObject {
 
     func markComplete() async {
         await onboardingService.markComplete()
+    }
+
+    func applyInitialShield() async {
+        await screenTimeService.applyDailyAnchor()
     }
 
     private func encode(selection: FamilyActivitySelection) -> Data? {
