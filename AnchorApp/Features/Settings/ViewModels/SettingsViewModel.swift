@@ -6,7 +6,7 @@ import Shared
 class SettingsViewModel: ObservableObject {
     // Notification toggles with @AppStorage
     @AppStorage("sessionRemindersEnabled") var sessionRemindersEnabled: Bool = true
-    
+
     // Alert state
     @Published var showClearDataAlert = false
     @Published var showEmergencyUnanchorSheet = false
@@ -17,29 +17,43 @@ class SettingsViewModel: ObservableObject {
     @Published var showLockTimeConfirmation = false
     @Published var pendingLockTime: Date?
     @Published var inviteState: InviteState?
-    
+    @Published var showDeleteAccountAlert = false
+    @Published var isDeletingAccount = false
+
     private let anchorScheduleService = AnchorScheduleService.shared
     private let dailyAnchorService = DailyAnchorService.shared
     private let notificationService: NotificationServiceProtocol
     private let screenTimeService: ScreenTimeServiceProtocol
     private let inviteService: InviteServiceProtocol
-    
-    // User info (mock for now - should come from AuthService)
+    private let storage = AppGroupStorage.shared
+
+    // MARK: - Real user info from AppGroup
+
     var userInitials: String {
-        // TODO: Get from actual user data
-        return "U"
+        let personal = storage.getPersonalInfo()
+        let first = personal?.firstName.first.map(String.init) ?? ""
+        let last = personal?.lastName.first.map(String.init) ?? ""
+        let initials = (first + last).uppercased()
+        if !initials.isEmpty { return initials }
+        let display = storage.getProfile()?.displayName ?? ""
+        return String(display.prefix(2)).uppercased().ifEmpty("?")
     }
-    
+
     var displayName: String {
-        // TODO: Get from actual user data
-        return "User"
+        let personal = storage.getPersonalInfo()
+        if let first = personal?.firstName, !first.isEmpty {
+            let last = personal?.lastName ?? ""
+            return last.isEmpty ? first : "\(first) \(last)"
+        }
+        let profile = storage.getProfile()
+        if let display = profile?.displayName, !display.isEmpty { return display }
+        return "Anchor User"
     }
-    
+
     var userEmail: String {
-        // TODO: Get from actual user data
-        return "user@example.com"
+        storage.getProfileEmail() ?? "—"
     }
-    
+
     init(
         notificationService: NotificationServiceProtocol = NotificationService.shared,
         screenTimeService: ScreenTimeServiceProtocol = ScreenTimeService.shared,
@@ -48,35 +62,34 @@ class SettingsViewModel: ObservableObject {
         self.notificationService = notificationService
         self.screenTimeService = screenTimeService
         self.inviteService = inviteService
-        
+
         let schedule = anchorScheduleService.dailyAnchorTime
         var components = Calendar.current.dateComponents([.year, .month, .day], from: Date())
         components.hour = schedule.hour
         components.minute = schedule.minute
         dailyAnchorTime = Calendar.current.date(from: components) ?? Date()
     }
-    
-    // Simulated actions
+
+    // MARK: - Profile editing stubs
+
     func editProfile() {
-        // Simulated action - no backend
+        // TODO: navigate to profile edit view
         print("Edit Profile tapped")
     }
-    
+
     func changeDisplayName() {
-        // Simulated action - no backend
+        // TODO: show name edit sheet
         print("Change Display Name tapped")
     }
-    
+
+    // MARK: - Data management
+
     func clearLocalData() {
         showClearDataAlert = true
     }
-    
+
     func confirmClearLocalData() {
-        // Simulated action - no backend
-        print("Clearing local data...")
         showClearDataAlert = false
-        
-        // Show success toast after a brief delay
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
             ToastManager.shared.show("Data Cleared")
         }
@@ -99,10 +112,12 @@ class SettingsViewModel: ObservableObject {
         return hour > 0 || minute > 0
     }
 
+    // MARK: - Emergency unanchor
+
     func requestEmergencyUnanchor() {
         guard !emergencyReason.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else { return }
         isProcessingEmergencyUnanchor = true
-        
+
         Task {
             let durationSeconds = TimeInterval(emergencyDurationMinutes * 60)
             await screenTimeService.emergencyUnanchor(duration: durationSeconds)
@@ -111,7 +126,7 @@ class SettingsViewModel: ObservableObject {
                 metrics: AnalyticsMetrics(doubleValues: ["durationMinutes": Double(emergencyDurationMinutes)])
             )
             AnalyticsServiceProvider.shared.log(event: .emergencyUnanchorUsed, payload: payload)
-            
+
             await MainActor.run {
                 isProcessingEmergencyUnanchor = false
                 showEmergencyUnanchorSheet = false
@@ -121,38 +136,66 @@ class SettingsViewModel: ObservableObject {
             }
         }
     }
-    
+
+    // MARK: - Export / external
+
     func exportActivityLog() {
-        // Simulated action - no backend
         print("Export Activity Log tapped")
     }
-    
+
     func openPrivacyPolicy() {
-        // Simulated action - no backend
-        print("Privacy Policy tapped")
+        if let url = URL(string: "https://getanchor.app/privacy") {
+            UIApplication.shared.open(url)
+        }
     }
-    
+
     func openTerms() {
-        // Simulated action - no backend
-        print("Terms tapped")
+        if let url = URL(string: "https://getanchor.app/terms") {
+            UIApplication.shared.open(url)
+        }
     }
-    
+
+    // MARK: - Sign out
+
     func signOut() {
-        // TODO: Integrate with AuthService
         Task {
             do {
                 try await AuthService.shared.signOut()
-                // Navigation will be handled by AppCoordinator
+                // Clear local app data on sign out
+                AppGroupStorage.shared.setDailyGoalProgress(nil)
+                // AppCoordinator will observe UserDefaults change and route to auth
             } catch {
-                print("Sign out error: \(error)")
+                LoggerService.shared.logWarning("Sign out error: \(error.localizedDescription)", category: "Settings")
             }
         }
     }
-    
-    func deleteAccount() {
-        // TODO: Implement account deletion
-        print("Delete Account tapped")
+
+    // MARK: - Delete account
+
+    func confirmDeleteAccount() {
+        isDeletingAccount = true
+        Task {
+            // Clear local data
+            AppGroupStorage.shared.setDailyGoalProgress(nil)
+            AppGroupStorage.shared.setShieldState(nil)
+            UserDefaults.standard.removeObject(forKey: AppConfig.UserDefaultsKeys.currentUserId)
+
+            // TODO: [Supabase Migration] Call server-side delete
+            // try await SupabaseClient.shared.auth.signOut()
+            // try await SupabaseClient.shared.from("users").delete().eq("id", userId).execute()
+
+            do {
+                try await AuthService.shared.signOut()
+            } catch { /* ignore */ }
+
+            await MainActor.run {
+                isDeletingAccount = false
+                // AppCoordinator will reroute to auth
+            }
+        }
     }
+
+    // MARK: - Invite
 
     func loadInviteState() async {
         let state = await inviteService.currentInviteState()
@@ -170,11 +213,15 @@ class SettingsViewModel: ObservableObject {
         await inviteService.sharePayload()
     }
 
-    // Get app version
     var appVersion: String {
-        if let version = Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String {
-            return version
-        }
-        return "1.0.0"
+        Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "1.0.0"
+    }
+}
+
+// MARK: - String helper
+
+private extension String {
+    func ifEmpty(_ fallback: String) -> String {
+        isEmpty ? fallback : self
     }
 }

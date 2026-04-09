@@ -6,6 +6,7 @@ import Shared
 
 struct GoalsListView: View {
     @StateObject private var viewModel = GoalsViewModel()
+    @StateObject private var headerViewModel = UserHeaderViewModel()
     @State private var selectedGoal: Shared.Goal?
     @State private var goalToDelete: Shared.Goal?
     @State private var showDeleteAlert = false
@@ -23,8 +24,14 @@ struct GoalsListView: View {
 
             ScrollView(showsIndicators: false) {
                 VStack(spacing: 0) {
-                    Spacer().frame(height: 56)
+                    // Custom header (initials + name + streak)
+                    UserHeaderView(
+                        firstName: headerViewModel.firstName,
+                        initials: headerViewModel.initials,
+                        streak: headerViewModel.streak
+                    )
                     progressHeader
+                        .padding(.top, Theme.spacing2)
                     Spacer().frame(height: Theme.spacing3)
                     goalsList
                     Spacer().frame(height: 100)
@@ -65,7 +72,10 @@ struct GoalsListView: View {
         } message: {
             Text("You have 3 or fewer goals. Removing one will leave you with less than the recommended minimum. Are you sure?")
         }
-        .task { await viewModel.load() }
+        .task {
+            headerViewModel.load()
+            await viewModel.load()
+        }
         .onReceive(NotificationCenter.default.publisher(for: .appGroupDidUpdate)) { _ in
             Task { await viewModel.load() }
         }

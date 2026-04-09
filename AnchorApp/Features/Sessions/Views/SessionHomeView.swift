@@ -8,6 +8,7 @@ import Shared
 struct SessionHomeView: View {
     @EnvironmentObject var coordinator: MainTabFlow
     @StateObject private var viewModel = SessionViewModel()
+    @StateObject private var headerViewModel = UserHeaderViewModel()
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @State private var showContent = false
 
@@ -22,7 +23,12 @@ struct SessionHomeView: View {
 
             ScrollView(showsIndicators: false) {
                 VStack(spacing: 0) {
-                    Spacer().frame(height: 56)
+                    // Custom header (initials + name + streak)
+                    UserHeaderView(
+                        firstName: headerViewModel.firstName,
+                        initials: headerViewModel.initials,
+                        streak: headerViewModel.streak
+                    )
 
                     // Error banner
                     if let errorMessage = viewModel.errorMessage {
@@ -32,6 +38,7 @@ struct SessionHomeView: View {
                             .transition(.move(edge: .top).combined(with: .opacity))
                     }
 
+                    Spacer().frame(height: Theme.spacing3)
                     heroSection
                     Spacer().frame(height: Theme.spacing5)
                     infoCardsRow
@@ -54,7 +61,10 @@ struct SessionHomeView: View {
                 withAnimation(AppMotion.gentleSpring.delay(0.08)) { showContent = true }
             }
         }
-        .task { await viewModel.loadDashboardData() }
+        .task {
+            headerViewModel.load()
+            await viewModel.loadDashboardData()
+        }
         .onDisappear { viewModel.stopElapsedTimer() }
         .motion(AppMotion.standard, reduceMotion: reduceMotion, value: viewModel.isAnchored)
     }

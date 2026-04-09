@@ -1001,6 +1001,47 @@ public final class AppGroupStorage {
         return formatter.string(from: date)
     }
 
+    // MARK: - Daily Aggregates
+
+    /// Returns all stored daily aggregates, sorted by date ascending.
+    public func getAllDailyAggregates() -> [DailyAggregate] {
+        guard let data = defaults?.data(forKey: "dailyAggregates"),
+              let aggregates = try? JSONDecoder().decode([String: DailyAggregate].self, from: data) else {
+            return []
+        }
+        return aggregates.values.sorted { $0.date < $1.date }
+    }
+
+    /// Saves or updates the aggregate for a single day.
+    public func saveDailyAggregate(_ aggregate: DailyAggregate) {
+        var dict: [String: DailyAggregate] = [:]
+        if let data = defaults?.data(forKey: "dailyAggregates"),
+           let existing = try? JSONDecoder().decode([String: DailyAggregate].self, from: data) {
+            dict = existing
+        }
+        dict[aggregate.date] = aggregate
+        if let data = try? JSONEncoder().encode(dict) {
+            defaults?.set(data, forKey: "dailyAggregates")
+        }
+    }
+
+    /// Returns the aggregate for today, creating a fresh one if not present.
+    public func getTodayAggregate() -> DailyAggregate {
+        let today = localDayString(for: Date())
+        let all = getAllDailyAggregates()
+        return all.first { $0.date == today } ?? DailyAggregate(date: today)
+    }
+
+    // MARK: - Email storage (for Settings display)
+
+    public func setProfileEmail(_ email: String) {
+        defaults?.set(email, forKey: "profileEmail")
+    }
+
+    public func getProfileEmail() -> String? {
+        defaults?.string(forKey: "profileEmail")
+    }
+
     public func getOrCreateAnalyticsSalt() -> String {
         if let salt = defaults?.string(forKey: AppGroupStorageKey.analyticsSalt.rawValue), !salt.isEmpty {
             return salt
