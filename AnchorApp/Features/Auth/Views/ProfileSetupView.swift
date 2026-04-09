@@ -103,7 +103,7 @@ final class ProfileSetupViewModel: ObservableObject {
         //       ])
         //       .execute()
 
-        // ── 3. Best-effort backend sync (legacy AWS endpoint) ─────────────
+        // ── 3. Best-effort backend sync (UserService → migrate to SupabaseUserService) ───
         do {
             _ = try await userService.updateUserProfile(
                 displayName: displayName,

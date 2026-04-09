@@ -1,15 +1,12 @@
 import Foundation
 
-// MARK: - DebugNetworkBlocker Removal Notice
-// DebugNetworkBlocker.swift was deleted.  It registered a URLProtocol subclass
-// (BlockingURLProtocol) that intercepted ALL network traffic in DEBUG+simulator
-// builds, returning NSURLErrorNotConnectedToInternet for every request that
-// wasn't one of three hard-coded stubs (/auth/signup, /auth/signin, /user/me).
-// This made the app completely untestable on the simulator.
-//
-// Now that the backend is Supabase the stubs are obsolete; all real network
-// requests pass through unmodified.  The call site in AnchorAppApp.init() was
-// also removed.
+// MARK: - APIClient
+// Legacy networking layer — kept because several services (SessionService,
+// InviteService, NotificationService, UserService, UnlockRequestService, AuthService,
+// FriendService, FriendActivityService, ProofService) still reference it.
+// These services fail gracefully at runtime since no backend URL is configured.
+// Migrate each service to a SupabaseXxxService as features are built out.
+// See SUPABASE_SETUP.md.
 
 /// Unified error model for all Anchor API networking operations
 enum AnchorAPIError: Error {
