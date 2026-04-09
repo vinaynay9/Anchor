@@ -107,9 +107,7 @@ final class InviteService: InviteServiceProtocol {
     }
 
     private func isAPIConfigured() -> Bool {
-        let trimmed = AppConfig.apiBaseURL.trimmingCharacters(in: .whitespacesAndNewlines)
-        if trimmed.isEmpty { return false }
-        if trimmed == "REPLACE_ME" || trimmed == "https://REPLACE_ME" { return false }
-        return true
+        // Legacy check — API now goes through Supabase. Returns false until wired.
+        return SupabaseManager.shared.isConfigured
     }
 }

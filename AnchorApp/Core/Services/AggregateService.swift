@@ -139,14 +139,17 @@ final class AggregateService {
         let aggregates = storage.getAllDailyAggregates()
         guard !aggregates.isEmpty else { return }
 
-        // TODO: [Supabase Migration]
-        // let client = SupabaseClient.shared
-        // try await client.from("daily_aggregates").upsert(aggregates).execute()
-        // try await client.from("weekly_aggregates").upsert(buildWeeklyAggregates(from: aggregates)).execute()
-        // try await client.from("monthly_aggregates").upsert(buildMonthlyAggregates(from: aggregates)).execute()
+        let userId = UserDefaults.standard.string(forKey: AppConfig.UserDefaultsKeys.currentUserId)
+        guard let userId else {
+            LoggerService.shared.logInfo("syncAggregates: no userId, skipping", category: "AggregateService")
+            return
+        }
+
+        // Delegate to SupabaseAggregatesService — no-op until SPM package is added.
+        try? await SupabaseAggregatesService.shared.syncDailyAggregates(userId: userId, aggregates: aggregates)
 
         LoggerService.shared.logInfo(
-            "syncAggregates called — \(aggregates.count) records ready to sync (Supabase not yet connected)",
+            "syncAggregates — \(aggregates.count) records passed to SupabaseAggregatesService",
             category: "AggregateService"
         )
     }

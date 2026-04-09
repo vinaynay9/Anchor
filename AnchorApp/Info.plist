@@ -48,6 +48,10 @@
 	     ──────────────────────────────────────────────────────────────────── -->
 	<key>GOOGLE_CLIENT_ID</key>
 	<string>REPLACE_ME</string>
+	<key>SUPABASE_URL</key>
+	<string>$(SUPABASE_URL)</string>
+	<key>SUPABASE_ANON_KEY</key>
+	<string>$(SUPABASE_ANON_KEY)</string>
 	<key>NSFamilyControlsUsageDescription</key>
 	<string>Anchor needs Screen Time access to block apps during Anchored Mode.</string>
 	<key>UILaunchScreen</key>

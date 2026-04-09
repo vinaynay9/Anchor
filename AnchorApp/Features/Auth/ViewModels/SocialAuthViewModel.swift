@@ -79,7 +79,8 @@ final class SocialAuthViewModel: ObservableObject {
                 authorizationCode: authCode,
                 email: email,
                 firstName: firstName,
-                lastName: lastName
+                lastName: lastName,
+                rawNonce: currentNonce
             )
             onAuthSuccess?(credential)
 
@@ -158,7 +159,8 @@ final class SocialAuthViewModel: ObservableObject {
                     authorizationCode: nil,
                     email: result.user.profile?.email,
                     firstName: result.user.profile?.givenName,
-                    lastName: result.user.profile?.familyName
+                    lastName: result.user.profile?.familyName,
+                    rawNonce: nil
                 )
                 isLoading = false
                 onAuthSuccess?(credential)

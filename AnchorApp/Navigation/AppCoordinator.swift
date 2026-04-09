@@ -189,16 +189,33 @@ class AppCoordinator: ObservableObject {
             try? keychainService.save(code, forKey: AppConfig.UserDefaultsKeys.refreshToken)
         }
 
-        // TODO: [Supabase Migration] Exchange credential with Supabase here:
-        // let session = try await SupabaseClient.shared.auth.signInWithIdToken(
-        //     credentials: OpenIDConnectCredentials(
-        //         provider: credential.provider == .apple ? .apple : .google,
-        //         idToken:  credential.identityToken,
-        //         nonce:    currentNonce       // raw nonce, not hashed
-        //     )
-        // )
-        // let anchorUser = session.user.toAnchorUser()
-        // authViewModel.handleAuthenticatedUser(anchorUser)
+        // Exchange identity token with Supabase.
+        // This is a no-op until SupabaseManager is configured (supabase-swift SPM package added).
+        // See SUPABASE_SETUP.md for activation steps.
+        Task { @MainActor in
+            let provider: SupabaseOAuthProvider = credential.provider == .apple ? .apple : .google
+            if let supabaseUserId = try? await SupabaseAuthService.shared.signIn(
+                idToken: credential.identityToken,
+                provider: provider,
+                rawNonce: credential.rawNonce
+            ) {
+                // Store Supabase user ID as the canonical user identifier.
+                UserDefaults.standard.set(
+                    supabaseUserId,
+                    forKey: AppConfig.UserDefaultsKeys.currentUserId
+                )
+                logger.logInfo("Supabase sign-in succeeded, userId=\(supabaseUserId)", category: "Navigation")
+
+                // Sync user profile row.
+                let displayName = [credential.firstName, credential.lastName]
+                    .compactMap { $0 }.joined(separator: " ")
+                try? await SupabaseUserService.shared.upsertProfile(
+                    userId: supabaseUserId,
+                    email: credential.email ?? "",
+                    displayName: displayName.isEmpty ? nil : displayName
+                )
+            }
+        }
 
         routeAfterSocialAuth()
     }

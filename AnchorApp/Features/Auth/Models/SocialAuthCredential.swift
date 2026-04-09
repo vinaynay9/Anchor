@@ -34,4 +34,9 @@ struct SocialAuthCredential {
     /// Last / family name from the provider's profile.
     /// Apple only provides this on the very first sign-in.
     let lastName: String?
+
+    /// Raw (unhashed) nonce used during Apple Sign-In request.
+    /// Required by Supabase to verify the identity token.
+    /// Pass nil for Google Sign-In.
+    let rawNonce: String?
 }

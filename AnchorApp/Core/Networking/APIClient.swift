@@ -42,7 +42,11 @@ class APIClient {
     private let session: URLSession
     private let baseURL: URL
     
-    init(session: URLSession? = nil, baseURL: URL = AppConfig.baseURL) {
+    // Placeholder base URL — legacy APIClient callers will fail at runtime (expected).
+    // All new network calls go through SupabaseManager. See SUPABASE_SETUP.md.
+    private static let fallbackBaseURL = URL(string: "http://localhost")!
+
+    init(session: URLSession? = nil, baseURL: URL = APIClient.fallbackBaseURL) {
         if let session {
             self.session = session
         } else {
