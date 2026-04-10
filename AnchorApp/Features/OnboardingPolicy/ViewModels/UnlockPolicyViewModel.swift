@@ -38,6 +38,8 @@ final class UnlockPolicyViewModel: ObservableObject {
     enum MinutesOption: Hashable, CaseIterable {
         case five, ten, fifteen, thirty, custom(Int)
 
+        // CaseIterable cannot synthesize allCases when cases have associated values.
+        static var allCases: [MinutesOption] { standardCases }
         static var standardCases: [MinutesOption] { [.five, .ten, .fifteen, .thirty] }
 
         var displayName: String {

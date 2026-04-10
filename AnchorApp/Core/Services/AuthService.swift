@@ -163,3 +163,25 @@ class AuthService: AuthServiceProtocol {
         }
     }
 }
+
+// MARK: - SocialAuthCredential
+// Moved here from Features/Auth/Models/SocialAuthCredential.swift so it
+// compiles as part of the main AnchorApp target (that file is not in Xcode project).
+// Encapsulates the result of a successful Apple or Google sign-in.
+struct SocialAuthCredential {
+    enum Provider { case apple, google }
+
+    let provider: Provider
+    /// JWT identity token (Apple) or ID token (Google).
+    let identityToken: String
+    /// Server-side authorisation code — Apple only.
+    let authorizationCode: String?
+    /// Email — Apple only provides on first sign-in.
+    let email: String?
+    /// Given name — Apple only provides on first sign-in.
+    let firstName: String?
+    /// Family name — Apple only provides on first sign-in.
+    let lastName: String?
+    /// Raw (unhashed) nonce for Apple Sign-In Supabase verification. Nil for Google.
+    let rawNonce: String?
+}
