@@ -25,16 +25,13 @@
 				<string>anchor</string>
 			</array>
 		</dict>
-		<!-- Google Sign-In OAuth redirect.
-		     Replace REVERSED_GOOGLE_CLIENT_ID with the reversed form of your
-		     iOS Client ID, e.g. com.googleusercontent.apps.123456789-abcdef
-		     See AUTH_SETUP.md for full instructions. -->
+		<!-- Google Sign-In OAuth redirect URL scheme (reversed client ID) -->
 		<dict>
 			<key>CFBundleTypeRole</key>
 			<string>Editor</string>
 			<key>CFBundleURLSchemes</key>
 			<array>
-				<string>REVERSED_GOOGLE_CLIENT_ID</string>
+				<string>com.googleusercontent.apps.919562080095-7spim2pnc8e9mluiet5l0ebogqgufaoq</string>
 			</array>
 		</dict>
 	</array>
@@ -47,7 +44,7 @@
 	     See AUTH_SETUP.md for step-by-step instructions.
 	     ──────────────────────────────────────────────────────────────────── -->
 	<key>GOOGLE_CLIENT_ID</key>
-	<string>REPLACE_ME</string>
+	<string>919562080095-7spim2pnc8e9mluiet5l0ebogqgufaoq.apps.googleusercontent.com</string>
 	<key>SUPABASE_URL</key>
 	<string>$(SUPABASE_URL)</string>
 	<key>SUPABASE_ANON_KEY</key>
