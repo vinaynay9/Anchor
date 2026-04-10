@@ -2,7 +2,9 @@ import Foundation
 import AuthenticationServices
 import CryptoKit
 import UIKit
+#if canImport(GoogleSignIn)
 import GoogleSignIn
+#endif
 
 // MARK: - Social Auth View Model
 // Handles the Apple and Google sign-in flows.
@@ -100,11 +102,13 @@ final class SocialAuthViewModel: ObservableObject {
 
     /// Initiates Google Sign-In.
     /// Reads `GOOGLE_CLIENT_ID` from Info.plist — no code changes needed for keys.
+    /// Requires GoogleSignIn SPM package: https://github.com/google/GoogleSignIn-iOS
     func signInWithGoogle() {
+        #if canImport(GoogleSignIn)
         guard let clientID = Bundle.main.object(forInfoDictionaryKey: "GOOGLE_CLIENT_ID") as? String,
               !clientID.isEmpty,
               clientID != "REPLACE_ME" else {
-            errorMessage = "Google Sign-In is not configured. See AUTH_SETUP.md."
+            errorMessage = "Google Sign-In is not configured."
             LoggerService.shared.logWarning("Google Sign-In: GOOGLE_CLIENT_ID not set in Info.plist", category: "Auth")
             return
         }
@@ -176,6 +180,10 @@ final class SocialAuthViewModel: ObservableObject {
                 }
             }
         }
+        #else
+        errorMessage = "Google Sign-In is not available. Add the GoogleSignIn SPM package."
+        LoggerService.shared.logWarning("Google Sign-In: GoogleSignIn SPM package not added to project", category: "Auth")
+        #endif
     }
 
     // MARK: - Cryptographic Helpers

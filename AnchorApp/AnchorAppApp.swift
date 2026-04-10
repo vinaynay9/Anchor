@@ -2,7 +2,9 @@ import SwiftUI
 import UIKit
 import UserNotifications
 import Shared
+#if canImport(GoogleSignIn)
 import GoogleSignIn
+#endif
 
 // MARK: - App Delegate for APNs
 class AppDelegate: NSObject, UIApplicationDelegate {
@@ -123,9 +125,11 @@ class AppDelegate: NSObject, UIApplicationDelegate {
     // MARK: - URL Handling (Deep Links + OAuth Redirects)
     func application(_ app: UIApplication, open url: URL, options: [UIApplication.OpenURLOptionsKey : Any] = [:]) -> Bool {
         // Google Sign-In redirect — must be checked before Anchor deep links.
+        #if canImport(GoogleSignIn)
         if GIDSignIn.sharedInstance.handle(url) {
             return true
         }
+        #endif
 
         // Handle Anchor deep links (anchor://)
         Task { @MainActor in
