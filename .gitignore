@@ -101,6 +101,8 @@ iOSInjectionProject/
 Secrets.swift
 AnchorApp/Config/Secrets.swift
 AnchorApp/Anchor.xcconfig
+*.p8
+scripts/generate_apple_client_secret.py
 Google_Secret_Client.plist
 **/GoogleService-Info.plist
 *.env
