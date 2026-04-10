@@ -176,3 +176,56 @@ class APIClient {
         }
     }
 }
+
+// MARK: - SupabaseManager
+// Moved here from Core/Networking/SupabaseManager.swift (not in Xcode project).
+// Initializes the Supabase client from Info.plist via Anchor.xcconfig.
+
+#if canImport(Supabase)
+import Supabase
+
+final class SupabaseManager {
+    static let shared = SupabaseManager()
+    let client: SupabaseClient
+
+    private init() {
+        let urlString = SupabaseManager.readPlistValue(key: "SUPABASE_URL")
+        let anonKey   = SupabaseManager.readPlistValue(key: "SUPABASE_ANON_KEY")
+        let resolvedURL: URL
+        if !urlString.isEmpty, !urlString.hasPrefix("$("), let url = URL(string: urlString) {
+            resolvedURL = url
+        } else {
+            print("⚠️ [SupabaseManager] SUPABASE_URL not configured.")
+            resolvedURL = URL(string: "https://placeholder.supabase.co")!
+        }
+        let resolvedKey = (!anonKey.isEmpty && !anonKey.hasPrefix("$(")) ? anonKey : "placeholder-key"
+        client = SupabaseClient(supabaseURL: resolvedURL, supabaseKey: resolvedKey)
+    }
+
+    var isConfigured: Bool {
+        let url = SupabaseManager.readPlistValue(key: "SUPABASE_URL")
+        let key = SupabaseManager.readPlistValue(key: "SUPABASE_ANON_KEY")
+        return !url.isEmpty && !url.hasPrefix("$(") && url != "YOUR_SUPABASE_URL"
+            && !key.isEmpty && !key.hasPrefix("$(") && key != "YOUR_SUPABASE_ANON_KEY"
+    }
+
+    static func readPlistValue(key: String) -> String {
+        Bundle.main.object(forInfoDictionaryKey: key) as? String ?? ""
+    }
+}
+
+#else
+
+// Supabase SPM package not yet added — stub so callers compile.
+final class SupabaseManager {
+    static let shared = SupabaseManager()
+    private init() {
+        print("⚠️ [SupabaseManager] supabase-swift SPM package not added. Add via File → Add Package Dependencies.")
+    }
+    var isConfigured: Bool { false }
+    static func readPlistValue(key: String) -> String {
+        Bundle.main.object(forInfoDictionaryKey: key) as? String ?? ""
+    }
+}
+
+#endif
