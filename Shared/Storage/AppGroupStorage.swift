@@ -2,6 +2,50 @@ import Foundation
 import Combine
 import FamilyControls
 
+// MARK: - DailyAggregate
+// Defined here (rather than a separate file) so it compiles as part of the
+// Shared target alongside AppGroupStorage, which stores and retrieves it.
+// DailyAggregate.swift on disk is a no-op duplicate — this is the canonical definition.
+
+public struct DailyAggregate: Codable, Hashable, Identifiable {
+    public var id: String { date }
+
+    /// ISO date string "yyyy-MM-dd"
+    public var date: String
+
+    /// Total seconds the shield was active (locked) that day
+    public var lockedSeconds: Int
+
+    /// Number of goals completed
+    public var goalsCompleted: Int
+
+    /// Total goals that day
+    public var goalsTotal: Int
+
+    /// Number of times a blocked app was opened (shield hits)
+    public var shieldHits: Int
+
+    /// Shield hits broken down by category name
+    /// Key: human-readable category name, Value: hit count
+    public var shieldHitsByCategory: [String: Int]
+
+    public init(
+        date: String,
+        lockedSeconds: Int = 0,
+        goalsCompleted: Int = 0,
+        goalsTotal: Int = 0,
+        shieldHits: Int = 0,
+        shieldHitsByCategory: [String: Int] = [:]
+    ) {
+        self.date = date
+        self.lockedSeconds = lockedSeconds
+        self.goalsCompleted = goalsCompleted
+        self.goalsTotal = goalsTotal
+        self.shieldHits = shieldHits
+        self.shieldHitsByCategory = shieldHitsByCategory
+    }
+}
+
 // MARK: - Notification Names
 extension Notification.Name {
     /// Notification posted when any AppGroupStorage value is updated.
